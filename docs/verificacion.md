@@ -2,6 +2,16 @@
 
 [Volver al proyecto](../README.md)
 
+## v0.6.1 · Reinicio visible al terminar
+
+Fecha: 18 de octubre de 2026.
+
+- 79 pruebas correctas en Chrome. Cambio limitado a la interfaz exportada; se conserva el formato editable 6.
+- HTML generado mediante el editor y abierto en Chrome. Botón ausente en Inicio y durante la reproducción; al terminar queda oculto con el mouse fuera de la imagen y visible al entrar en ella.
+- Fondo oscuro opaco, texto blanco y borde doble comprobados visualmente sobre la presentación con transparencia. Captura guardada en `images/vista-reinicio.png`.
+- Clic en «Reiniciar» restaura Inicio, tiempo cero y estado detenido. El siguiente clic sobre el lienzo inicia la primera etapa.
+- Tab revela y enfoca el botón final con contorno destacado; Enter reinicia y devuelve el foco al lienzo. Sin errores ni advertencias de consola.
+
 ## v0.6.0 · Desfase de pintura y avance por clic
 
 Fecha: 18 de octubre de 2026.

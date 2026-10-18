@@ -1,5 +1,12 @@
 # Cambios
 
+## v0.6.1
+
+- Botón «↻ Reiniciar» al terminar la presentación, visible al pasar el mouse sobre la imagen y accesible con Tab y Enter.
+- Fondo oscuro sólido, texto blanco y doble borde claro/oscuro para distinguirlo del dibujo; foco de teclado resaltado.
+- Reinicio a Inicio sin reproducción automática; en pantallas sin hover permanece visible al terminar.
+- Presentación de ejemplo, guía y captura actualizadas; 79 pruebas correctas en Chrome.
+
 ## v0.6.0
 
 - Desfase inicial de pintura por etapa, de 0 a 60 segundos y predeterminado cero, disponible en General y selección múltiple.

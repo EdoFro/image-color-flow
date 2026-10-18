@@ -107,10 +107,14 @@ La barra inferior comienza oculta. Un pequeño logo permanece en la esquina infe
 
 - **Espacio**: reproducir, pausar o continuar después de una pausa.
 - **← / →**: cambiar de etapa.
-- **Clic en la imagen**: la misma acción que flecha derecha. En Inicio comienza; después avanza de etapa. Desde una pausa intermedia continúa reproduciendo; desde una pausa manual avanza conservando la pausa. En la última etapa muestra el final y se detiene. Los clics posteriores no reinician. Usa Espacio para pausar o continuar, o los controles para reiniciar.
+- **Clic en la imagen**: la misma acción que flecha derecha. En Inicio comienza; después avanza de etapa. Desde una pausa intermedia continúa reproduciendo; desde una pausa manual avanza conservando la pausa. En la última etapa muestra el final y se detiene. Los clics posteriores no reinician. Usa Espacio para pausar o continuar. Para reiniciar, utiliza el botón final o los controles.
 - **F** o el botón correspondiente: pantalla completa. F11 es una alternativa del navegador.
 - La barra permite desplazarse por la secuencia; el tiempo mostrado excluye pausas manuales.
 - Al cambiar a otra pestaña, la reproducción se pausa.
+
+Al terminar, aparece **↻ Reiniciar** en la esquina superior derecha del lienzo cuando pasas el mouse sobre la imagen. Tiene fondo oscuro sólido, texto blanco y doble borde para distinguirse del dibujo. Haz clic para regresar a **Inicio**, con la imagen base y sin reproducción automática; el siguiente clic sobre la imagen comienza de nuevo. También puedes llegar al botón con **Tab** y activarlo con **Enter**. En dispositivos sin hover permanece visible al finalizar.
+
+![Botón de reinicio al finalizar](images/vista-reinicio.png)
 
 Para integrarlo en otra presentación web, conserva el HTML exportado junto a ella y enlázalo o úsalo dentro de un `iframe`. Si el contenedor restringe scripts o usa `sandbox`, debe permitir scripts; añade `allowfullscreen` si necesitas pantalla completa.
 
