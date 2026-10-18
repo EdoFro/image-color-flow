@@ -1,7 +1,8 @@
-* text=auto
+* text=auto eol=lf
 *.html text eol=lf
 *.css text eol=lf
 *.js text eol=lf
+*.mjs text eol=lf
 *.json text eol=lf
 *.md text eol=lf
 *.jpg binary
@@ -9,6 +10,6 @@
 *.png binary
 
 # Estos ejemplos incorporan imágenes base64; evitar diffs enormes.
-demo-data.js -diff
-ejemplo.colorflow.json -diff
-presentacion-ejemplo.html -diff
+examples/demo-data.js -diff
+examples/ejemplo.colorflow.json -diff
+examples/presentacion-ejemplo.html -diff

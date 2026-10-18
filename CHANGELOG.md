@@ -1,5 +1,14 @@
 # Cambios
 
+## v0.3.1
+
+- Reorganización del código, estilos, ejemplos, pruebas y documentación en carpetas separadas.
+- README breve con captura, inicio rápido y enlaces a las guías.
+- Documentación de arquitectura, formato editable y procedencia de recursos.
+- Generador del ejemplo incorporado y ejecutor de pruebas sin DOM para Node.js, ambos opcionales y sin dependencias.
+- Rutas actualizadas manteniendo la apertura directa del editor y la presentación autónoma.
+- Formato editable 3 conservado, sin cambios de comportamiento de la animación.
+
 ## v0.3.0
 
 - Renombrado de etapas mediante doble clic, lápiz o inspector; Enter guarda y Escape cancela.

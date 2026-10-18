@@ -1,4 +1,21 @@
-# Verificación de v0.3.0
+# Verificación del proyecto
+
+[Volver al proyecto](../README.md)
+
+## v0.3.1 · Reorganización
+
+Fecha: 18 de octubre de 2026.
+
+- 44 pruebas sin DOM ejecutadas con `scripts/ejecutar-pruebas.mjs` y 50 pruebas correctas en Chrome desde `tests/index.html`.
+- Editor cargado desde la raíz con scripts en `src/`, estilos en `assets/` y ejemplo en `examples/`; recursos servidos correctamente desde las nuevas rutas.
+- Ejemplo calculado en el trabajador y reproducido hasta la primera pausa, con duración total de 14,1 segundos y sin errores de consola.
+- Presentación existente abierta desde `examples/presentacion-ejemplo.html`, con Inicio listo y sin errores de consola. Su contenido autónomo y el proyecto editable se conservan sin cambios.
+- Generador del ejemplo comprobado: datos de ambas imágenes idénticos a los incorporados antes de reorganizar y salida reproducible.
+- Referencias locales del README, documentación y archivos HTML comprobadas; sin destinos ausentes.
+- Sintaxis del código reubicado y del script de la presentación comprobada. La captura del editor se actualizó en `docs/images/`.
+- Se mantiene el formato editable 3. La reorganización no introduce dependencias ni compilación.
+
+## v0.3.0 · Funcionalidad
 
 Fecha: 18 de octubre de 2026.
 
