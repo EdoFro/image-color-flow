@@ -1,5 +1,15 @@
 # Cambios
 
+## v0.7.0
+
+- API local y CLI para crear, inspeccionar, actualizar, validar y renderizar proyectos desde imágenes y planes JSON.
+- Servidor MCP stdio con seis herramientas, recursos de esquema y guía, resultados estructurados y cancelación de renderizados.
+- Contrato JSON Schema con validación estricta por campo; rutas limitadas a la raíz configurada y protección de destinos existentes.
+- Preparación, cálculo y exportación compartidos con el editor, conservando el formato editable 6 y el HTML sin conexión.
+- Renderizado en navegador local con perfil temporal; informe de duraciones, plan con geometría y fotogramas por etapa.
+- Guías de integración, plan de ejemplo y configuración MCP de referencia.
+- 21 pruebas nuevas de automatización; 71 pruebas del motor sin DOM y 79 en Chrome.
+
 ## v0.6.1
 
 - Botón «↻ Reiniciar» al terminar la presentación, visible al pasar el mouse sobre la imagen y accesible con Tab y Enter.

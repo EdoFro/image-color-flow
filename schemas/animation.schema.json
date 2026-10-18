@@ -1,0 +1,480 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "resolution": {
+      "enum": [
+        720,
+        1080,
+        1440
+      ],
+      "default": 1080
+    },
+    "baseMode": {
+      "enum": [
+        "derived",
+        "uploaded"
+      ]
+    },
+    "alignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": -0.3,
+          "maximum": 0.3
+        },
+        "y": {
+          "type": "number",
+          "minimum": -0.3,
+          "maximum": 0.3
+        },
+        "sx": {
+          "type": "number",
+          "minimum": 0.7,
+          "maximum": 1.3
+        },
+        "sy": {
+          "type": "number",
+          "minimum": 0.7,
+          "maximum": 1.3
+        },
+        "angle": {
+          "type": "number",
+          "minimum": -10,
+          "maximum": 10
+        }
+      },
+      "default": {
+        "x": 0,
+        "y": 0,
+        "sx": 1,
+        "sy": 1,
+        "angle": 0
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "background": {
+          "enum": [
+            "hatch",
+            "color",
+            "transparent"
+          ]
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        }
+      },
+      "default": {
+        "background": "hatch",
+        "color": "#e5e7e3"
+      }
+    },
+    "initialView": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "frame": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/frame"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "zoom": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "highlightEnabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "highlightLinked": {
+          "type": "boolean",
+          "default": true
+        },
+        "highlightFrame": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/frame"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "outside": {
+          "enum": [
+            "show",
+            "blur",
+            "black",
+            "white",
+            "color",
+            "transparent"
+          ],
+          "default": "blur"
+        },
+        "outsideColor": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "default": "#202c29"
+        },
+        "blur": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 40,
+          "default": 12
+        }
+      }
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/stage"
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Plan de animación Tinta y color",
+  "description": "Coordenadas x/y normalizadas 0–1, radios y velocidades relativos al ancho, tiempos en segundos. Campos omitidos reciben valores del motor. stages reemplaza la lista completa; points:[] crea una etapa visual. frame debe quedar dentro de la imagen. No incluye imágenes: se suministran como archivos a la API.",
+  "$defs": {
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Fracción del ancho, de izquierda a derecha."
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Fracción del alto, de arriba hacia abajo."
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ]
+    },
+    "frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.98
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.98
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 1
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0.02,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ]
+    },
+    "emitter": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Fracción del ancho, de izquierda a derecha."
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Fracción del alto, de arriba hacia abajo."
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "startMode": {
+          "enum": [
+            "with",
+            "after",
+            "delay"
+          ],
+          "default": "with"
+        },
+        "delay": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3600,
+          "default": 0
+        },
+        "inheritRadii": {
+          "type": "boolean",
+          "default": true
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 1.5,
+          "default": 0.25
+        },
+        "maxRadius": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 1.5,
+          "default": 1.5
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ]
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "frame": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/frame"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "zoom": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "highlightEnabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "highlightLinked": {
+          "type": "boolean",
+          "default": true
+        },
+        "highlightFrame": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/frame"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "outside": {
+          "enum": [
+            "show",
+            "blur",
+            "black",
+            "white",
+            "color",
+            "transparent"
+          ],
+          "default": "blur"
+        },
+        "outsideColor": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "default": "#202c29"
+        },
+        "blur": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 40,
+          "default": 12
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "default": "Etapa 1"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "points": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/emitter"
+          },
+          "default": [
+            {
+              "x": 0.5,
+              "y": 0.5,
+              "enabled": true,
+              "startMode": "with",
+              "delay": 0,
+              "inheritRadii": true,
+              "radius": 0.25,
+              "maxRadius": 1.5
+            }
+          ],
+          "description": "Puntos en orden. Una lista vacía evita el punto central predeterminado."
+        },
+        "path": {
+          "type": "array",
+          "maxItems": 2000,
+          "items": {
+            "$ref": "#/$defs/point"
+          },
+          "default": []
+        },
+        "zone": {
+          "anyOf": [
+            {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 200,
+              "items": {
+                "$ref": "#/$defs/point"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 1.5,
+          "default": 0.25,
+          "description": "Fracción del ancho de la imagen."
+        },
+        "maxRadius": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 1.5,
+          "default": 1.5,
+          "description": "Fracción del ancho de la imagen."
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.6,
+          "default": 0.12,
+          "description": "Fracciones del ancho por segundo."
+        },
+        "clarity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 8,
+          "default": 3
+        },
+        "ink": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 30,
+          "default": 8
+        },
+        "hueResistance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 30,
+          "default": 0
+        },
+        "fade": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 2,
+          "default": 0.45,
+          "description": "Segundos."
+        },
+        "blackThreshold": {
+          "type": "number",
+          "minimum": 5,
+          "maximum": 160,
+          "default": 65
+        },
+        "windStrength": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2,
+          "default": 0
+        },
+        "windAngle": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 359,
+          "default": 0
+        },
+        "pathSpeed": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 1,
+          "default": 0.3,
+          "description": "Velocidad del pincel en fracciones del ancho por segundo."
+        },
+        "pauseAfter": {
+          "type": "boolean",
+          "default": false
+        },
+        "cameraDuration": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 0.7,
+          "description": "Segundos."
+        },
+        "paintDelay": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 0,
+          "description": "Segundos."
+        },
+        "hold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60,
+          "default": 0,
+          "description": "Segundos."
+        }
+      }
+    }
+  }
+}

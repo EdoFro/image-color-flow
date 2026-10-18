@@ -2,6 +2,18 @@
 
 [Volver al proyecto](../README.md)
 
+## v0.7.0 · API, comandos y MCP
+
+Fecha: 18 de octubre de 2026.
+
+- 21 pruebas de automatización correctas: contrato, coordenadas y geometría, creación, actualizaciones aisladas, compatibilidad anterior, errores sin modificar archivos, raíz de trabajo y enlaces, artefactos, CLI, negociación MCP, recursos, llamadas, cancelación y transporte stdio fragmentado con Unicode. También verifican timeout y cierre de proceso, servidor y perfil con un lanzador simulado.
+- 71 pruebas existentes del motor sin DOM y 79 pruebas correctas en Chrome. Cálculo y exportación comprobados en el editor después de extraer formato, trabajador y constructor HTML. Sin errores ni advertencias de consola.
+- Proyecto de ejemplo procesado por la API con navegador real: cuatro etapas, 735 × 1080 px y 16,891 s, sin pausas manuales. Generó HTML, proyecto editable, informe, plan con geometría y fotogramas. El HTML coincide byte por byte con el ejemplo v0.6.1; la nueva descarga del editor también coincide. No fue necesario modificar los ejemplos grandes.
+- CLI create ejecutado mediante su función principal con la imagen coloreada real y el plan incluido: proyecto de tres etapas y base derivada. Una llamada MCP renderizó ese proyecto en Chrome y devolvió artefactos e informe correctos: 490 × 720 px, 5,846 s y aviso de base desaturada.
+- Presentación generada abierta en Chrome y avanzada por clic hasta la segunda etapa, con controles ocultos. Captura del trabajo real guardada en images/vista-automatizacion.png.
+- Los trabajos visuales utilizaron el mismo servidor y runner del modo automático, abriendo sus URLs mediante el navegador de pruebas. El ejecutable node no está disponible en el PATH de este equipo: no se ejecutó el CLI como proceso independiente ni se inició Chrome/Edge desde el lanzador headless real. Ese arranque y la conexión a un cliente MCP concreto quedan por verificar en una instalación con Node.js.
+- La política del navegador de pruebas impidió navegar a file://. No se modificaron permisos ni se intentó eludirla; la apertura directa desde archivo queda sin repetir en esta versión. El editor conserva scripts clásicos locales, sin nuevas peticiones ni dependencias externas. Los servidores temporales de pruebas se cerraron al finalizar.
+
 ## v0.6.1 · Reinicio visible al terminar
 
 Fecha: 18 de octubre de 2026.

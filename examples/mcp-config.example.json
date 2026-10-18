@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "tinta-y-color": {
+      "command": "node",
+      "args": [
+        "/ruta/image-color-flow/automation/mcp.mjs",
+        "--root",
+        "/ruta/carpeta-de-trabajo"
+      ]
+    }
+  }
+}

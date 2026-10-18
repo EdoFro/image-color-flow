@@ -10,7 +10,12 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 | --- | --- |
 | `index.html` | Estructura del editor, inspector y diálogo de imágenes. |
 | `assets/styles.css` | Presentación del editor y adaptación al tamaño de pantalla. |
-| `src/app.js` | Estado del proyecto, eventos del editor, herramientas del lienzo, archivos, trabajador de cálculo y construcción del HTML exportado. |
+| `src/app.js` | Estado del proyecto, eventos del editor, herramientas del lienzo, archivos y coordinación con las APIs compartidas de cálculo y exportación. |
+| `src/project.js` | Normalización compartida del formato editable y opciones de presentación. |
+| `src/presentation.js` | Constructor único del HTML autónomo, incluido el reinicio final. |
+| `src/automation.js` | Preparación completa, cálculo en Web Worker, informe, fotogramas y hoja de secuencia sin montar el editor. |
+| `automation/` | API de Node.js, CLI, servidor MCP stdio y renderizador mediante navegador local. |
+| `schemas/animation.schema.json` | Contrato estricto de planes sin imágenes para agentes y clientes. |
 | `src/preparation.js` | Decodificación de imágenes, preparación del papel, base desaturada y alineación. |
 | `src/engine.js` | Normalización de parámetros y propagación, independiente del DOM. |
 | `src/player.js` | Tiempo, pausas, navegación y mezcla de las etapas. |
@@ -30,7 +35,7 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 5. El reproductor mezcla la base con la imagen final y acumula el color revelado. La vista aplica el destacado y la cámara. Durante una transición interpola el rectángulo y combina los estilos en alfa premultiplicada, conservando la transparencia.
 6. El guardado de proyecto conserva datos editables; la exportación incorpora imágenes preparadas, mapas y funciones necesarias en un único HTML.
 
-El orden de carga del editor es motor, preparación, vista, reproductor, códec, parámetros generales, imágenes de ejemplo y aplicación. Las fábricas del motor, reproductor, vista y códec deben seguir siendo autocontenidas: sus funciones se incorporan al trabajador o al HTML exportado mediante `toString()`.
+El orden de carga del editor es motor, formato de proyecto, preparación, vista, reproductor, códec, parámetros generales, imágenes de ejemplo, exportación, automatización y aplicación. Las fábricas del motor, reproductor, vista y códec deben seguir siendo autocontenidas: sus funciones se incorporan al trabajador o al HTML exportado mediante `toString()`.
 
 ## Cómo se propaga el color
 
@@ -56,7 +61,7 @@ Los tiempos exportados se cuantizan a 16 bits por etapa; su precisión es la dur
 
 No hace falta instalar paquetes. Abre [las pruebas](../tests/index.html) en Chrome o Edge para ejecutar 79 casos, incluidos ocho que necesitan el lienzo real del navegador.
 
-Opcionalmente, con Node.js 18 o posterior, desde la raíz:
+Opcionalmente, con Node.js 22 o posterior, desde la raíz:
 
 ```sh
 node scripts/ejecutar-pruebas.mjs
@@ -68,3 +73,11 @@ El primer comando ejecuta los 71 casos sin DOM y termina con error si alguno fal
 Si se cambian las imágenes o la configuración del ejemplo, guarda un nuevo proyecto y exporta de nuevo la presentación desde el editor. Conserva los resultados en `examples/ejemplo.colorflow.json` y `examples/presentacion-ejemplo.html`.
 
 También se puede usar cualquier servidor estático local para desarrollo. El servidor no es necesario para el uso normal. Las comprobaciones realizadas y sus límites están en [verificación](verificacion.md).
+
+## Automatización opcional
+
+La API de Node.js usa el mismo normalizador que el editor, junto con un contrato estricto de planes que rechaza errores antes de aplicar valores predeterminados. Conserva el formato editable 6. Los comandos y MCP son adaptadores de esta API; no duplican la propagación ni el constructor HTML.
+
+Canvas, decodificación, alineación, Web Worker y fotogramas se ejecutan en Chrome/Edge/Chromium sin ventana con un perfil temporal aislado. El proceso de Node sirve exclusivamente recursos enumerados y el trabajo actual en loopback, mediante una ruta aleatoria. El resultado regresa por HTTP local; el servidor, navegador y perfil se cierran al finalizar, cancelar o fallar. El renderizador admite una sesión de navegador externa para las pruebas visuales del mismo trabajo.
+
+MCP utiliza JSON-RPC por stdio, sin dependencias, con descubrimiento de seis herramientas, esquema y guía como recursos, resultados estructurados y cancelación. La raíz de archivos se limita tanto léxicamente como al resolver enlaces. La validación de estructura no pretende garantizar la interpretación visual del pedido. La IA debe revisar plan y fotogramas; consulta la [guía de integración](automatizacion.md).

@@ -14,6 +14,12 @@ Editor local para animar la aparición del color en dibujos con tinta, acuarela 
 
 El editor prepara y alinea las imágenes. También puede obtener una base desaturada desde la versión coloreada. Los puntos admiten orden, activación, demoras y radios propios. Las etapas pueden pintar o cambiar únicamente el enfoque y el destacado, con transiciones graduales, desfase inicial de pintura y permanencia. **General** permite revisar y unificar parámetros de toda la presentación antes de aplicarlos. Puedes deshabilitar etapas y usar Ctrl + clic para editar un grupo de ellas. La exportación ofrece fondo achurado, liso o transparente, sin marco ni sombra alrededor del dibujo. Sus controles comienzan ocultos y se muestran con el logo o la tecla H. Un clic en el dibujo inicia o avanza la presentación; Espacio permite pausar y continuar. Al terminar, un botón de reinicio con alto contraste permite regresar a Inicio.
 
+## Uso desde una IA
+
+La automatización opcional ofrece una API local, comandos y un servidor MCP con seis herramientas. Un asistente con visión puede crear proyectos desde imágenes y planes JSON, revisar vistas previas y exportar el HTML. Requiere Node.js 22 o posterior y Chrome/Edge/Chromium para renderizar; no usa paquetes externos. El editor conserva su apertura directa sin instalación.
+
+Consulta la [guía de automatización y conexión MCP](docs/automatizacion.md), el [contrato del plan](schemas/animation.schema.json) y la [guía para asistentes](docs/para-ia.md).
+
 ## Documentación y ejemplos
 
 - [Guía de uso](docs/guia-de-uso.md): herramientas, tiempos, radios, cámara, destacado y presentación.
@@ -30,8 +36,10 @@ El editor prepara y alinea las imágenes. También puede obtener una base desatu
 index.html       Entrada del editor
 src/             Código JavaScript
 assets/          Estilos del editor
+automation/      API local, comandos, servidor MCP y renderizador
+schemas/         Contrato de planes para automatización
 examples/        Imágenes, datos incorporados, proyecto y presentación
-tests/           Pruebas que se abren en el navegador
+tests/           Pruebas del navegador y de automatización
 docs/            Guías, referencias, capturas y prompt de coloreado
 scripts/         Utilidades opcionales para desarrollo
 ```
