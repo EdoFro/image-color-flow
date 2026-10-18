@@ -4,7 +4,7 @@
   function createPaintPlayer(canvas, model, onState = () => {}) {
     const { width, height, base, final } = model;
     const views = model.viewAPI || globalThis.PaintView, initialView = model.initialView || {};
-    const fields = model.fields.map((f, i) => ({ ...f, stageIndex: f.stageIndex ?? i })).filter(f => !f.skipped && f.duration >= 0);
+    const fields = model.fields.map((f, i) => ({ ...f, stageIndex: f.stageIndex ?? i })).filter(f => f.enabled !== false && !f.skipped && f.duration >= 0);
     canvas.width = width; canvas.height = height;
     const ctx = canvas.getContext('2d'), frame = ctx.createImageData(width, height);
     const committed = new Uint8Array(width * height), alpha = new Float32Array(width * height);
@@ -84,6 +84,7 @@
     }
     function restart() { pause(); committed.fill(0); index = 0; time = 0; atStart = true; waiting = false; ended = !fields.length; render(); }
     function seek(seconds) {
+      if (!fields.length) { restart(); return; }
       pause(); committed.fill(0); atStart = false; waiting = false; ended = !fields.length;
       const target = Math.max(0, Math.min(total, seconds)); index = 0;
       while (index < fields.length - 1 && target >= offsets[index + 1]) { commit(fields[index]); index++; }

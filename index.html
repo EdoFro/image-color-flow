@@ -20,6 +20,7 @@
       <div class="eyebrow">01 / SECUENCIA</div>
       <div class="section-heading"><h1>Un color a la vez.</h1><button id="addStage" class="square" title="Añadir etapa" aria-label="Añadir etapa">+</button></div>
       <p class="muted intro">Define dónde empieza. El dibujo guía el resto.</p>
+      <p class="muted small selection-help">Ctrl + clic para seleccionar varias etapas. La casilla habilita o deshabilita su reproducción.</p>
       <button id="generalCard" class="initial-card general-card" aria-pressed="false"><strong>General</strong><small>Parámetros de toda la presentación</small></button>
       <button id="initialCard" class="initial-card" aria-pressed="false"><strong>Inicio</strong><small>Encuadre inicial · espera tu señal</small></button>
       <div id="stageList" class="stage-list" aria-label="Etapas de la animación"></div>
@@ -52,7 +53,7 @@
       <div class="eyebrow" id="inspectorEyebrow">02 / PROPAGACIÓN</div><h2 id="inspectorTitle">El movimiento del color</h2>
       <section id="generalSettings" hidden>
         <p class="muted small">Negro: valor uniforme. Morado: varios valores. Los cambios se aplican únicamente después de revisarlos y confirmar.</p>
-        <label class="checkbox"><input id="includeInitial" type="checkbox"><span>Incluir Inicio en los ajustes de enfoque y destacado</span></label>
+        <label class="checkbox" id="includeInitialField"><input id="includeInitial" type="checkbox"><span>Incluir Inicio en los ajustes de enfoque y destacado</span></label>
         <div id="generalParameters"></div>
         <div class="general-actions"><p id="generalPending" role="status">Sin cambios pendientes.</p><button id="reviewGeneral" class="primary" disabled>Aplicar cambios…</button><button id="cancelGeneral" disabled>Descartar pendientes</button></div>
       </section>

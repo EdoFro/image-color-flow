@@ -268,6 +268,36 @@
       const project = bulkProject(); project.stages[0].points[0].enabled = false; general.apply(project, { startMode: 'delay', delay: 2 });
       assert(project.stages[0].points[0].enabled === false && project.stages[0].points[0].x === .2 && project.stages.every(s => s.points.every(p => p.startMode === 'delay' && p.delay === 2)), 'Se perdió el estado o el orden del punto.');
     });
+    test('Las etapas anteriores se habilitan por defecto sin cambiar la activación de puntos', () => {
+      const stage = engine.normalizeStage({ points: [{ x: .5, y: .5, enabled: false }] });
+      assert(stage.enabled && !stage.points[0].enabled && !engine.normalizeStage({ enabled: false }).enabled, 'Se confunde la habilitación de etapas y puntos.');
+    });
+    test('Una etapa deshabilitada no pinta ni consume transición, permanencia o pausa', () => {
+      const field = calc(21, 11, image(21, 11), { enabled: false, cameraDuration: 5, hold: 60, pauseAfter: true });
+      assert(field.skipped && field.enabled === false && field.duration === 0 && field.reached === 0 && field.times.every(t => t === Infinity) && field.opacity.every(value => value === 0), 'Una etapa deshabilitada participa en la reproducción.');
+      const decoded = root.PaintCodec.unpack(root.PaintCodec.pack(field), 231); assert(decoded.enabled === false && decoded.skipped && decoded.duration === 0, 'La exportación perdió la deshabilitación.');
+    });
+    test('La cámara y el color ignoran etapas deshabilitadas intermedias', () => {
+      const a = { times: new Float32Array([Infinity]), duration: 1, fade: .1, cameraDuration: 1, frame: { x: .1, y: .1, width: .2, height: .2 } }, disabled = { ...a, enabled: false, duration: 60, times: new Float32Array([0]), frame: { x: .1, y: .1, width: .8, height: .8 }, pauseAfter: true }, b = { ...a, frame: { x: .1, y: .1, width: .4, height: .4 } }, p = inspectPlayer([a, disabled, b]);
+      try { p.player.seek(1.5); assert(p.player.getState().index === 2 && p.player.getState().total === 2 && Math.abs(p.player.getState().camera.size - .3) < 1e-6 && p.pixel(0) === 255, 'La etapa deshabilitada modificó el tiempo, cámara o color.'); } finally { p.player.destroy(); }
+    });
+    test('La navegación anterior y siguiente salta etapas deshabilitadas', () => {
+      const a = { times: new Float32Array([Infinity]), duration: 1, fade: .1 }, p = inspectPlayer([a, { ...a, enabled: false }, a]);
+      try { p.player.next(); p.player.pause(); p.player.next(); assert(p.player.getState().index === 2, 'Siguiente no saltó la etapa.'); p.player.previous(); assert(p.player.getState().index === 0, 'Anterior no saltó la etapa.'); } finally { p.player.destroy(); }
+    });
+    test('Con todas las etapas deshabilitadas se conserva Inicio al navegar o buscar', () => {
+      const p = inspectPlayer([{ enabled: false, duration: 1, times: new Float32Array([0]), fade: .1 }], 1, 1, { initialView: { frame: { x: .1, y: .1, width: .4, height: .4 } } });
+      try { p.player.play(); p.player.seek(5); p.player.next(); p.player.previous(); const state = p.player.getState(); assert(state.empty && state.atStart && !state.playing && state.total === 0 && state.camera.size === .4 && p.pixel(0) === 255, 'Una secuencia deshabilitada perdió Inicio.'); } finally { p.player.destroy(); }
+    });
+    test('El resumen colectivo usa solo las etapas seleccionadas', () => {
+      const project = bulkProject(); project.stages.push(engine.normalizeStage({ radius: .9, points: [] })); const scoped = general.scope(project, project.stages.slice(0, 2));
+      const summary = general.summary(scoped, parameter('radius')); assert(summary.mixed && summary.max === .3 && summary.min === .2, 'Se incluyeron valores ajenos a la selección.');
+    });
+    test('La selección aplica radios solo a sus etapas y puntos, incluso deshabilitados', () => {
+      const project = bulkProject(); project.stages.push(engine.normalizeStage({ radius: .8, points: [{ x: .1, y: .1, inheritRadii: false, radius: .9 }] })); project.stages[1].enabled = false;
+      const selected = [project.stages[0], project.stages[1]], excluded = JSON.stringify(project.stages[2]), scoped = general.scope(project, selected); project.stages.reverse(); general.apply(scoped, { radius: .4, speed: .3 });
+      assert(selected.every(s => s.radius === .4 && s.speed === .3 && s.points.every(p => p.inheritRadii)) && JSON.stringify(project.stages[0]) === excluded && !selected[1].enabled, 'La aplicación afectó otra etapa o perdió sus destinos al reordenar.');
+    });
     if (typeof document !== 'undefined') {
       test('Transición real entre exteriores opacos mezcla el color sin perder alfa', () => {
         const source = document.createElement('canvas'), output = document.createElement('canvas'); source.width = output.width = source.height = output.height = 20;

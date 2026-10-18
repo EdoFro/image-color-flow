@@ -19,6 +19,23 @@ Abre [index.html](../index.html) en Chrome o Edge. Conserva la estructura comple
 
 En **Editar**, el lienzo muestra la imagen final como referencia con las guías encima; **Imagen inicial** permite revisar la base preparada. La reproducción comienza desde esa base.
 
+## Habilitación y selección de etapas
+
+La casilla de cada etapa en la columna izquierda controla su reproducción. Al deshabilitarla se conserva toda su configuración y sigue siendo editable, pero no pinta ni participa en el enfoque, destacado, transición, permanencia o pausa. La cámara y el color acumulado pasan entre las etapas habilitadas. Si ninguna está habilitada se mantiene la vista Inicio.
+
+- **Clic normal** sobre el nombre: selecciona una sola etapa.
+- **Ctrl + clic** sobre el nombre: añade o quita esa etapa del grupo. Siempre queda al menos una etapa seleccionada.
+- La casilla de habilitación no cambia el grupo seleccionado. También puedes seleccionar etapas deshabilitadas.
+- General e Inicio se seleccionan individualmente.
+
+Con varias etapas seleccionadas, el inspector usa los mismos controles y la misma revisión de General, pero limita el resumen y la aplicación al grupo elegido. La confirmación indica cuántas etapas y puntos se modificarán. Los radios vuelven a heredarse únicamente en los puntos de esas etapas. Inicio no forma parte de una selección múltiple.
+
+El lienzo muestra como referencia la última etapa seleccionada que permanezca en el grupo. Las herramientas de dibujo, el nombre y las geometrías se editan al seleccionar una sola etapa. El grupo se conserva al reordenar etapas y al aplicar la preparación de imágenes.
+
+Los pendientes del grupo y los de General son independientes. Cambiar los miembros del grupo o pasar a Inicio o General descarta los pendientes de la selección; los pendientes de General se conservan al navegar, como antes. Ninguna modificación pendiente se guarda sin confirmarla.
+
+![Selección de dos etapas, incluida una deshabilitada](images/vista-seleccion.png)
+
 ## General
 
 **General** aparece antes de Inicio y no forma parte de la reproducción. Reúne los parámetros de propagación, radios, viento, pincel, puntos, enfoque, destacado y tiempos. Los nombres y las geometrías se editan individualmente.
@@ -74,7 +91,9 @@ Arrastra el asa **T** o **M** para cambiar cada radio. El punto usa inicialmente
 
 Al pulsar **Exportar HTML**, elige **Achurado diagonal** (predeterminado), **Color liso** o **Transparente** para el fondo. El achurado se genera con CSS dentro del archivo y permanece fijo detrás del dibujo. El lienzo no tiene marco ni sombra; sus zonas transparentes muestran ese fondo o la página que lo contiene. Las opciones de fondo se conservan en el proyecto después de confirmar la exportación.
 
-La exportación es **un único archivo HTML**: incluye la base preparada, la imagen final, los mapas de tiempos y el reproductor. No necesita la carpeta del editor, servidor, instalación ni conexión. Ábrelo con un navegador y haz clic en Reproducir.
+La exportación es **un único archivo HTML**: incluye la base preparada, la imagen final, los mapas de tiempos y el reproductor. No necesita la carpeta del editor, servidor, instalación ni conexión. Ábrelo con un navegador y haz clic en la imagen o pulsa Espacio para comenzar.
+
+La barra inferior comienza oculta. Un pequeño logo permanece en la esquina inferior derecha: haz clic en él o pulsa **H** para mostrar u ocultar los controles. La barra permanece visible hasta que la ocultes manualmente y se superpone al dibujo sin cambiar el tamaño del lienzo. Los atajos de reproducción funcionan con la barra oculta.
 
 - **Espacio**: reproducir, pausar o continuar después de una pausa.
 - **← / →**: cambiar de etapa.
@@ -87,7 +106,7 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 4 y se pueden abrir también los de formatos 1, 2 y 3. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 5 y se pueden abrir también los de formatos 1, 2, 3 y 4. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 

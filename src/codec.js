@@ -15,7 +15,7 @@
         extraView.setUint32(k * 7, accents.indices[k], true); extraView.setUint16(k * 7 + 4, encodeTime(accents.times[k]), true); extra[k * 7 + 6] = accents.opacity[k];
       }
       return { data: base64(bytes), accentData: base64(extra), scale, duration: field.duration, fade: field.fade, name: field.name,
-        pauseAfter: field.pauseAfter, skipped: field.skipped, visualOnly: field.visualOnly, hold: field.hold, frame: field.frame, cameraDuration: field.cameraDuration, stageIndex: field.stageIndex,
+        pauseAfter: field.pauseAfter, enabled: field.enabled, skipped: field.skipped, visualOnly: field.visualOnly, hold: field.hold, frame: field.frame, cameraDuration: field.cameraDuration, stageIndex: field.stageIndex,
         zoom: field.zoom, highlightEnabled: field.highlightEnabled, highlightLinked: field.highlightLinked, highlightFrame: field.highlightFrame,
         outside: field.outside, outsideColor: field.outsideColor, blur: field.blur };
     }

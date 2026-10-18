@@ -69,7 +69,11 @@
         point.inheritRadii = true; point.radius = stage.radius; point.maxRadius = stage.maxRadius;
       }
     }
-    return { parameters, targets, summary, format, validate, apply };
+    function scope(project, stages) {
+      if (!stages.length || new Set(stages).size !== stages.length || stages.some(stage => !project.stages.includes(stage))) throw new Error('La selección de etapas no es válida.');
+      return { stages: [...stages], initialView: project.initialView };
+    }
+    return { parameters, targets, summary, format, validate, apply, scope };
   }
   root.createPaintGeneral = createPaintGeneral; root.PaintGeneral = createPaintGeneral();
 })(typeof window === 'undefined' ? globalThis : window);

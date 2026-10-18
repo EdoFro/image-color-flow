@@ -14,7 +14,7 @@
     function normalizeStage(s = {}, index = 0) {
       if (!s || typeof s !== 'object') s = {};
       return {
-        name: String(s.name || `Etapa ${index + 1}`).slice(0, 80),
+        name: String(s.name || `Etapa ${index + 1}`).slice(0, 80), enabled: s.enabled !== false,
         points: (Array.isArray(s.points) ? s.points : [{ x: .5, y: .5 }]).slice(0, 64).map(emitter),
         path: (Array.isArray(s.path) ? s.path : []).slice(0, 2000).map(point),
         zone: Array.isArray(s.zone) && s.zone.length >= 3 ? s.zone.slice(0, 200).map(point) : null,
@@ -90,6 +90,10 @@
     function compute({ width, height, rgba, stage: rawStage, onProgress }) {
       if (!Number.isInteger(width) || !Number.isInteger(height) || width < 2 || height < 2 || width * height > 4000000 || !rgba || rgba.length !== width * height * 4) throw new Error('Dimensiones de imagen no válidas.');
       const stage = normalizeStage(rawStage), n = width * height, zone = rasterizeZone(width, height, stage.zone);
+      if (!stage.enabled) {
+        const times = new Float32Array(n), fullTimes = new Float32Array(n); times.fill(Infinity); fullTimes.fill(Infinity);
+        return { times, fullTimes, opacity: new Uint8Array(n), accents: { indices: new Uint32Array(0), times: new Float32Array(0), opacity: new Uint8Array(0) }, duration: 0, paintDuration: 0, reached: 0, area: 0, fade: stage.fade, name: stage.name, enabled: false, pauseAfter: stage.pauseAfter, ignoredSeeds: 0, pointTimings: [], pathSamples: 0, skipped: true, visualOnly: false, ...normalizeView(stage), cameraDuration: stage.cameraDuration, hold: stage.hold };
+      }
       const luminosity = new Float32Array(n), resistance = new Float32Array(n), hue = new Float32Array(n), chroma = new Float32Array(n);
       for (let i = 0; i < n; i++) {
         const k = i * 4, r = rgba[k], g = rgba[k + 1], b = rgba[k + 2];
@@ -206,7 +210,7 @@
       let reached = 0, area = 0; for (let i = 0; i < n; i++) { area += zone[i]; if (opacity[i]) reached++; }
       return { times, fullTimes, opacity, accents, duration: Math.max(duration, stage.cameraDuration) + stage.hold, paintDuration: duration,
         reached, area, fade: stage.fade, name: stage.name, pauseAfter: stage.pauseAfter, ignoredSeeds, pointTimings, pathSamples,
-        skipped: false, visualOnly: !emitters, ...normalizeView(stage), cameraDuration: stage.cameraDuration, hold: stage.hold };
+        skipped: false, enabled: true, visualOnly: !emitters, ...normalizeView(stage), cameraDuration: stage.cameraDuration, hold: stage.hold };
     }
     return { compute, normalizeStage, normalizeView, pointRadii, radiusDistance, rasterizeZone, inPolygon };
   }

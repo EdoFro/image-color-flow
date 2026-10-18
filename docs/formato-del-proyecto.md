@@ -4,14 +4,14 @@
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
-El formato actual es **4**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
+El formato actual es **5**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
 
 ## Estructura principal
 
 | Campo | Contenido |
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
-| `version` | Versión del formato: se guarda `4`; se leen `1`, `2`, `3` y `4`. |
+| `version` | Versión del formato: se guarda `5`; se leen `1`, `2`, `3`, `4` y `5`. |
 | `images.final` | Imagen coloreada obligatoria, con `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
 | `baseMode` | `uploaded` para preparar la inicial o `derived` para desaturar la final. Sin inicial se utiliza `derived`. |
@@ -27,7 +27,7 @@ Las coordenadas `x` e `y` de puntos, zonas y rectángulos son fracciones de las 
 
 Cada etapa contiene:
 
-- `name`, hasta 80 caracteres, y `pauseAfter`, para esperar interacción al terminar.
+- `name`, hasta 80 caracteres, `enabled` para habilitar la etapa (predeterminado `true`) y `pauseAfter`, para esperar interacción al terminar.
 - `zone`, polígono de al menos tres puntos, o `null` para toda la imagen.
 - `points`, hasta 64 emisores ordenados.
 - `path`, recorrido de pincel de hasta 2000 puntos, y `pathSpeed`.
@@ -71,6 +71,10 @@ Los archivos de formato 2 conservan sus puntos, tiempos, radios, tono y encuadre
 El formato 4 añade la permanencia y las opciones de fondo exportado. Al abrir formatos anteriores se asigna permanencia cero y fondo achurado. Las etapas sin emisores ahora se reproducen como etapas visuales, conservando sus opciones de cámara y pausa.
 
 General no se almacena como etapa ni como conjunto de valores predeterminados: deriva el resumen de las etapas y puntos actuales y aplica cambios a esos datos. Los borradores pendientes no se serializan.
+
+El formato 5 añade `enabled` a las etapas. Los proyectos anteriores mantienen todas sus etapas habilitadas al abrirse; la activación de los puntos es independiente. Una etapa deshabilitada se conserva completa en el proyecto y se omite de la presentación exportada.
+
+La selección múltiple y sus pendientes son estado del editor y no se serializan. La visibilidad de la barra de presentación tampoco se guarda: cada apertura comienza con la barra oculta.
 
 Los mapas de llegada no se guardan en el proyecto: se recalculan al reproducir o exportar.
 

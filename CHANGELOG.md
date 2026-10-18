@@ -1,5 +1,15 @@
 # Cambios
 
+## v0.5.0
+
+- Habilitación individual de etapas, conservando sus datos y omitiendo pintado, cámara y tiempos al deshabilitarlas.
+- Selección múltiple con Ctrl + clic e inspector colectivo limitado al grupo, con revisión y confirmación.
+- Borradores separados de General y de la selección; identidad del grupo conservada al reordenar y preparar imágenes.
+- Presentación con barra inicialmente oculta, logo accesible y tecla H para alternarla sin cambiar el tamaño del lienzo.
+- Vista Inicio conservada cuando no hay etapas habilitadas.
+- Proyectos de formato 5 compatibles con la lectura de formatos 1 a 4.
+- 61 pruebas sin DOM y 69 pruebas en Chrome; ejemplos y capturas actualizados.
+
 ## v0.4.0
 
 - Panel General anterior a Inicio, con valores uniformes en negro y variados en morado, incluidos los radios efectivos de puntos.

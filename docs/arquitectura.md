@@ -15,7 +15,7 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 | `src/engine.js` | Normalización de parámetros y propagación, independiente del DOM. |
 | `src/player.js` | Tiempo, pausas, navegación y mezcla de las etapas. |
 | `src/view.js` | Cámara, destacado y tratamiento del exterior. |
-| `src/general.js` | Catálogo, resumen, validación y aplicación de parámetros colectivos, sin dependencia del DOM. |
+| `src/general.js` | Catálogo, resumen, validación y aplicación de parámetros colectivos a toda la presentación o a un grupo de etapas, sin dependencia del DOM. |
 | `src/codec.js` | Empaquetado y lectura de los mapas temporales y contribuciones tenues. |
 | `examples/demo-data.js` | Imágenes del ejemplo incorporadas como datos locales; archivo generado. |
 | `tests/` | Casos sintéticos compartidos y comprobaciones de píxeles en navegador. |
@@ -25,8 +25,8 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 
 1. El editor carga el ejemplo incorporado o imágenes elegidas por el usuario.
 2. La preparación genera una base y una referencia final del mismo tamaño. Los originales se conservan en el proyecto.
-3. El editor mantiene las etapas y la vista Inicio con coordenadas normalizadas. Una modificación invalida los mapas calculados.
-4. Al reproducir o exportar, se calculan las etapas en un Web Worker creado desde un Blob. Su código incorpora la fábrica del motor; no depende de una ruta de archivo del trabajador.
+3. El editor mantiene las etapas y la vista Inicio con coordenadas normalizadas. La selección múltiple guarda referencias a objetos de etapa para conservar su identidad al reordenar; General y la selección tienen borradores independientes. Una modificación confirmada invalida los mapas calculados.
+4. Las etapas deshabilitadas devuelven campos vacíos de duración cero y se excluyen del reproductor y la exportación. Al reproducir o exportar, se calculan las etapas en un Web Worker creado desde un Blob. Su código incorpora la fábrica del motor; no depende de una ruta de archivo del trabajador.
 5. El reproductor mezcla la base con la imagen final y acumula el color revelado. La vista aplica el destacado y la cámara. Durante una transición interpola el rectángulo y combina los estilos en alfa premultiplicada, conservando la transparencia.
 6. El guardado de proyecto conserva datos editables; la exportación incorpora imágenes preparadas, mapas y funciones necesarias en un único HTML.
 
@@ -53,7 +53,7 @@ Los tiempos exportados se cuantizan a 16 bits por etapa; su precisión es la dur
 
 ## Desarrollo y comprobaciones
 
-No hace falta instalar paquetes. Abre [las pruebas](../tests/index.html) en Chrome o Edge para ejecutar 62 casos, incluidos ocho que necesitan el lienzo real del navegador.
+No hace falta instalar paquetes. Abre [las pruebas](../tests/index.html) en Chrome o Edge para ejecutar 69 casos, incluidos ocho que necesitan el lienzo real del navegador.
 
 Opcionalmente, con Node.js 18 o posterior, desde la raíz:
 
@@ -62,7 +62,7 @@ node scripts/ejecutar-pruebas.mjs
 node scripts/generar-demo.mjs
 ```
 
-El primer comando ejecuta los 54 casos sin DOM y termina con error si alguno falla. El segundo regenera exclusivamente `examples/demo-data.js` desde las dos imágenes de `examples/images/`; no reexporta el proyecto ni la presentación. Ambos scripts resuelven rutas respecto a su propio archivo.
+El primer comando ejecuta los 61 casos sin DOM y termina con error si alguno falla. El segundo regenera exclusivamente `examples/demo-data.js` desde las dos imágenes de `examples/images/`; no reexporta el proyecto ni la presentación. Ambos scripts resuelven rutas respecto a su propio archivo.
 
 Si se cambian las imágenes o la configuración del ejemplo, guarda un nuevo proyecto y exporta de nuevo la presentación desde el editor. Conserva los resultados en `examples/ejemplo.colorflow.json` y `examples/presentacion-ejemplo.html`.
 

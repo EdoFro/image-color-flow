@@ -2,6 +2,20 @@
 
 [Volver al proyecto](../README.md)
 
+## v0.5.0 · Selección de etapas y controles ocultos
+
+Fecha: 18 de octubre de 2026.
+
+- 61 pruebas sin DOM y 69 pruebas correctas en Chrome. Los casos nuevos verifican habilitación por defecto, exclusión de etapas, cámara y navegación entre etapas habilitadas, Inicio cuando todas están deshabilitadas, resumen del grupo y aplicación aislada de sus radios.
+- Ctrl + clic comprobado en la interfaz: selecciona varias etapas, permite quitar miembros y mantiene al menos una. La casilla de habilitación no cambia el grupo.
+- Aplicación a dos etapas, una deshabilitada, revisada y confirmada: modifica sus seis puntos y deja intacto el radio de una tercera etapa. La selección conserva sus destinos al reordenar.
+- Borradores independientes de General y de la selección comprobados. La preparación de imágenes conserva el grupo y sus pendientes.
+- Proyecto descargado de formato 5 revisado: conserva habilitación por etapa y valores aplicados solo al grupo. Compatibilidad con formato 4 comprobada: las etapas sin el campo nuevo se habilitan por defecto.
+- Secuencia con todas las etapas deshabilitadas comprobada en editor y HTML exportado: conserva Inicio, no consume tiempo y no reproduce pintura.
+- Barra exportada oculta al abrir y logo accesible comprobados; clic y H alternan su visibilidad. El tamaño del lienzo permanece idéntico al mostrarla u ocultarla.
+- Reproducción, pausa y cambio de etapa mediante teclado comprobados con la barra oculta. Borde, contorno de foco y sombra del lienzo ausentes.
+- Ejemplos editable y autónomo regenerados, con capturas de edición, General, selección múltiple y presentación.
+
 ## v0.4.0 · General y etapas visuales
 
 Fecha: 18 de octubre de 2026.
