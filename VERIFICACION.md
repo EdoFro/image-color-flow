@@ -1,15 +1,20 @@
-# Verificación de la primera versión
+# Verificación de v0.2.0
 
 Fecha: 18 de octubre de 2026.
 
 - Sintaxis JavaScript comprobada en los archivos del editor, motor, preparación, reproductor y pruebas.
-- 17 pruebas sintéticas correctas en JavaScript y también dentro de Chrome. Incluyen propagación radial, claridad, resistencia de tinta, barreras fuera del radio, límites de zonas, esquinas diagonales, dirección y radio del viento, múltiples puntos, recorrido progresivo, duración, independencia aproximada de resolución y estados del reproductor.
+- 35 pruebas sintéticas correctas en JavaScript y también dentro de Chrome. Incluyen las comprobaciones originales y nuevos casos de secuencias, primer activo, desactivación, reordenamiento, tono, radio máximo, pincel, borde tenue persistente, cámara, etapas omitidas y codificación de la exportación.
 - Ejemplo con las dos imágenes proporcionadas calculado en un Web Worker y reproducido en Chrome. Pausas intermedias observadas; sin errores de consola durante la prueba.
 - Herramientas de rectángulo, polígono cerrado con Enter y recorrido comprobadas mediante interacción con el lienzo.
 - Preparación alternativa desde la imagen final aplicada en el diálogo y base desaturada comprobada visualmente.
 - Guardado de proyecto descargado y contenido validado con las funciones reales del editor; se conservan imágenes, etapas y alineación. Archivo inválido rechazado por el validador.
 - Exportación HTML descargada, sintaxis del script incorporado validada y mapas de tiempos revisados. Incluye dos imágenes PNG, tres mapas y el reproductor; no referencia recursos externos.
 - Presentación exportada abierta y reproducida en Chrome, con pausa manual y desplazamiento al final de la secuencia.
+- Doble clic sobre un punto comprobado: se elimina y se renumera la lista.
+- Activación y reordenamiento de puntos comprobados en la interfaz; se conservan modo y demora. Una etapa vacía se omite y no consume su pausa.
+- Encuadre arrastrado en el lienzo, vista previa comprobada y acercamiento observado en la presentación autónoma.
+- Pincel probado sobre las imágenes de ejemplo con todos los puntos desactivados y radio máximo del 10%: colorea una franja y conserva el resto de la página como base.
+- Proyecto descargado de formato 2 revisado: contiene activación, modos, demoras, ambos radios, tono y encuadres.
 
 ## Límites de la comprobación
 

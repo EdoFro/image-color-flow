@@ -27,16 +27,17 @@
       <button id="exampleButton" class="text-button">Volver a cargar el ejemplo</button>
     </aside>
     <section class="workspace" aria-label="Vista previa y edición">
-      <div class="workspace-heading"><div><span class="eyebrow">LIENZO</span><h2 id="canvasTitle">Preparando las imágenes…</h2></div><label class="view-select">Vista <select id="viewMode"><option value="edit">Editar</option><option value="initial">Imagen inicial</option><option value="final">Imagen final</option></select></label></div>
+      <div class="workspace-heading"><div><span class="eyebrow">LIENZO</span><h2 id="canvasTitle">Preparando las imágenes…</h2></div><label class="view-select">Vista <select id="viewMode"><option value="edit">Editar</option><option value="initial">Imagen inicial</option><option value="final">Imagen final</option><option value="frame">Encuadre de etapa</option></select></label></div>
       <div class="toolbar" role="toolbar" aria-label="Herramientas de dibujo">
         <button data-tool="point" class="active" title="Añadir o mover puntos de inicio">⊙ <span>Puntos</span></button>
         <button data-tool="rect" title="Arrastrar para delimitar una zona rectangular">▧ <span>Rectángulo</span></button>
         <button data-tool="polygon" title="Clic para añadir vértices; Enter para terminar">⬡ <span>Polígono</span></button>
         <button data-tool="path" title="Arrastrar para dibujar un recorrido de pincel">〰 <span>Recorrido</span></button>
+        <button data-tool="camera" title="Arrastrar para definir el encuadre de esta etapa">⌗ <span>Encuadre</span></button>
         <span class="toolbar-divider"></span><button id="clearZone" title="Permitir pintar en toda la imagen">Quitar zona</button><button id="clearPath">Quitar recorrido</button>
       </div>
       <div class="canvas-area" id="canvasArea"><div class="canvas-wrap" id="canvasWrap"><canvas id="canvas" aria-label="Imagen animada"></canvas><canvas id="overlay" tabindex="0" aria-label="Lienzo de edición. Usa el ratón para marcar puntos y zonas."></canvas></div><div id="emptyState" hidden>Carga una imagen coloreada para comenzar.</div></div>
-      <div class="canvas-caption"><span id="toolHint">Haz clic para añadir un punto; arrástralo para moverlo.</span><span id="dimensions">—</span></div>
+      <div class="canvas-caption"><span id="toolHint">Clic: añadir · Arrastrar: mover · Doble clic sobre un punto: eliminar.</span><span id="dimensions">—</span></div>
       <section class="transport" aria-label="Reproducción">
         <div class="transport-buttons"><button id="restartButton" class="square" title="Volver al inicio" aria-label="Volver al inicio">↶</button><button id="playButton" class="play" aria-label="Reproducir">▶</button><button id="nextButton" class="square" title="Avanzar a la siguiente etapa" aria-label="Siguiente etapa">↦</button></div>
         <div class="timeline"><div><strong id="playStatus">Listo para explorar</strong><span id="timeLabel">0:00 / —</span></div><input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Posición en la animación"></div>
@@ -48,15 +49,18 @@
       <div class="eyebrow">02 / PROPAGACIÓN</div><h2>El movimiento del color</h2>
       <label class="field">Nombre de la etapa<input id="stageName" maxlength="80"></label>
       <div class="parameter"><label for="radius">Radio antes de detenerse en negro</label><output id="radiusOut"></output><input id="radius" type="range" min="1" max="150" step="1"><p>Fuera de este radio, la tinta bloquea el avance.</p></div>
+      <div class="parameter"><label for="maxRadius">Radio máximo de expansión</label><output id="maxRadiusOut"></output><input id="maxRadius" type="range" min="1" max="150" step="1"><p>Límite obligatorio por emisor. El color se desvanece entre el 80% y el 100% de este radio. El viento también lo deforma.</p></div>
       <div class="parameter"><label for="speed">Velocidad base</label><output id="speedOut"></output><input id="speed" type="range" min="1" max="60" step="1"></div>
       <div class="parameter"><label for="clarity">Impulso en colores claros</label><output id="clarityOut"></output><input id="clarity" type="range" min="0" max="8" step="0.1"></div>
       <div class="parameter"><label for="ink">Demora al atravesar negro</label><output id="inkOut"></output><input id="ink" type="range" min="0" max="30" step="0.5"></div>
+      <div class="parameter"><label for="hue">Resistencia al cambio de tono</label><output id="hueOut"></output><input id="hue" type="range" min="0" max="30" step="0.5"><p>Compara vecinos y demora el cambio de tono. Su influencia disminuye cerca de grises, blancos y negros.</p></div>
       <div class="parameter"><label for="fade">Aparición de cada píxel</label><output id="fadeOut"></output><input id="fade" type="range" min="0.05" max="2" step="0.05"></div>
       <details open class="wind-section"><summary><span>↗ Viento</span><span id="windSummary">Sin viento</span></summary><div class="parameter"><label for="wind">Fuerza</label><output id="windOut"></output><input id="wind" type="range" min="0" max="2" step="0.05"></div><div class="parameter"><label for="direction">Dirección hacia la que sopla</label><output id="directionOut"></output><input id="direction" type="range" min="0" max="359" step="1"><p>0° → · 90° ↓ · 180° ← · 270° ↑</p></div></details>
       <details class="advanced"><summary>Recorrido y detección de tinta</summary><div class="parameter"><label for="pathSpeed">Velocidad del pincel</label><output id="pathSpeedOut"></output><input id="pathSpeed" type="range" min="1" max="100" step="1"></div><div class="parameter"><label for="black">Umbral de negro</label><output id="blackOut"></output><input id="black" type="range" min="5" max="160" step="1"><p>Los píxeles con luminosidad menor a este valor se consideran tinta.</p></div></details>
       <label class="checkbox"><input id="pauseAfter" type="checkbox"><span>Esperar clic o tecla al terminar esta etapa</span></label>
       <div class="point-heading">Puntos de inicio <span id="pointCount">0</span></div><div id="pointList" class="point-list"></div>
       <p class="muted small" id="pathInfo">Sin recorrido de pincel.</p>
+      <details class="camera-section" open><summary>Encuadre de esta etapa</summary><p id="frameInfo" class="muted small">Página completa.</p><div class="camera-actions"><button id="setFrame">Definir encuadre</button><button id="clearFrame">Página completa</button><button id="previewFrame">Ver encuadre</button></div><div class="parameter"><label for="cameraDuration">Transición de cámara</label><output id="cameraDurationOut"></output><input id="cameraDuration" type="range" min="0" max="5" step="0.1"><p>Se mueve mientras pinta; conserva el encuadre durante las pausas. La vista ajusta el rectángulo para conservar las proporciones.</p></div></details>
       <div class="estimate"><span>DURACIÓN CALCULADA</span><strong id="estimate">—</strong><small>Resulta de las velocidades y del dibujo. Las pausas no se cuentan.</small></div>
     </aside>
   </main>
@@ -70,6 +74,6 @@
     <div class="dialog-footer"><span class="muted small">Archivos locales. Sin envíos ni servicios externos.</span><button id="applyImages" class="primary">Aplicar y volver al lienzo</button></div>
   </dialog>
   <input id="projectFile" type="file" accept=".json,.colorflow" hidden>
-  <script src="engine.js"></script><script src="preparation.js"></script><script src="player.js"></script><script src="demo-data.js"></script><script src="app.js"></script>
+  <script src="engine.js"></script><script src="preparation.js"></script><script src="player.js"></script><script src="codec.js"></script><script src="demo-data.js"></script><script src="app.js"></script>
 </body>
 </html>

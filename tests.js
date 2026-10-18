@@ -81,6 +81,100 @@
       assert(s.speed > 0 && s.radius <= 1.5 && s.windStrength === 0 && s.points[0].x === 1 && s.points[0].y === 0, 'Los parámetros no están acotados.');
       assert(engine.normalizeStage(null).points.length === 1, 'Una etapa vacía debe recibir valores predeterminados.');
     });
+    test('El cambio de tono demora el cruce entre colores vecinos', () => {
+      const data = image(41, 21);
+      for (let y = 0; y < 21; y++) for (let x = 0; x < 41; x++) { const k = (y * 41 + x) * 4; data.set(x < 23 ? [200, 60, 60] : [60, 160, 60], k); }
+      const plain = calc(41, 21, data), resistant = calc(41, 21, data, { hueResistance: 15 });
+      assert(resistant.times[10 * 41 + 35] > plain.times[10 * 41 + 35] + .5, 'El tono no añade demora.');
+    });
+    test('La resistencia al tono no inventa diferencias en una imagen gris', () => {
+      const a = calc(31, 21, image(31, 21)), b = calc(31, 21, image(31, 21), { hueResistance: 30 });
+      assert(a.times[0] === b.times[0], 'El tono afectó una región sin cromaticidad.');
+    });
+    test('El radio máximo detiene el color en una superficie clara y desvanece el borde', () => {
+      const f = calc(101, 11, image(101, 11), { maxRadius: .2 });
+      assert(!Number.isFinite(f.times[5 * 101 + 72]) && f.opacity[5 * 101 + 72] === 0, 'Se atravesó el radio máximo.');
+      assert(f.opacity[5 * 101 + 60] === 255 && f.opacity[5 * 101 + 68] > 0 && f.opacity[5 * 101 + 68] < 255, 'El último 20% no pierde intensidad.');
+    });
+    test('El viento deforma también el radio máximo', () => {
+      const f = calc(101, 11, image(101, 11), { maxRadius: .2, windStrength: .7 });
+      assert(Number.isFinite(f.times[5 * 101 + 80]) && !Number.isFinite(f.times[5 * 101 + 30]), 'El radio máximo no sigue al viento.');
+    });
+    test('Un punto desactivado no emite ni extiende los radios de otro punto', () => {
+      const f = calc(101, 11, image(101, 11), { maxRadius: .15, points: [{ x: .2, y: .5 }, { x: .7, y: .5, enabled: false }] });
+      assert(f.opacity[5 * 101 + 70] === 0 && f.pointTimings[1].start === null, 'El punto desactivado participó en la propagación.');
+    });
+    test('El primer activo empieza en cero y los siguientes dependen del anterior activo', () => {
+      const f = calc(41, 11, image(41, 11), { points: [{ x: .1, y: .5, enabled: false }, { x: .3, y: .5, startMode: 'delay', delay: 9 }, { x: .6, y: .5, startMode: 'delay', delay: .7 }] });
+      assert(f.pointTimings[1].start === 0 && f.pointTimings[2].start === .7, 'La dependencia no saltó al punto inactivo.');
+    });
+    test('Al terminar el anterior incluye su último píxel y su transición', () => {
+      const f = calc(41, 11, image(41, 11), { maxRadius: .15, points: [{ x: .2, y: .5 }, { x: .7, y: .5, startMode: 'after' }] });
+      assert(f.pointTimings[1].start === f.pointTimings[0].end && f.pointTimings[1].start > .2, 'El segundo punto empezó antes del final real.');
+    });
+    test('Junto al anterior comparte su inicio, aunque ese anterior tenga demora', () => {
+      const f = calc(41, 11, image(41, 11), { points: [{ x: .1, y: .5 }, { x: .5, y: .5, startMode: 'delay', delay: 2 }, { x: .9, y: .5, startMode: 'with' }] });
+      assert(f.pointTimings[1].start === 2 && f.pointTimings[2].start === 2, 'No se compartió el instante del anterior activo.');
+    });
+    test('Reordenar conserva el modo del punto y recalcula quién es su anterior', () => {
+      const points = [{ x: .2, y: .5 }, { x: .7, y: .5, startMode: 'delay', delay: 4 }];
+      const f = calc(41, 11, image(41, 11), { points: [points[1], points[0]] });
+      assert(f.pointTimings[0].start === 0 && f.pointTimings[1].start === 0, 'Se aplicó una demora sin anterior.');
+    });
+    test('El solapamiento no acorta la duración propia de un emisor', () => {
+      const single = calc(41, 21, image(41, 21)), overlap = calc(41, 21, image(41, 21), { points: [{ x: .5, y: .5 }, { x: .5, y: .5 }] });
+      assert(single.pointTimings[0].duration === overlap.pointTimings[0].duration && overlap.pointTimings[1].duration === single.pointTimings[0].duration, 'La duración depende del color depositado por otros emisores.');
+    });
+    test('La etapa sin puntos activos ni recorrido se omite sin pausa ni duración', () => {
+      const f = calc(21, 11, image(21, 11), { points: [{ x: .5, y: .5, enabled: false }], pauseAfter: true });
+      assert(f.skipped && f.duration === 0 && f.reached === 0, 'La etapa vacía consume tiempo.');
+    });
+    test('El pincel conserva su radio alrededor de todo el recorrido', () => {
+      const f = calc(61, 31, image(61, 31), { points: [], maxRadius: .12, pathSpeed: .2, path: [{ x: .1, y: .5 }, { x: .9, y: .5 }] });
+      assert(f.opacity[15 * 61 + 50] === 255, 'El radio se midió desde el inicio del trazo.');
+      assert(f.opacity[27 * 61 + 30] === 0, 'El pincel pintó fuera de su franja máxima.');
+      assert(f.times[15 * 61 + 50] > 2, 'Una posición futura del pincel emitió antes de tiempo.');
+    });
+    test('Los proyectos anteriores reciben puntos activos simultáneos y cámara completa', () => {
+      const s = engine.normalizeStage({ points: [{ x: .3, y: .7 }] });
+      assert(s.points[0].enabled && s.points[0].startMode === 'with' && s.frame === null && s.hueResistance === 0 && s.maxRadius === 1.5, 'Los valores de migración son incorrectos.');
+    });
+    function inspectPlayer(fields, width = 1, height = 1) {
+      let frame; const draws = [];
+      const context = { createImageData: () => ({ data: new Uint8ClampedArray(width * height * 4) }), putImageData: value => { frame = value.data.slice(); }, drawImage: (...args) => draws.push(args) };
+      const fakeCanvas = { getContext: () => context }, base = image(width, height, 255), final = image(width, height, 255);
+      for (let i = 0; i < width * height; i++) { final[i * 4 + 1] = 0; final[i * 4 + 2] = 0; }
+      const player = root.createPaintPlayer(fakeCanvas, { width, height, base, final, fields, createCanvas: () => fakeCanvas });
+      return { player, pixel: i => frame[i * 4 + 1], draws };
+    }
+    test('El borde tenue se conserva al terminar, al cambiar etapa y al buscar en la barra', () => {
+      const f = { name: 'Tenue', times: new Float32Array([0]), fullTimes: new Float32Array([Infinity]), opacity: new Uint8Array([128]), accents: { indices: new Uint32Array([0]), times: new Float32Array([0]), opacity: new Uint8Array([128]) }, fade: .2, duration: 1 };
+      const blank = { name: 'Otra', times: new Float32Array([Infinity]), duration: 1, fade: .2 }, p = inspectPlayer([f, blank]);
+      try { p.player.seek(.9); assert(p.pixel(0) === 127, 'El borde no conserva su intensidad parcial.'); p.player.seek(1.5); assert(p.pixel(0) === 127, 'Cambiar etapa rellenó el borde.'); p.player.seek(2); assert(p.pixel(0) === 127, 'Buscar el final rellenó el borde.'); } finally { p.player.destroy(); }
+    });
+    test('Una expansión futura más fuerte no adelanta la intensidad del color', () => {
+      const f = calc(101, 11, image(101, 11), { maxRadius: .3, points: [{ x: .3, y: .5 }, { x: .6, y: .5, startMode: 'delay', delay: 4 }] });
+      const p = inspectPlayer([f], 101, 11), i = 5 * 101 + 57;
+      try { p.player.seek(3.5); assert(p.pixel(i) > 0 && p.pixel(i) < 255, 'La expansión futura se aplicó antes de llegar.'); p.player.seek(f.duration); assert(p.pixel(i) === 0, 'La expansión más intensa no terminó de colorear.'); } finally { p.player.destroy(); }
+    });
+    test('La cámara interpola por etapa y puede volver a página completa', () => {
+      const a = { times: new Float32Array([0]), duration: 2, fade: .2, cameraDuration: 1, frame: { x: .25, y: .25, width: .5, height: .5 } }, b = { ...a, frame: null };
+      const p = inspectPlayer([a, b]);
+      try { p.player.seek(.5); assert(Math.abs(p.player.getState().camera.size - .75) < 1e-6, 'La cámara no interpola suavemente.'); p.player.seek(1); assert(p.player.getState().camera.size === .5 && p.draws.length > 0, 'No se aplicó el encuadre al lienzo.'); p.player.seek(3); assert(p.player.getState().camera.size === 1, 'No volvió a página completa.'); } finally { p.player.destroy(); }
+    });
+    test('El reproductor salta etapas omitidas y tolera una secuencia completamente vacía', () => {
+      const skipped = { duration: 0, skipped: true, pauseAfter: true, times: new Float32Array([Infinity]) }, active = { times: new Float32Array([0]), duration: 1, fade: .2 };
+      const p = inspectPlayer([skipped, active]), empty = inspectPlayer([skipped]);
+      try { assert(p.player.getState().index === 1 && p.player.getState().total === 1, 'No se omitió la etapa vacía.'); empty.player.play(); assert(empty.player.getState().empty && empty.player.getState().total === 0 && empty.pixel(0) === 255, 'La secuencia vacía no conserva la base.'); } finally { p.player.destroy(); empty.player.destroy(); }
+    });
+    test('La exportación conserva tiempos, bordes tenues y encuadres al decodificarse', () => {
+      const f = calc(41, 21, image(41, 21), { maxRadius: .3, frame: { x: .2, y: .2, width: .4, height: .4 } });
+      const encoded = root.PaintCodec.pack(f), decoded = root.PaintCodec.unpack(encoded, 41 * 21);
+      assert(decoded.frame.width === .4 && decoded.opacity.every((v, i) => v === f.opacity[i]), 'Se perdió el encuadre o la intensidad al exportar.');
+      for (let i = 0; i < f.fullTimes.length; i++) if (Number.isFinite(f.fullTimes[i])) assert(Math.abs(f.fullTimes[i] - decoded.fullTimes[i]) <= encoded.scale + 1e-6, 'La cuantización temporal excede su precisión.');
+      const p = inspectPlayer([f], 41, 21), q = inspectPlayer([decoded], 41, 21);
+      try { p.player.seek(f.duration); q.player.seek(decoded.duration); assert(p.pixel(10 * 41 + 31) === q.pixel(10 * 41 + 31), 'El final exportado no coincide con la vista previa.'); } finally { p.player.destroy(); q.player.destroy(); }
+    });
     // Reloj y canvas falsos: se comprueban estados de reproducción sin esperar tiempo real.
     test('El reproductor conserva la base, mezcla el color y respeta pausas entre etapas', () => {
       const oldRaf = root.requestAnimationFrame, oldCancel = root.cancelAnimationFrame;

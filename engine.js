@@ -5,18 +5,26 @@
     const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
     const number = (v, fallback, a, b) => Number.isFinite(+v) ? clamp(+v, a, b) : fallback;
     const point = p => ({ x: number(p && p.x, .5, 0, 1), y: number(p && p.y, .5, 0, 1) });
+    const emitter = p => ({ ...point(p), enabled: p?.enabled !== false, startMode: ['with', 'after', 'delay'].includes(p?.startMode) ? p.startMode : 'with', delay: number(p?.delay, 0, 0, 3600) });
+    function normalizeFrame(frame) {
+      if (!frame || typeof frame !== 'object') return null;
+      const x = number(frame.x, 0, 0, .98), y = number(frame.y, 0, 0, .98);
+      return { x, y, width: number(frame.width, 1 - x, .02, 1 - x), height: number(frame.height, 1 - y, .02, 1 - y) };
+    }
     function normalizeStage(s = {}, index = 0) {
       if (!s || typeof s !== 'object') s = {};
       return {
         name: String(s.name || `Etapa ${index + 1}`).slice(0, 80),
-        points: (Array.isArray(s.points) ? s.points : [{ x: .5, y: .5 }]).slice(0, 64).map(point),
+        points: (Array.isArray(s.points) ? s.points : [{ x: .5, y: .5 }]).slice(0, 64).map(emitter),
         path: (Array.isArray(s.path) ? s.path : []).slice(0, 2000).map(point),
         zone: Array.isArray(s.zone) && s.zone.length >= 3 ? s.zone.slice(0, 200).map(point) : null,
         radius: number(s.radius, .25, .01, 1.5), speed: number(s.speed, .12, .01, .6),
+        maxRadius: number(s.maxRadius, 1.5, .01, 1.5), hueResistance: number(s.hueResistance, 0, 0, 30),
         clarity: number(s.clarity, 3, 0, 8), ink: number(s.ink, 8, 0, 30),
         fade: number(s.fade, .45, .05, 2), blackThreshold: number(s.blackThreshold, 65, 5, 160),
         windStrength: number(s.windStrength, 0, 0, 2), windAngle: number(s.windAngle, 0, 0, 359),
-        pathSpeed: number(s.pathSpeed, .3, .01, 1), pauseAfter: !!s.pauseAfter
+        pathSpeed: number(s.pathSpeed, .3, .01, 1), pauseAfter: !!s.pauseAfter,
+        frame: normalizeFrame(s.frame), cameraDuration: number(s.cameraDuration, .7, 0, 5)
       };
     }
     function inPolygon(x, y, polygon) {
@@ -67,70 +75,125 @@
         return [id, value];
       }
     }
-    function compute({ width, height, rgba, stage: rawStage }) {
+    function compute({ width, height, rgba, stage: rawStage, onProgress }) {
       if (!Number.isInteger(width) || !Number.isInteger(height) || width < 2 || height < 2 || width * height > 4000000 || !rgba || rgba.length !== width * height * 4) throw new Error('Dimensiones de imagen no válidas.');
-      const stage = normalizeStage(rawStage), n = width * height;
-      const zone = rasterizeZone(width, height, stage.zone), luminosity = new Float32Array(n), resistance = new Float32Array(n);
+      const stage = normalizeStage(rawStage), n = width * height, zone = rasterizeZone(width, height, stage.zone);
+      const luminosity = new Float32Array(n), resistance = new Float32Array(n), hue = new Float32Array(n), chroma = new Float32Array(n);
       for (let i = 0; i < n; i++) {
-        const k = i * 4, l = .2126 * rgba[k] + .7152 * rgba[k + 1] + .0722 * rgba[k + 2];
-        luminosity[i] = l;
-        resistance[i] = (1 + (l < stage.blackThreshold ? stage.ink : 0)) / (1 + stage.clarity * l / 255);
-      }
-      const seeds = stage.points.map(p => ({ x: p.x * (width - 1), y: p.y * (height - 1), time: 0 }));
-      let pathDistance = 0;
-      for (let i = 0; i < stage.path.length; i++) {
-        const p = stage.path[i], prev = stage.path[Math.max(0, i - 1)];
-        const dx = (p.x - prev.x) * (width - 1), dy = (p.y - prev.y) * (height - 1), distance = Math.hypot(dx, dy);
-        const steps = Math.max(1, Math.ceil(distance / Math.max(2, width * .006)));
-        for (let k = i === 0 ? 0 : 1; k <= (i === 0 ? 0 : steps); k++) {
-          const f = k / steps;
-          seeds.push({ x: (prev.x + (p.x - prev.x) * f) * (width - 1), y: (prev.y + (p.y - prev.y) * f) * (height - 1), time: (pathDistance + distance * f) / (width * stage.pathSpeed) });
+        const k = i * 4, r = rgba[k], g = rgba[k + 1], b = rgba[k + 2];
+        const l = .2126 * r + .7152 * g + .0722 * b, hi = Math.max(r, g, b), lo = Math.min(r, g, b), delta = hi - lo;
+        luminosity[i] = l; resistance[i] = (1 + (l < stage.blackThreshold ? stage.ink : 0)) / (1 + stage.clarity * l / 255);
+        if (delta > 0) {
+          let h = hi === r ? (g - b) / delta : hi === g ? (b - r) / delta + 2 : (r - g) / delta + 4;
+          hue[i] = ((h / 6) % 1 + 1) % 1; chroma[i] = delta / 255;
         }
-        pathDistance += distance;
       }
-      const validSeeds = seeds.filter(p => zone[Math.round(p.y) * width + Math.round(p.x)]);
-      if (!validSeeds.length) throw new Error(`«${stage.name}»: coloca al menos un punto o un tramo del recorrido dentro de la zona.`);
-      const times = new Float32Array(n); times.fill(Infinity);
-      const heap = new Heap(), angle = stage.windAngle * Math.PI / 180, wx = Math.cos(angle), wy = Math.sin(angle);
-      const radius = stage.radius * width, passable = new Int8Array(n); passable.fill(-1);
-      function canEnter(i, x, y) {
-        if (!zone[i]) return false;
-        if (luminosity[i] >= stage.blackThreshold) return true;
-        if (passable[i] !== -1) return passable[i] === 1;
-        let allowed = false;
-        for (const p of validSeeds) {
-          const dx = x - p.x, dy = y - p.y, d = Math.hypot(dx, dy);
-          const dot = d ? (dx * wx + dy * wy) / d : 0;
-          if (d <= radius * Math.exp(stage.windStrength * dot)) { allowed = true; break; }
-        }
-        passable[i] = allowed ? 1 : 0; return allowed;
-      }
-      for (const p of validSeeds) {
-        const i = Math.round(p.y) * width + Math.round(p.x), t = Math.fround(p.time);
-        if (t < times[i]) { times[i] = t; heap.push(i, t); }
-      }
+      const times = new Float32Array(n), fullTimes = new Float32Array(n), opacity = new Uint8Array(n);
+      times.fill(Infinity); fullTimes.fill(Infinity);
+      const localTimes = new Float32Array(n), stamps = new Uint32Array(n), boundaryStamps = new Uint32Array(n), caps = new Uint8Array(n), allowed = new Uint8Array(n);
+      const accentIds = [], accentTimes = [], accentOpacity = [], pointTimings = [];
+      let serial = 0, ignoredSeeds = 0, emitters = 0, duration = 0;
+      const angle = stage.windAngle * Math.PI / 180, wx = Math.cos(angle), wy = Math.sin(angle);
       const moves = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].map(([dx, dy]) => {
-        const length = Math.hypot(dx, dy), wind = Math.exp(stage.windStrength * (dx * wx + dy * wy) / length);
-        return { dx, dy, cost: length / (width * stage.speed * wind) };
+        const length = Math.hypot(dx, dy);
+        return { dx, dy, cost: length / (width * stage.speed * Math.exp(stage.windStrength * (dx * wx + dy * wy) / length)) };
       });
-      while (heap.size) {
-        const [i, t] = heap.pop();
-        if (t !== times[i]) continue;
-        const x = i % width, y = (i / width) | 0;
-        for (const m of moves) {
-          const nx = x + m.dx, ny = y + m.dy;
-          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-          const j = ny * width + nx;
-          if (!canEnter(j, nx, ny)) continue;
-          // No atravesar diagonalmente esquinas de una zona o de una barrera de tinta.
-          if (m.dx && m.dy && (!canEnter(y * width + nx, nx, y) || !canEnter(ny * width + x, x, ny))) continue;
-          const next = Math.fround(t + m.cost * (resistance[i] + resistance[j]) * .5);
-          if (next < times[j]) { times[j] = next; heap.push(j, next); }
+      function solve(p, start) {
+        const px = p.x * (width - 1), py = p.y * (height - 1), first = Math.round(py) * width + Math.round(px);
+        if (!zone[first]) { ignoredSeeds++; return null; }
+        const stamp = ++serial, heap = new Heap();
+        function canEnter(i, x, y) {
+          if (!zone[i]) return false;
+          if (boundaryStamps[i] === stamp) return allowed[i] === 1;
+          boundaryStamps[i] = stamp;
+          const dx = x - px, dy = y - py, d = Math.hypot(dx, dy);
+          const dot = d ? (dx * wx + dy * wy) / d : 0, windRadius = Math.exp(stage.windStrength * dot);
+          const fraction = d / (stage.maxRadius * width * windRadius);
+          let cap = 0;
+          if (fraction < 1) {
+            const tail = clamp((fraction - .8) / .2, 0, 1);
+            cap = Math.round(255 * (1 - tail * tail * (3 - 2 * tail)));
+          }
+          caps[i] = cap;
+          allowed[i] = cap > 0 && (luminosity[i] >= stage.blackThreshold || d <= stage.radius * width * windRadius) ? 1 : 0;
+          return allowed[i] === 1;
         }
+        // El centro redondeado siempre pertenece a su propio emisor, incluso con radios mínimos.
+        boundaryStamps[first] = stamp; caps[first] = 255; allowed[first] = 1;
+        stamps[first] = stamp; localTimes[first] = 0; heap.push(first, 0);
+        let end = 0, count = 0;
+        while (heap.size) {
+          const [i, t] = heap.pop(); if (t !== localTimes[i] || stamps[i] !== stamp) continue;
+          const absolute = Math.fround(start + t), cap = caps[i];
+          if (absolute < times[i]) times[i] = absolute;
+          if (cap > opacity[i]) opacity[i] = cap;
+          if (cap === 255) { if (absolute < fullTimes[i]) fullTimes[i] = absolute; }
+          else { accentIds.push(i); accentTimes.push(absolute); accentOpacity.push(cap); }
+          if (t > end) end = t; count++;
+          const x = i % width, y = (i / width) | 0;
+          for (const move of moves) {
+            const nx = x + move.dx, ny = y + move.dy;
+            if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+            const j = ny * width + nx;
+            if (!canEnter(j, nx, ny)) continue;
+            if (move.dx && move.dy && (!canEnter(y * width + nx, nx, y) || !canEnter(ny * width + x, x, ny))) continue;
+            let hueCost = 1;
+            if (stage.hueResistance && chroma[i] > .02 && chroma[j] > .02 && luminosity[i] >= stage.blackThreshold && luminosity[j] >= stage.blackThreshold) {
+              const diff = Math.abs(hue[i] - hue[j]), circular = Math.min(diff, 1 - diff) * 2;
+              hueCost += stage.hueResistance * circular * Math.min(1, Math.sqrt(Math.min(chroma[i], chroma[j]) / .2));
+            }
+            const next = Math.fround(t + move.cost * (resistance[i] + resistance[j]) * .5 * hueCost);
+            if (stamps[j] !== stamp || next < localTimes[j]) { stamps[j] = stamp; localTimes[j] = next; heap.push(j, next); }
+          }
+        }
+        emitters++; const ownDuration = count ? end + stage.fade : 0;
+        duration = Math.max(duration, start + ownDuration);
+        return ownDuration;
       }
-      let max = 0, reached = 0, area = 0;
-      for (let i = 0; i < n; i++) { area += zone[i]; if (Number.isFinite(times[i])) { reached++; if (times[i] > max) max = times[i]; } }
-      return { times, duration: max + stage.fade, reached, area, fade: stage.fade, name: stage.name, pauseAfter: stage.pauseAfter, ignoredSeeds: seeds.length - validSeeds.length };
+      let previous = null;
+      stage.points.forEach((p, index) => {
+        if (!p.enabled) { pointTimings.push({ index, enabled: false, start: null, end: null }); return; }
+        const start = !previous ? 0 : p.startMode === 'after' ? previous.end : previous.start + (p.startMode === 'delay' ? p.delay : 0);
+        const ownDuration = solve(p, start);
+        const timing = { index, enabled: true, start, end: start + (ownDuration || 0), duration: ownDuration || 0, ignored: ownDuration === null };
+        pointTimings.push(timing); previous = timing;
+        onProgress?.({ part: 'point', index: index + 1 });
+      });
+      // Muestreo por longitud de arco: la velocidad y el ancho de la huella no dependen de los vértices del ratón.
+      const segments = []; let pathLength = 0;
+      for (let i = 1; i < stage.path.length; i++) {
+        const a = stage.path[i - 1], b = stage.path[i], length = Math.hypot((b.x - a.x) * (width - 1), (b.y - a.y) * (height - 1));
+        if (length) { segments.push({ a, b, begin: pathLength, end: pathLength + length, length }); pathLength += length; }
+      }
+      let pathSamples = 0;
+      if (stage.path.length) {
+        solve(stage.path[0], 0); pathSamples++;
+        const spacing = Math.max(2, Math.min(width * .025, stage.maxRadius * width * .25), pathLength / 512);
+        let sample = spacing;
+        for (const segment of segments) {
+          while (sample <= segment.end) {
+            const f = (sample - segment.begin) / segment.length;
+            solve({ x: segment.a.x + (segment.b.x - segment.a.x) * f, y: segment.a.y + (segment.b.y - segment.a.y) * f }, sample / (width * stage.pathSpeed));
+            pathSamples++; sample += spacing;
+            if (pathSamples % 8 === 0) onProgress?.({ part: 'path', index: pathSamples });
+          }
+        }
+        if (pathLength) { solve(stage.path[stage.path.length - 1], pathLength / (width * stage.pathSpeed)); pathSamples++; }
+      }
+      const hasActive = stage.points.some(p => p.enabled) || stage.path.length > 0;
+      if (hasActive && !emitters) throw new Error('«' + stage.name + '»: coloca al menos un punto o un tramo del recorrido dentro de la zona.');
+      // Eliminar contribuciones tenues dominadas por una llegada anterior de color completo.
+      let kept = 0;
+      for (let k = 0; k < accentIds.length; k++) if (fullTimes[accentIds[k]] > accentTimes[k]) kept++;
+      const accents = { indices: new Uint32Array(kept), times: new Float32Array(kept), opacity: new Uint8Array(kept) };
+      let dest = 0;
+      for (let k = 0; k < accentIds.length; k++) if (fullTimes[accentIds[k]] > accentTimes[k]) {
+        accents.indices[dest] = accentIds[k]; accents.times[dest] = accentTimes[k]; accents.opacity[dest++] = accentOpacity[k];
+      }
+      let reached = 0, area = 0; for (let i = 0; i < n; i++) { area += zone[i]; if (opacity[i]) reached++; }
+      return { times, fullTimes, opacity, accents, duration: emitters ? Math.max(duration, stage.cameraDuration) : 0, paintDuration: duration,
+        reached, area, fade: stage.fade, name: stage.name, pauseAfter: stage.pauseAfter, ignoredSeeds, pointTimings, pathSamples,
+        skipped: !emitters, frame: stage.frame, cameraDuration: stage.cameraDuration };
     }
     return { compute, normalizeStage, rasterizeZone, inPolygon };
   }

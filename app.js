@@ -3,11 +3,12 @@
   const $ = id => document.getElementById(id), engine = window.PaintEngine;
   const canvas = $('canvas'), overlay = $('overlay'), ctx = canvas.getContext('2d'), octx = overlay.getContext('2d');
   const zeroAlignment = () => ({ x: 0, y: 0, sx: 1, sy: 1, angle: 0 });
-  let project = { format: 'tinta-y-color', version: 1, resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage()] };
+  let project = { format: 'tinta-y-color', version: 2, resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage({ maxRadius: .4 })] };
   let decoded = {}, prepared = null, selected = 0, tool = 'point', draft = null, draftDecoded = null;
   let revision = 0, cached = null, player = null, editing = true, dirty = false, busy = false, gesture = null, polygon = [];
   const params = {
     radius: ['radius', 100, v => `${Math.round(v * 100)}%`], speed: ['speed', 100, v => `${Math.round(v * 100)}% / s`],
+    maxRadius: ['maxRadius', 100, v => `${Math.round(v * 100)}%`], hue: ['hueResistance', 1, v => `+${v.toFixed(1)}×`], cameraDuration: ['cameraDuration', 1, v => `${v.toFixed(1)} s`],
     clarity: ['clarity', 1, v => `+${v.toFixed(1)}×`], ink: ['ink', 1, v => `+${v.toFixed(1)}×`],
     fade: ['fade', 1, v => `${v.toFixed(2)} s`], wind: ['windStrength', 1, v => v.toFixed(2)],
     direction: ['windAngle', 1, v => `${Math.round(v)}°`], pathSpeed: ['pathSpeed', 100, v => `${Math.round(v * 100)}% / s`], black: ['blackThreshold', 1, v => `${Math.round(v)} / 255`]
@@ -17,7 +18,7 @@
   function status(message, error = false) { $('status').textContent = message; $('status').classList.toggle('error', error); }
   function timeLabel(seconds) { if (!Number.isFinite(seconds)) return '—'; const s = Math.round(seconds); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
   function report(error) { console.error(error); status(error.message || String(error), true); }
-  async function action(fn) { if (busy) return; busy = true; document.body.classList.add('busy'); const controls = [...document.querySelectorAll('button,input,select')]; controls.forEach(e => e.disabled = true); try { await fn(); } catch (error) { report(error); } finally { busy = false; document.body.classList.remove('busy'); controls.forEach(e => e.disabled = false); } }
+  async function action(fn) { if (busy) return; busy = true; document.body.classList.add('busy'); const controls = [...document.querySelectorAll('button,input,select')].map(e => [e, e.disabled]); controls.forEach(([e]) => e.disabled = true); try { await fn(); } catch (error) { report(error); } finally { busy = false; document.body.classList.remove('busy'); controls.forEach(([e, disabled]) => e.disabled = disabled); } }
   function destroyPlayer() { if (player) player.destroy(); player = null; }
   function enterEdit() { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); $('viewMode').value = 'edit'; $('playButton').textContent = '▶'; $('playButton').setAttribute('aria-label', 'Reproducir'); $('playStatus').textContent = 'Listo para explorar'; drawEditor(); }
   function invalidate() { revision++; cached = null; dirty = true; $('estimate').textContent = 'Por calcular'; $('timeLabel').textContent = '0:00 / —'; $('timeline').value = 0; enterEdit(); }
@@ -32,7 +33,10 @@
   function drawEditor() {
     if (!prepared || !editing) return;
     const mode = $('viewMode').value;
-    ctx.drawImage(mode === 'initial' ? prepared.baseCanvas : prepared.finalCanvas, 0, 0);
+    if (mode === 'frame' && current().frame) {
+      const f = current().frame, size = Math.max(f.width, f.height), x = Math.max(0, Math.min(1 - size, f.x + f.width / 2 - size / 2)), y = Math.max(0, Math.min(1 - size, f.y + f.height / 2 - size / 2));
+      ctx.drawImage(prepared.finalCanvas, x * prepared.width, y * prepared.height, size * prepared.width, size * prepared.height, 0, 0, prepared.width, prepared.height);
+    } else ctx.drawImage(mode === 'initial' ? prepared.baseCanvas : prepared.finalCanvas, 0, 0);
     overlay.classList.toggle('hidden', mode !== 'edit'); drawOverlay();
   }
   function drawOverlay() {
@@ -46,30 +50,38 @@
       trace(zone, true); octx.strokeStyle = '#f6d697'; octx.lineWidth = 1.5 * scale; octx.setLineDash([5 * scale, 4 * scale]); octx.stroke(); octx.setLineDash([]);
     }
     const theta = stage.windAngle * Math.PI / 180;
-    for (const p of stage.points) {
+    for (const p of stage.points.filter(p => p.enabled !== false)) {
+      for (const [radius, color, dash] of [[stage.radius, '#bd693caa', [4, 5]], [stage.maxRadius, '#3b6d81bb', [9, 4]]]) {
       octx.beginPath();
-      for (let k = 0; k <= 100; k++) { const a = k / 100 * Math.PI * 2, r = stage.radius * w * Math.exp(stage.windStrength * Math.cos(a - theta)); const x = p.x * w + Math.cos(a) * r, y = p.y * h + Math.sin(a) * r; if (!k) octx.moveTo(x, y); else octx.lineTo(x, y); }
-      octx.strokeStyle = '#bd693caa'; octx.lineWidth = scale; octx.setLineDash([4 * scale, 5 * scale]); octx.stroke(); octx.setLineDash([]);
+      for (let k = 0; k <= 100; k++) { const a = k / 100 * Math.PI * 2, r = radius * w * Math.exp(stage.windStrength * Math.cos(a - theta)); const x = p.x * w + Math.cos(a) * r, y = p.y * h + Math.sin(a) * r; if (!k) octx.moveTo(x, y); else octx.lineTo(x, y); }
+      octx.strokeStyle = color; octx.lineWidth = scale; octx.setLineDash(dash.map(v => v * scale)); octx.stroke(); octx.setLineDash([]);
+      }
     }
     const path = gesture?.kind === 'path' ? gesture.path : stage.path;
     if (path.length) { trace(path); octx.strokeStyle = '#3b6d81'; octx.lineWidth = 3 * scale; octx.lineJoin = 'round'; octx.lineCap = 'round'; octx.stroke(); const p = path[0]; octx.beginPath(); octx.arc(p.x * w, p.y * h, 5 * scale, 0, Math.PI * 2); octx.fillStyle = '#3b6d81'; octx.fill(); }
     stage.points.forEach((p, i) => {
+      octx.save(); if (p.enabled === false) octx.globalAlpha = .35;
       const x = p.x * w, y = p.y * h;
       octx.beginPath(); octx.arc(x, y, 10 * scale, 0, Math.PI * 2); octx.fillStyle = '#fff9ee'; octx.fill(); octx.lineWidth = 2 * scale; octx.strokeStyle = '#bd592e'; octx.stroke(); octx.fillStyle = '#954627'; octx.font = `bold ${10 * scale}px sans-serif`; octx.textAlign = 'center'; octx.textBaseline = 'middle'; octx.fillText(String(i + 1), x, y);
+      octx.restore();
     });
+    const framing = gesture?.kind === 'camera' ? frameFromRect(gesture.start, gesture.end) : stage.frame;
+    if (framing) { octx.strokeStyle = '#286b9d'; octx.lineWidth = 2 * scale; octx.setLineDash([9 * scale, 5 * scale]); octx.strokeRect(framing.x * w, framing.y * h, framing.width * w, framing.height * h); octx.setLineDash([]); octx.fillStyle = '#286b9d'; octx.font = `${10 * scale}px sans-serif`; octx.textAlign = 'left'; octx.fillText('Encuadre', framing.x * w + 5 * scale, framing.y * h + 13 * scale); }
     if (polygon.length) { trace(polygon); octx.strokeStyle = '#bd592e'; octx.lineWidth = 2 * scale; octx.stroke(); for (const p of polygon) { octx.fillStyle = '#bd592e'; octx.fillRect(p.x * w - 3 * scale, p.y * h - 3 * scale, 6 * scale, 6 * scale); } }
     if (stage.windStrength) {
       octx.save(); octx.translate(w - 36 * scale, 36 * scale); octx.rotate(theta); octx.beginPath(); octx.moveTo(-15 * scale, 0); octx.lineTo(15 * scale, 0); octx.lineTo(7 * scale, -6 * scale); octx.moveTo(15 * scale, 0); octx.lineTo(7 * scale, 6 * scale); octx.strokeStyle = '#bd592e'; octx.lineWidth = 2.5 * scale; octx.stroke(); octx.restore();
     }
   }
   function rectPoints(a, b) { return [{ x: Math.min(a.x, b.x), y: Math.min(a.y, b.y) }, { x: Math.max(a.x, b.x), y: Math.min(a.y, b.y) }, { x: Math.max(a.x, b.x), y: Math.max(a.y, b.y) }, { x: Math.min(a.x, b.x), y: Math.max(a.y, b.y) }]; }
+  function frameFromRect(a, b) { return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.abs(a.x - b.x), height: Math.abs(a.y - b.y) }; }
+  function activeCount(stage) { return stage.points.filter(p => p.enabled !== false).length; }
   function renderStages() {
     $('stageList').replaceChildren();
     project.stages.forEach((stage, i) => {
       const card = document.createElement('div'); card.className = `stage-card${i === selected ? ' selected' : ''}`;
       const number = document.createElement('span'); number.className = 'stage-number'; number.textContent = String(i + 1).padStart(2, '0'); card.append(number);
       const select = document.createElement('button'); select.className = 'stage-select'; select.setAttribute('aria-pressed', String(i === selected));
-      const name = document.createElement('strong'); name.textContent = stage.name; const sub = document.createElement('small'); sub.textContent = `${stage.points.length} ${stage.points.length === 1 ? 'punto' : 'puntos'}${stage.path.length ? ' + recorrido' : ''} · ${stage.pauseAfter ? 'con pausa' : 'continua'}`; select.append(name, sub);
+      const name = document.createElement('strong'); name.textContent = stage.name; const sub = document.createElement('small'); sub.textContent = !activeCount(stage) && !stage.path.length ? 'Sin emisores activos · se omite' : `${activeCount(stage)}/${stage.points.length} activos${stage.path.length ? ' + recorrido' : ''} · ${stage.pauseAfter ? 'con pausa' : 'continua'}`; select.append(name, sub);
       select.onclick = () => { selected = i; polygon = []; enterEdit(); renderStages(); updateInspector(); }; card.append(select);
       const order = document.createElement('div'); order.className = 'stage-order';
       for (const [delta, text] of [[-1, '↑'], [1, '↓']]) {
@@ -84,15 +96,35 @@
     const stage = current(); $('stageName').value = stage.name;
     for (const [id, [key, multiplier, format]] of Object.entries(params)) { $(id).value = stage[key] * multiplier; $(`${id}Out`).textContent = format(stage[key]); }
     $('pauseAfter').checked = stage.pauseAfter; $('windSummary').textContent = stage.windStrength ? `${Math.round(stage.windAngle)}° · ${stage.windStrength.toFixed(2)}` : 'Sin viento';
-    $('pointCount').textContent = stage.points.length; $('pointList').replaceChildren();
-    stage.points.forEach((p, i) => { const b = document.createElement('button'); b.className = 'point-chip'; b.textContent = `${i + 1} · ${Math.round(p.x * 100)}, ${Math.round(p.y * 100)} ×`; b.title = `Eliminar punto ${i + 1}`; b.onclick = () => { stage.points.splice(i, 1); invalidate(); updateInspector(); renderStages(); }; $('pointList').append(b); });
+    renderPoints();
     $('pathInfo').textContent = stage.path.length ? `Recorrido trazado · ${stage.path.length} vértices. El pincel deja color a su paso.` : 'Sin recorrido de pincel.';
-    if (cached) $('estimate').textContent = `${cached.fields[selected].duration.toFixed(1)} s / ${cached.fields.reduce((s, f) => s + f.duration, 0).toFixed(1)} s total`;
+    if (cached) $('estimate').textContent = cached.fields[selected].skipped ? 'Etapa omitida' : `${cached.fields[selected].duration.toFixed(1)} s / ${cached.fields.reduce((s, f) => s + f.duration, 0).toFixed(1)} s total`;
+    $('frameInfo').textContent = stage.frame ? `Encuadre definido · ${Math.round(stage.frame.width * 100)}% × ${Math.round(stage.frame.height * 100)}% de la imagen.` : 'Página completa.';
+  }
+  function pointsChanged() { invalidate(); updateInspector(); renderStages(); }
+  function removePoint(index) { current().points.splice(index, 1); pointsChanged(); }
+  function renderPoints() {
+    const stage = current(), first = stage.points.findIndex(p => p.enabled !== false);
+    $('pointCount').textContent = `${activeCount(stage)}/${stage.points.length} activos`; $('pointList').replaceChildren();
+    stage.points.forEach((p, i) => {
+      const row = document.createElement('div'); row.className = `point-row${p.enabled === false ? ' inactive' : ''}`; row.dataset.pointIndex = i;
+      const header = document.createElement('div'); header.className = 'point-row-header';
+      const label = document.createElement('label'), enabled = document.createElement('input'); enabled.type = 'checkbox'; enabled.checked = p.enabled !== false; enabled.setAttribute('aria-label', `Activar punto ${i + 1}`); enabled.onchange = () => { p.enabled = enabled.checked; pointsChanged(); }; label.append(enabled, ` Punto ${i + 1}`); header.append(label);
+      for (const [delta, symbol] of [[-1, '↑'], [1, '↓']]) { const b = document.createElement('button'); b.textContent = symbol; b.setAttribute('aria-label', `Mover punto ${i + 1} ${delta < 0 ? 'arriba' : 'abajo'}`); b.disabled = i + delta < 0 || i + delta >= stage.points.length; b.onclick = () => { [stage.points[i], stage.points[i + delta]] = [stage.points[i + delta], stage.points[i]]; pointsChanged(); }; header.append(b); }
+      const remove = document.createElement('button'); remove.textContent = '×'; remove.setAttribute('aria-label', `Eliminar punto ${i + 1}`); remove.onclick = () => removePoint(i); header.append(remove); row.append(header);
+      const modeLabel = document.createElement('label'); modeLabel.className = 'point-mode'; modeLabel.textContent = 'Inicio';
+      const mode = document.createElement('select'); mode.setAttribute('aria-label', `Modo de inicio del punto ${i + 1}`);
+      for (const [value, text] of [['with', 'Junto al anterior activo'], ['after', 'Al terminar el anterior activo'], ['delay', 'Con demora desde el anterior activo']]) { const o = document.createElement('option'); o.value = value; o.textContent = text; mode.append(o); }
+      mode.value = p.startMode || 'with'; mode.disabled = p.enabled === false || i === first; mode.onchange = () => { p.startMode = mode.value; pointsChanged(); }; modeLabel.append(mode); row.append(modeLabel);
+      if (p.startMode === 'delay') { const delayLabel = document.createElement('label'); delayLabel.className = 'point-delay'; delayLabel.textContent = 'Demora (s)'; const delay = document.createElement('input'); delay.type = 'number'; delay.min = 0; delay.max = 3600; delay.step = .1; delay.value = p.delay || 0; delay.disabled = p.enabled === false || i === first; delay.setAttribute('aria-label', `Demora del punto ${i + 1} en segundos`); delay.onchange = () => { if (!delay.checkValidity()) return; p.delay = +delay.value; pointsChanged(); }; delayLabel.append(delay); row.append(delayLabel); }
+      const info = document.createElement('small'), timing = cached?.fields[selected]?.pointTimings?.[i];
+      info.textContent = p.enabled === false ? 'Desactivado · no participa en los tiempos' : timing?.ignored ? 'Fuera de la zona · no emite' : timing ? `Inicio: ${timing.start.toFixed(1)} s · Fin: ${timing.end.toFixed(1)} s` : i === first ? 'Primer activo · comienza en 0 s' : 'Tiempos pendientes de calcular'; row.append(info); $('pointList').append(row);
+    });
   }
   function setTool(next) {
     tool = next; polygon = []; gesture = null; enterEdit();
     document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
-    const hints = { point: 'Haz clic para añadir un punto; arrástralo para moverlo.', rect: 'Arrastra para delimitar la zona de esta etapa.', polygon: 'Clic para añadir vértices · Enter o doble clic para cerrar · Escape para cancelar.', path: 'Arrastra para dibujar el recorrido. Sustituye el recorrido anterior.' }; $('toolHint').textContent = hints[tool]; drawOverlay();
+    const hints = { point: 'Clic: añadir · Arrastrar: mover · Doble clic sobre un punto: eliminar.', rect: 'Arrastra para delimitar la zona de esta etapa.', polygon: 'Clic para añadir vértices · Enter o doble clic para cerrar · Escape para cancelar.', path: 'Arrastra para dibujar el recorrido. Sustituye el recorrido anterior.', camera: 'Arrastra un rectángulo para encuadrar esta etapa. No cambia la zona de pintura.' }; $('toolHint').textContent = hints[tool]; drawOverlay();
   }
   function position(event) { const r = overlay.getBoundingClientRect(); return { x: Math.max(0, Math.min(1, (event.clientX - r.left) / r.width)), y: Math.max(0, Math.min(1, (event.clientY - r.top) / r.height)) }; }
   function finishPolygon() {
@@ -105,18 +137,19 @@
     e.preventDefault(); overlay.focus(); const p = position(e); overlay.setPointerCapture(e.pointerId);
     if (tool === 'polygon') { polygon.push(p); drawOverlay(); return; }
     if (tool === 'rect') gesture = { kind: 'rect', start: p, end: p };
+    if (tool === 'camera') gesture = { kind: 'camera', start: p, end: p };
     if (tool === 'path') gesture = { kind: 'path', path: [p] };
     if (tool === 'point') {
       const r = overlay.getBoundingClientRect(); let index = current().points.findIndex(q => Math.hypot((q.x - p.x) * r.width, (q.y - p.y) * r.height) < 16);
-      if (index === -1) { if (current().points.length >= 64) { status('Máximo de 64 puntos por etapa.', true); return; } index = current().points.push(p) - 1; }
-      gesture = { kind: 'point', index, original: { ...current().points[index] } }; current().points[index] = p;
+      if (index === -1) { if (current().points.length >= 64) { status('Máximo de 64 puntos por etapa.', true); return; } index = current().points.push(engine.normalizeStage({ points: [p] }).points[0]) - 1; }
+      gesture = { kind: 'point', index, original: { ...current().points[index] } }; Object.assign(current().points[index], p);
     }
     drawOverlay();
   });
   overlay.addEventListener('pointermove', e => {
     if (!gesture) return; const p = position(e);
-    if (gesture.kind === 'rect') gesture.end = p;
-    if (gesture.kind === 'point') current().points[gesture.index] = p;
+    if (gesture.kind === 'rect' || gesture.kind === 'camera') gesture.end = p;
+    if (gesture.kind === 'point') Object.assign(current().points[gesture.index], p);
     if (gesture.kind === 'path') { const last = gesture.path[gesture.path.length - 1]; if (Math.hypot((p.x - last.x) * prepared.width, (p.y - last.y) * prepared.height) > 3 && gesture.path.length < 2000) gesture.path.push(p); }
     drawOverlay();
   });
@@ -125,11 +158,16 @@
     if (!cancel) {
       if (gesture.kind === 'rect') { const a = gesture.start, b = gesture.end; if (Math.abs(a.x - b.x) > .005 && Math.abs(a.y - b.y) > .005) current().zone = rectPoints(a, b); }
       if (gesture.kind === 'path') current().path = gesture.path;
+      if (gesture.kind === 'camera') { const frame = frameFromRect(gesture.start, gesture.end); if (frame.width >= .02 && frame.height >= .02) current().frame = frame; }
     } else if (gesture.kind === 'point') current().points[gesture.index] = gesture.original;
     gesture = null; invalidate(); updateInspector(); renderStages();
   }
   overlay.addEventListener('pointerup', () => finishGesture()); overlay.addEventListener('pointercancel', () => finishGesture(true));
-  overlay.addEventListener('dblclick', () => { if (tool === 'polygon' && !busy) finishPolygon(); });
+  overlay.addEventListener('dblclick', e => {
+    if (busy || !editing || $('viewMode').value !== 'edit') return;
+    if (tool === 'polygon') { finishPolygon(); return; }
+    if (tool === 'point') { const p = position(e), r = overlay.getBoundingClientRect(); const i = current().points.findIndex(q => Math.hypot((q.x - p.x) * r.width, (q.y - p.y) * r.height) < 16); if (i >= 0) { removePoint(i); status('Punto eliminado.'); } }
+  });
   overlay.addEventListener('keydown', e => { if (e.key === 'Enter' && polygon.length) { e.preventDefault(); finishPolygon(); } if (e.key === 'Escape') { polygon = []; finishGesture(true); drawOverlay(); } });
   document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
   $('clearZone').onclick = () => { current().zone = null; polygon = []; invalidate(); };
@@ -137,11 +175,14 @@
   for (const [id, [key, multiplier]] of Object.entries(params)) $(id).addEventListener('input', () => { current()[key] = +$(id).value / multiplier; invalidate(); updateInspector(); });
   $('stageName').addEventListener('input', () => { current().name = $('stageName').value || `Etapa ${selected + 1}`; invalidate(); renderStages(); });
   $('pauseAfter').onchange = () => { current().pauseAfter = $('pauseAfter').checked; invalidate(); renderStages(); };
-  $('addStage').onclick = () => { if (project.stages.length >= 64) { status('Máximo de 64 etapas por proyecto.', true); return; } project.stages.push(engine.normalizeStage({}, project.stages.length)); selected = project.stages.length - 1; invalidate(); renderStages(); updateInspector(); };
+  $('addStage').onclick = () => { if (project.stages.length >= 64) { status('Máximo de 64 etapas por proyecto.', true); return; } project.stages.push(engine.normalizeStage({ maxRadius: .4 }, project.stages.length)); selected = project.stages.length - 1; invalidate(); renderStages(); updateInspector(); };
   $('duplicateStage').onclick = () => { if (project.stages.length >= 64) return; project.stages.splice(selected + 1, 0, engine.normalizeStage({ ...structuredClone(current()), name: `${current().name} · copia` })); selected++; invalidate(); renderStages(); updateInspector(); };
   $('deleteStage').onclick = () => { if (project.stages.length === 1) { status('El proyecto necesita al menos una etapa.'); return; } project.stages.splice(selected, 1); selected = Math.min(selected, project.stages.length - 1); invalidate(); renderStages(); updateInspector(); };
   $('viewMode').onchange = () => { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); drawEditor(); };
   $('editButton').onclick = () => enterEdit();
+  $('setFrame').onclick = () => setTool('camera');
+  $('clearFrame').onclick = () => { current().frame = null; invalidate(); updateInspector(); };
+  $('previewFrame').onclick = () => { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); $('viewMode').value = 'frame'; drawEditor(); };
 
   async function prepareProject() {
     if (!decoded.final) throw new Error('Carga primero una imagen final coloreada.');
@@ -157,13 +198,14 @@
     const { width, height } = prepared, rgba = new Uint8ClampedArray(prepared.final.data), stages = structuredClone(project.stages);
     status('Calculando la propagación…'); await waitFrame();
     const fields = [];
-    const source = `const engine = (${window.createPaintEngine.toString()})(); onmessage = function(event) { try { const p = event.data; for (let i = 0; i < p.stages.length; i++) { const result = engine.compute({width:p.width,height:p.height,rgba:p.rgba,stage:p.stages[i]}); postMessage({type:'field',index:i,result},[result.times.buffer]); } postMessage({type:'done'}); } catch(error) { postMessage({type:'error',message:error.message}); } };`;
+    const source = `const engine = (${window.createPaintEngine.toString()})(); onmessage = function(event) { try { const p = event.data; for (let i = 0; i < p.stages.length; i++) { const result = engine.compute({width:p.width,height:p.height,rgba:p.rgba,stage:p.stages[i],onProgress:progress=>postMessage({type:'progress',index:i,progress})}); result.stageIndex=i; postMessage({type:'field',index:i,result},[result.times.buffer,result.fullTimes.buffer,result.opacity.buffer,result.accents.indices.buffer,result.accents.times.buffer,result.accents.opacity.buffer]); } postMessage({type:'done'}); } catch(error) { postMessage({type:'error',message:error.message}); } };`;
     const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
     try {
       await new Promise((resolve, reject) => {
         let worker;
         try { worker = new Worker(url); } catch (error) { reject(new Error(`El navegador no permite calcular en segundo plano: ${error.message}. Prueba Chrome o Edge.`)); return; }
         worker.onmessage = ({ data }) => {
+          if (data.type === 'progress') status(`Calculando ${data.index + 1}/${stages.length}: ${stages[data.index].name} · ${data.progress.part === 'point' ? 'punto' : 'recorrido'} ${data.progress.index}`);
           if (data.type === 'field') { fields[data.index] = data.result; status(`Calculada ${data.index + 1} de ${stages.length}: ${stages[data.index].name}`); }
           if (data.type === 'done') { worker.terminate(); resolve(); }
           if (data.type === 'error') { worker.terminate(); reject(new Error(data.message)); }
@@ -174,12 +216,12 @@
     } finally { URL.revokeObjectURL(url); }
     cached = { revision, fields }; updateInspector();
     const reached = fields.reduce((sum, f) => sum + f.reached, 0), skipped = fields.reduce((sum, f) => sum + f.ignoredSeeds, 0);
-    status(`Propagación lista · ${fields.reduce((s, f) => s + f.duration, 0).toFixed(1)} s de animación${skipped ? ' · Hay puntos o tramos fuera de sus zonas; no emiten color.' : ''}${reached ? '' : ' · No se alcanzaron píxeles.'}`);
+    status(`Propagación lista · ${fields.reduce((s, f) => s + f.duration, 0).toFixed(1)} s de animación${fields.some(f => f.skipped) ? ' · Las etapas sin emisores activos se omiten.' : ''}${skipped ? ' · Hay puntos o tramos fuera de sus zonas; no emiten color.' : ''}${reached ? '' : ' · Sin emisores activos.'}`);
     return fields;
   }
   function playerState(s) {
     $('playButton').textContent = s.playing ? 'Ⅱ' : '▶'; $('playButton').setAttribute('aria-label', s.playing ? 'Pausar' : 'Reproducir o continuar');
-    $('playStatus').textContent = s.ended ? 'Animación terminada' : s.waiting ? 'Pausa · clic en ▶ o espacio para continuar' : `${s.name}${s.playing ? '' : ' · detenida'}`;
+    $('playStatus').textContent = s.empty ? 'Sin emisores activos' : s.ended ? 'Animación terminada' : s.waiting ? 'Pausa · clic en ▶ o espacio para continuar' : `${s.name}${s.playing ? '' : ' · detenida'}`;
     $('timeLabel').textContent = `${timeLabel(s.elapsed)} / ${timeLabel(s.total)}`; $('timeline').value = s.total ? Math.round(s.elapsed / s.total * 1000) : 0;
   }
   async function ensurePlayer() {
@@ -245,7 +287,7 @@
   $('saveButton').onclick = () => { if (!prepared) return; download('proyecto-tinta-y-color.colorflow.json', JSON.stringify(project), 'application/json'); dirty = false; status('Proyecto descargado. Conserva este archivo para seguir editando.'); };
   $('openButton').onclick = () => $('projectFile').click();
   function validateProject(data) {
-    if (data.format !== 'tinta-y-color' || data.version !== 1 || !data.images?.final?.data || !Array.isArray(data.stages) || !data.stages.length || data.stages.length > 64) throw new Error('El archivo no es un proyecto compatible de Tinta y color.');
+    if (!data || data.format !== 'tinta-y-color' || ![1, 2].includes(data.version) || !data.images?.final?.data || !Array.isArray(data.stages) || !data.stages.length || data.stages.length > 64) throw new Error('El archivo no es un proyecto compatible de Tinta y color.');
     const images = {};
     for (const kind of ['final', 'initial']) if (data.images[kind]) {
       const image = data.images[kind]; if (typeof image.data !== 'string' || image.data.length > 60000000 || !/^data:image\/(png|jpeg|webp|gif|bmp|avif);base64,/.test(image.data)) throw new Error('El proyecto contiene una imagen no compatible.');
@@ -253,7 +295,7 @@
     }
     const alignment = zeroAlignment(), a = data.alignment || {};
     for (const key of Object.keys(alignment)) { const n = +a[key]; if (Number.isFinite(n)) alignment[key] = key === 'sx' || key === 'sy' ? Math.max(.7, Math.min(1.3, n)) : key === 'angle' ? Math.max(-10, Math.min(10, n)) : Math.max(-.3, Math.min(.3, n)); }
-    return { format: 'tinta-y-color', version: 1, images, alignment, baseMode: data.baseMode === 'uploaded' && images.initial ? 'uploaded' : 'derived', resolution: [720, 1080, 1440].includes(data.resolution) ? data.resolution : 1080, stages: data.stages.map(engine.normalizeStage) };
+    return { format: 'tinta-y-color', version: 2, images, alignment, baseMode: data.baseMode === 'uploaded' && images.initial ? 'uploaded' : 'derived', resolution: [720, 1080, 1440].includes(data.resolution) ? data.resolution : 1080, stages: data.stages.map(engine.normalizeStage) };
   }
   $('projectFile').onchange = () => action(async () => {
     const file = $('projectFile').files[0]; $('projectFile').value = ''; if (!file) return;
@@ -262,31 +304,24 @@
     if (next.images.initial) images.initial = await PaintPreparation.loadImage(next.images.initial.data);
     project = next; decoded = images; selected = 0; polygon = []; await prepareProject(); dirty = false; status('Proyecto abierto. Puedes continuar editando.');
   });
-  function bytesToBase64(bytes) { let result = ''; for (let i = 0; i < bytes.length; i += 24576) result += String.fromCharCode(...bytes.subarray(i, i + 24576)); return btoa(result); }
-  function packField(field) {
-    const values = new Uint16Array(field.times.length), scale = field.duration / 65534;
-    for (let i = 0; i < values.length; i++) values[i] = Number.isFinite(field.times[i]) ? Math.min(65534, Math.round(field.times[i] / scale)) : 65535;
-    // Orden de bytes explícito: la exportación no depende de la arquitectura del equipo.
-    const bytes = new Uint8Array(values.length * 2); for (let i = 0; i < values.length; i++) { bytes[i * 2] = values[i] & 255; bytes[i * 2 + 1] = values[i] >> 8; }
-    return { data: bytesToBase64(bytes), scale, duration: field.duration, fade: field.fade, name: field.name, pauseAfter: field.pauseAfter };
-  }
+  const packField = field => window.PaintCodec.pack(field);
   $('exportButton').onclick = () => action(async () => {
     const fields = await calculateFields(); player?.pause(); status('Empaquetando la presentación sin conexión…'); await waitFrame();
-    const data = { width: prepared.width, height: prepared.height, base: prepared.baseCanvas.toDataURL('image/png'), final: prepared.finalCanvas.toDataURL('image/png'), fields: fields.map(packField) };
+    const data = { width: prepared.width, height: prepared.height, base: prepared.baseCanvas.toDataURL('image/png'), final: prepared.finalCanvas.toDataURL('image/png'), fields: fields.filter(f => !f.skipped).map(packField) };
     download('presentacion-tinta-y-color.html', buildPresentation(data), 'text/html;charset=utf-8'); status('Presentación descargada: un solo HTML con imágenes y animaciones incluidas. Se abre sin conexión.');
   });
-  function presentationBoot(data, makePlayer) {
+  function presentationBoot(data, makePlayer, unpackField) {
     const $ = id => document.getElementById(id), canvas = $('painting'); let player;
     const timeLabel = n => `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, '0')}`;
     async function pixels(url) { const image = new Image(); image.src = url; await image.decode(); const c = document.createElement('canvas'); c.width = data.width; c.height = data.height; const ctx = c.getContext('2d'); ctx.drawImage(image, 0, 0); return ctx.getImageData(0, 0, c.width, c.height).data; }
     function update(s) {
       $('play').textContent = s.playing ? 'Pausar' : s.waiting ? 'Continuar' : s.ended ? 'Repetir' : 'Reproducir';
-      $('caption').textContent = s.waiting ? `${s.name} · clic o espacio para continuar` : s.ended ? 'Animación terminada' : s.name;
+      $('caption').textContent = s.empty ? 'Sin emisores activos' : s.waiting ? `${s.name} · clic o espacio para continuar` : s.ended ? 'Animación terminada' : s.name;
       $('time').textContent = `${timeLabel(s.elapsed)} / ${timeLabel(s.total)}`; $('progress').value = s.total ? s.elapsed / s.total * 1000 : 0;
     }
     async function init() {
       const [base, final] = await Promise.all([pixels(data.base), pixels(data.final)]);
-      const fields = data.fields.map(f => { const raw = atob(f.data), times = new Float32Array(data.width * data.height); for (let i = 0; i < times.length; i++) { const value = raw.charCodeAt(i * 2) | raw.charCodeAt(i * 2 + 1) << 8; times[i] = value === 65535 ? Infinity : value * f.scale; } return { ...f, data: undefined, times }; });
+      const fields = data.fields.map(f => unpackField(f, data.width * data.height));
       player = makePlayer(canvas, { width: data.width, height: data.height, base, final, fields }, update);
       $('play').onclick = () => player.toggle(); $('restart').onclick = () => player.restart(); $('next').onclick = () => player.next(); $('previous').onclick = () => player.previous();
       $('progress').oninput = () => player.seek(+$('progress').value / 1000 * player.getState().total);
@@ -300,23 +335,23 @@
         if (e.key.toLowerCase() === 'f') $('fullscreen').click();
       });
       document.addEventListener('visibilitychange', () => { if (document.hidden && player.getState().playing) player.pause(); });
-      $('play').disabled = false; $('caption').textContent = 'Listo · clic en la imagen o espacio para comenzar';
+      $('play').disabled = !fields.length; $('caption').textContent = fields.length ? 'Listo · clic en la imagen o espacio para comenzar' : 'Sin emisores activos';
     }
     init().catch(error => { $('caption').textContent = `No se pudo abrir la presentación: ${error.message}`; });
   }
   function buildPresentation(data) {
     const json = JSON.stringify(data).replace(/</g, '\\u003c');
-    return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tinta y color · Presentación</title><style>*{box-sizing:border-box}body{margin:0;background:#151d19;color:#eeeee4;font:13px system-ui,sans-serif;height:100vh;display:flex;flex-direction:column}main{display:flex;align-items:center;justify-content:center;flex:1;min-height:0;padding:20px}canvas{max-width:100%;max-height:100%;object-fit:contain;cursor:pointer;box-shadow:0 10px 60px #0005}footer{padding:15px 22px;background:#202a24}nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap}button{color:inherit;font:inherit;background:transparent;border:1px solid #5a665b;border-radius:6px;padding:9px 13px;cursor:pointer}button:hover{background:#3b4c3e}button:focus-visible,input:focus-visible{outline:3px solid #e3b879}#play{background:#e8e6d8;color:#202a24;min-width:100px}#caption{flex:1;min-width:140px;font-size:12px}#time{font-size:11px;color:#a4b29d}#progress{width:100%;height:3px;accent-color:#d4a46a;margin:15px 0 8px}small{display:block;color:#a4b29d;font-size:10px;margin-top:7px}@media(max-width:600px){main{padding:8px}footer{padding:12px}nav{gap:6px}button{padding:8px;font-size:11px}#caption{order:2;flex-basis:100%}}</style></head><body><main><canvas id="painting" aria-label="Animación de pintado progresivo"></canvas></main><footer><nav><button id="previous" aria-label="Etapa anterior">←</button><button id="restart">Reiniciar</button><button id="play" disabled>Preparando…</button><button id="next" aria-label="Etapa siguiente">→</button><span id="caption" role="status">Cargando imágenes locales…</span><span id="time"></span><button id="fullscreen">Pantalla completa</button></nav><input id="progress" type="range" min="0" max="1000" value="0" aria-label="Posición en la animación"><small>Espacio: reproducir / pausar / continuar · ← →: etapas · F: pantalla completa · Sin conexión</small></footer><script>(${presentationBoot.toString()})(${json}, ${window.createPaintPlayer.toString()});<\/script></body></html>`;
+    return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tinta y color · Presentación</title><style>*{box-sizing:border-box}body{margin:0;background:#151d19;color:#eeeee4;font:13px system-ui,sans-serif;height:100vh;display:flex;flex-direction:column}main{display:flex;align-items:center;justify-content:center;flex:1;min-height:0;padding:20px}canvas{max-width:100%;max-height:100%;object-fit:contain;cursor:pointer;box-shadow:0 10px 60px #0005}footer{padding:15px 22px;background:#202a24}nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap}button{color:inherit;font:inherit;background:transparent;border:1px solid #5a665b;border-radius:6px;padding:9px 13px;cursor:pointer}button:hover{background:#3b4c3e}button:focus-visible,input:focus-visible{outline:3px solid #e3b879}#play{background:#e8e6d8;color:#202a24;min-width:100px}#caption{flex:1;min-width:140px;font-size:12px}#time{font-size:11px;color:#a4b29d}#progress{width:100%;height:3px;accent-color:#d4a46a;margin:15px 0 8px}small{display:block;color:#a4b29d;font-size:10px;margin-top:7px}@media(max-width:600px){main{padding:8px}footer{padding:12px}nav{gap:6px}button{padding:8px;font-size:11px}#caption{order:2;flex-basis:100%}}</style></head><body><main><canvas id="painting" aria-label="Animación de pintado progresivo"></canvas></main><footer><nav><button id="previous" aria-label="Etapa anterior">←</button><button id="restart">Reiniciar</button><button id="play" disabled>Preparando…</button><button id="next" aria-label="Etapa siguiente">→</button><span id="caption" role="status">Cargando imágenes locales…</span><span id="time"></span><button id="fullscreen">Pantalla completa</button></nav><input id="progress" type="range" min="0" max="1000" value="0" aria-label="Posición en la animación"><small>Espacio: reproducir / pausar / continuar · ← →: etapas · F: pantalla completa · Sin conexión</small></footer><script>(${presentationBoot.toString()})(${json}, ${window.createPaintPlayer.toString()}, (${window.createPaintCodec.toString()})().unpack);<\/script></body></html>`;
   }
   async function loadDemo() {
     if (!window.PAINT_DEMO) throw new Error('No se encontró el ejemplo. Puedes cargar tus imágenes con el botón Imágenes.');
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
-    project = { format: 'tinta-y-color', version: 1, images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
-      engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17 }, { x: .16, y: .17 }], radius: .22, speed: .13, pauseAfter: true }),
-      engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5 }], radius: .35, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true }),
-      engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, speed: .13 })
+    project = { format: 'tinta-y-color', version: 2, images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
+      engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17, startMode: 'delay', delay: .7 }, { x: .16, y: .17, startMode: 'delay', delay: .7 }], radius: .22, maxRadius: .4, speed: .13, hueResistance: 8, pauseAfter: true, frame: { x: .53, y: .03, width: .44, height: .27 } }),
+      engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5, startMode: 'after' }], radius: .35, maxRadius: .5, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true, frame: { x: .06, y: .29, width: .91, height: .38 } }),
+      engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 })
     ] };
     decoded = decodedDemo; selected = 0; polygon = []; status('Alineando las imágenes del ejemplo…'); await waitFrame(); project.alignment = PaintPreparation.autoAlign(decoded.final, decoded.initial);
     await prepareProject(); dirty = false; status('Ejemplo listo · Marca un origen, ajusta los parámetros y pulsa reproducir.');
