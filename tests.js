@@ -139,12 +139,12 @@
       const s = engine.normalizeStage({ points: [{ x: .3, y: .7 }] });
       assert(s.points[0].enabled && s.points[0].startMode === 'with' && s.frame === null && s.hueResistance === 0 && s.maxRadius === 1.5, 'Los valores de migración son incorrectos.');
     });
-    function inspectPlayer(fields, width = 1, height = 1) {
+    function inspectPlayer(fields, width = 1, height = 1, options = {}) {
       let frame; const draws = [];
-      const context = { createImageData: () => ({ data: new Uint8ClampedArray(width * height * 4) }), putImageData: value => { frame = value.data.slice(); }, drawImage: (...args) => draws.push(args) };
+      const context = { createImageData: () => ({ data: new Uint8ClampedArray(width * height * 4) }), putImageData: value => { frame = value.data.slice(); }, drawImage: (...args) => draws.push(args), clearRect() {}, save() {}, restore() {}, fillRect() {} };
       const fakeCanvas = { getContext: () => context }, base = image(width, height, 255), final = image(width, height, 255);
       for (let i = 0; i < width * height; i++) { final[i * 4 + 1] = 0; final[i * 4 + 2] = 0; }
-      const player = root.createPaintPlayer(fakeCanvas, { width, height, base, final, fields, createCanvas: () => fakeCanvas });
+      const player = root.createPaintPlayer(fakeCanvas, { width, height, base, final, fields, createCanvas: () => fakeCanvas, ...options });
       return { player, pixel: i => frame[i * 4 + 1], draws };
     }
     test('El borde tenue se conserva al terminar, al cambiar etapa y al buscar en la barra', () => {
@@ -175,6 +175,61 @@
       const p = inspectPlayer([f], 41, 21), q = inspectPlayer([decoded], 41, 21);
       try { p.player.seek(f.duration); q.player.seek(decoded.duration); assert(p.pixel(10 * 41 + 31) === q.pixel(10 * 41 + 31), 'El final exportado no coincide con la vista previa.'); } finally { p.player.destroy(); q.player.destroy(); }
     });
+    test('Los puntos heredan ambos radios de la etapa por defecto', () => {
+      const stage = engine.normalizeStage({ radius: .12, maxRadius: .4, points: [{ x: .5, y: .5, radius: 1.1, maxRadius: 1.3 }] });
+      const radii = engine.pointRadii(stage, stage.points[0]); assert(stage.points[0].inheritRadii && radii.radius === .12 && radii.maxRadius === .4, 'La herencia no prevalece sobre los valores propios guardados.');
+    });
+    test('El radio máximo propio limita un punto sin cambiar el de los demás', () => {
+      const f = calc(101, 11, image(101, 11), { maxRadius: .2, points: [{ x: .2, y: .5, inheritRadii: false, radius: .2, maxRadius: .1 }, { x: .8, y: .5 }] });
+      assert(f.opacity[5 * 101 + 35] === 0 && f.opacity[5 * 101 + 65] > 0, 'Se compartió el radio propio entre emisores.');
+    });
+    test('El radio de tinta propio se aplica en el cálculo de barreras', () => {
+      const data = image(41, 21); for (let y = 0; y < 21; y++) paint(data, 41, 28, y, 0);
+      const f = calc(41, 21, data, { radius: .01, points: [{ x: .5, y: .5, inheritRadii: false, radius: .3, maxRadius: 1.5 }] });
+      assert(Number.isFinite(f.times[10 * 41 + 35]), 'El motor ignoró el radio de tinta del punto.');
+    });
+    test('La distancia de arrastre deshace la deformación del viento', () => {
+      const stage = engine.normalizeStage({ windStrength: .7, windAngle: 0 }), center = { x: .5, y: .5 };
+      const along = engine.radiusDistance(stage, center, { x: .5 + .1 * Math.exp(.7), y: .5 }, 1);
+      const against = engine.radiusDistance(stage, center, { x: .5 - .1 * Math.exp(-.7), y: .5 }, 1);
+      assert(Math.abs(along - .1) < 1e-6 && Math.abs(against - .1) < 1e-6, 'Arrastrar cambió el radio de forma inconsistente con el viento.');
+    });
+    test('El destacado está apagado y vinculado por defecto', () => {
+      const view = engine.normalizeView(); assert(!view.highlightEnabled && view.highlightLinked && view.frame === null, 'Los valores predeterminados no coinciden con el diseño.');
+      assert(engine.normalizeView({ outsideColor: 'url(invalid)', zoom: 99 }).outsideColor === '#202c29', 'No se validó el color del exterior.');
+    });
+    test('Enfoque y destacado pueden compartir o separar sus rectángulos', () => {
+      const config = engine.normalizeView({ frame: { x: .1, y: .1, width: .3, height: .3 }, highlightFrame: { x: .6, y: .6, width: .2, height: .2 } });
+      assert(root.PaintView.highlight(config).x === .1, 'El vínculo no usa el enfoque.'); config.highlightLinked = false; assert(root.PaintView.highlight(config).x === .6, 'El destacado independiente se perdió.');
+    });
+    test('Acercamiento cero conserva la página completa aunque haya un rectángulo destacado', () => {
+      const frame = { x: .2, y: .3, width: .4, height: .2 }, a = root.PaintView.target({ frame, zoom: 0 }), b = root.PaintView.target({ frame, zoom: 1 }), c = root.PaintView.target({ frame, zoom: .5 });
+      assert(a.size === 1 && a.x === 0 && b.size === .4 && Math.abs(c.size - .7) < 1e-6, 'El acercamiento no es independiente del rectángulo.');
+    });
+    test('Inicio muestra la base y su encuadre sin reproducir ni pintar', () => {
+      const f = { times: new Float32Array([0]), duration: 2, fade: .2, cameraDuration: 1, frame: { x: .5, y: .5, width: .2, height: .2 } };
+      const p = inspectPlayer([f], 1, 1, { initialView: { frame: { x: .1, y: .1, width: .4, height: .4 } } });
+      try { assert(p.player.getState().atStart && !p.player.getState().playing && p.pixel(0) === 255 && p.player.getState().camera.size === .4, 'La vista inicial avanzó o pintó sin señal.'); p.player.seek(.5); assert(Math.abs(p.player.getState().camera.size - .3) < 1e-6, 'La cámara no parte del encuadre inicial.'); p.player.seek(2); p.player.restart(); assert(p.player.getState().atStart && p.pixel(0) === 255 && p.player.getState().camera.size === .4, 'Reiniciar no restaura Inicio.'); } finally { p.player.destroy(); }
+    });
+    test('Los ajustes de destacado y acercamiento sobreviven a la exportación', () => {
+      const f = calc(21, 11, image(21, 11), { zoom: 0, highlightEnabled: true, highlightLinked: false, highlightFrame: { x: .2, y: .3, width: .3, height: .3 }, outside: 'color', outsideColor: '#123456', blur: 8 });
+      const decoded = root.PaintCodec.unpack(root.PaintCodec.pack(f), 21 * 11);
+      assert(decoded.zoom === 0 && decoded.highlightEnabled && decoded.highlightLinked === false && decoded.highlightFrame.x === .2 && decoded.outsideColor === '#123456', 'Se perdieron los ajustes visuales.');
+    });
+    if (typeof document !== 'undefined') {
+      for (const outside of ['show', 'black', 'white', 'color', 'transparent', 'blur']) test('Píxeles reales del destacado: ' + outside, () => {
+        const source = document.createElement('canvas'), output = document.createElement('canvas'); source.width = output.width = 20; source.height = output.height = 20;
+        const s = source.getContext('2d'), context = output.getContext('2d'); s.fillStyle = '#ff0000'; s.fillRect(0, 0, 20, 20);
+        if (outside === 'blur') for (let y = 0; y < 20; y++) for (let x = 0; x < 20; x++) { s.fillStyle = (x + y) % 2 ? '#ffffff' : '#000000'; s.fillRect(x, y, 1, 1); }
+        const config = engine.normalizeView({ highlightEnabled: true, frame: { x: .3, y: .3, width: .4, height: .4 }, outside, outsideColor: '#123456', blur: 40 });
+        root.PaintView.createRenderer().draw(context, source, 20, 20, config);
+        const edge = [...context.getImageData(3, 3, 1, 1).data], center = [...context.getImageData(9, 9, 1, 1).data], original = [...s.getImageData(9, 9, 1, 1).data];
+        assert(center.every((v, i) => v === original[i]), 'Se modificó el interior del destacado.');
+        if (outside === 'transparent') assert(edge[3] === 0, 'El exterior no es transparente.');
+        else if (outside === 'blur') assert(edge[0] > 20 && edge[0] < 235, 'El exterior no se desenfocó.');
+        else { const expected = outside === 'black' ? [0, 0, 0, 255] : outside === 'white' ? [255, 255, 255, 255] : outside === 'color' ? [18, 52, 86, 255] : [255, 0, 0, 255]; assert(edge.every((v, i) => v === expected[i]), 'El color exterior es incorrecto.'); }
+      });
+    }
     // Reloj y canvas falsos: se comprueban estados de reproducción sin esperar tiempo real.
     test('El reproductor conserva la base, mezcla el color y respeta pausas entre etapas', () => {
       const oldRaf = root.requestAnimationFrame, oldCancel = root.cancelAnimationFrame;

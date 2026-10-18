@@ -1,9 +1,9 @@
-# Verificación de v0.2.0
+# Verificación de v0.3.0
 
 Fecha: 18 de octubre de 2026.
 
 - Sintaxis JavaScript comprobada en los archivos del editor, motor, preparación, reproductor y pruebas.
-- 35 pruebas sintéticas correctas en JavaScript y también dentro de Chrome. Incluyen las comprobaciones originales y nuevos casos de secuencias, primer activo, desactivación, reordenamiento, tono, radio máximo, pincel, borde tenue persistente, cámara, etapas omitidas y codificación de la exportación.
+- 44 pruebas sintéticas correctas en JavaScript y 50 dentro de Chrome. Las seis adicionales comprueban píxeles reales de los modos mostrar, desenfocar, negro, blanco, color y transparente. Incluyen las comprobaciones originales y nuevos casos de secuencias, primer activo, desactivación, reordenamiento, tono, radio máximo, pincel, borde tenue persistente, cámara, etapas omitidas y codificación de la exportación.
 - Ejemplo con las dos imágenes proporcionadas calculado en un Web Worker y reproducido en Chrome. Pausas intermedias observadas; sin errores de consola durante la prueba.
 - Herramientas de rectángulo, polígono cerrado con Enter y recorrido comprobadas mediante interacción con el lienzo.
 - Preparación alternativa desde la imagen final aplicada en el diálogo y base desaturada comprobada visualmente.
@@ -15,6 +15,13 @@ Fecha: 18 de octubre de 2026.
 - Encuadre arrastrado en el lienzo, vista previa comprobada y acercamiento observado en la presentación autónoma.
 - Pincel probado sobre las imágenes de ejemplo con todos los puntos desactivados y radio máximo del 10%: colorea una franja y conserva el resto de la página como base.
 - Proyecto descargado de formato 2 revisado: contiene activación, modos, demoras, ambos radios, tono y encuadres.
+
+- Inicio, enfoque y destacado independientes comprobados en el editor: zoom al 0%, desenfoque y transparencia con damero.
+- Renombrado con doble clic y lápiz comprobado; Enter guarda y Escape conserva el nombre anterior.
+- Arrastre del asa de tinta comprobado: cambia de 22% a 30% solo en el punto, desactiva la herencia y conserva el 22% de la etapa. La casilla restaura la herencia.
+- Presentación exportada con Inicio transparente y destacado independiente abierta en Chrome; conserva el canal alfa, comienza desde la base y restaura Inicio al reiniciar.
+- Pruebas del motor para radios propios y heredados, límite por punto, inversión del viento, normalización de vista, zoom independiente y metadatos de destacado en el códec.
+- Ejemplos editable y autónomo regenerados con formato 3 y los valores predeterminados acordados.
 
 ## Límites de la comprobación
 

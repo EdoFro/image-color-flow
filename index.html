@@ -20,6 +20,7 @@
       <div class="eyebrow">01 / SECUENCIA</div>
       <div class="section-heading"><h1>Un color a la vez.</h1><button id="addStage" class="square" title="Añadir etapa" aria-label="Añadir etapa">+</button></div>
       <p class="muted intro">Define dónde empieza. El dibujo guía el resto.</p>
+      <button id="initialCard" class="initial-card" aria-pressed="false"><strong>Inicio</strong><small>Encuadre inicial · espera tu señal</small></button>
       <div id="stageList" class="stage-list" aria-label="Etapas de la animación"></div>
       <div class="sequence-actions"><button id="duplicateStage">Duplicar</button><button id="deleteStage">Eliminar</button></div>
       <div class="sequence-note"><span>↳</span><p>Las etapas se reproducen en orden. Puedes detener la presentación entre ellas.</p></div>
@@ -34,6 +35,7 @@
         <button data-tool="polygon" title="Clic para añadir vértices; Enter para terminar">⬡ <span>Polígono</span></button>
         <button data-tool="path" title="Arrastrar para dibujar un recorrido de pincel">〰 <span>Recorrido</span></button>
         <button data-tool="camera" title="Arrastrar para definir el encuadre de esta etapa">⌗ <span>Encuadre</span></button>
+        <button data-tool="highlight" title="Definir un destacado separado del enfoque">▣ <span>Destacado</span></button>
         <span class="toolbar-divider"></span><button id="clearZone" title="Permitir pintar en toda la imagen">Quitar zona</button><button id="clearPath">Quitar recorrido</button>
       </div>
       <div class="canvas-area" id="canvasArea"><div class="canvas-wrap" id="canvasWrap"><canvas id="canvas" aria-label="Imagen animada"></canvas><canvas id="overlay" tabindex="0" aria-label="Lienzo de edición. Usa el ratón para marcar puntos y zonas."></canvas></div><div id="emptyState" hidden>Carga una imagen coloreada para comenzar.</div></div>
@@ -46,7 +48,9 @@
       <div id="status" class="status" role="status">Abriendo el ejemplo local…</div>
     </section>
     <aside class="inspector panel">
-      <div class="eyebrow">02 / PROPAGACIÓN</div><h2>El movimiento del color</h2>
+      <div class="eyebrow" id="inspectorEyebrow">02 / PROPAGACIÓN</div><h2 id="inspectorTitle">El movimiento del color</h2>
+      <p id="initialHint" class="muted" hidden>La imagen inicial permanece quieta, sin pintar, hasta pulsar reproducir, clic o espacio. La primera etapa parte de este encuadre.</p>
+      <div id="stageSettings">
       <label class="field">Nombre de la etapa<input id="stageName" maxlength="80"></label>
       <div class="parameter"><label for="radius">Radio antes de detenerse en negro</label><output id="radiusOut"></output><input id="radius" type="range" min="1" max="150" step="1"><p>Fuera de este radio, la tinta bloquea el avance.</p></div>
       <div class="parameter"><label for="maxRadius">Radio máximo de expansión</label><output id="maxRadiusOut"></output><input id="maxRadius" type="range" min="1" max="150" step="1"><p>Límite obligatorio por emisor. El color se desvanece entre el 80% y el 100% de este radio. El viento también lo deforma.</p></div>
@@ -59,9 +63,17 @@
       <details class="advanced"><summary>Recorrido y detección de tinta</summary><div class="parameter"><label for="pathSpeed">Velocidad del pincel</label><output id="pathSpeedOut"></output><input id="pathSpeed" type="range" min="1" max="100" step="1"></div><div class="parameter"><label for="black">Umbral de negro</label><output id="blackOut"></output><input id="black" type="range" min="5" max="160" step="1"><p>Los píxeles con luminosidad menor a este valor se consideran tinta.</p></div></details>
       <label class="checkbox"><input id="pauseAfter" type="checkbox"><span>Esperar clic o tecla al terminar esta etapa</span></label>
       <div class="point-heading">Puntos de inicio <span id="pointCount">0</span></div><div id="pointList" class="point-list"></div>
+      <label class="checkbox"><input id="showAllRadii" type="checkbox"><span>Mostrar todos los radios</span></label><p class="muted small">Selecciona un punto para ver y arrastrar sus asas: naranja para tinta, azul para alcance máximo.</p>
       <p class="muted small" id="pathInfo">Sin recorrido de pincel.</p>
-      <details class="camera-section" open><summary>Encuadre de esta etapa</summary><p id="frameInfo" class="muted small">Página completa.</p><div class="camera-actions"><button id="setFrame">Definir encuadre</button><button id="clearFrame">Página completa</button><button id="previewFrame">Ver encuadre</button></div><div class="parameter"><label for="cameraDuration">Transición de cámara</label><output id="cameraDurationOut"></output><input id="cameraDuration" type="range" min="0" max="5" step="0.1"><p>Se mueve mientras pinta; conserva el encuadre durante las pausas. La vista ajusta el rectángulo para conservar las proporciones.</p></div></details>
-      <div class="estimate"><span>DURACIÓN CALCULADA</span><strong id="estimate">—</strong><small>Resulta de las velocidades y del dibujo. Las pausas no se cuentan.</small></div>
+      </div>
+      <details class="camera-section" open><summary>Enfoque y destacado</summary><p id="frameInfo" class="muted small">Página completa.</p><div class="camera-actions"><button id="setFrame">Definir enfoque</button><button id="clearFrame">Página completa</button><button id="previewFrame">Ver encuadre</button></div>
+      <div class="parameter"><label for="zoom">Acercamiento al enfoque</label><output id="zoomOut"></output><input id="zoom" type="range" min="0" max="100" step="1"><p>0% muestra la página completa; 100% ajusta la cámara al rectángulo.</p></div>
+      <label class="checkbox"><input id="highlightEnabled" type="checkbox"><span>Habilitar destacado</span></label>
+      <div id="highlightSettings" hidden><label class="checkbox"><input id="highlightLinked" type="checkbox" checked><span>Usar el mismo rectángulo para enfoque y destacado</span></label><button id="setHighlight">Definir destacado por separado</button><p id="highlightInfo" class="muted small"></p>
+      <label class="field">Fuera del destacado<select id="outside"><option value="show">Mostrar</option><option value="blur">Desenfocar</option><option value="black">Negro</option><option value="white">Blanco</option><option value="color">Color personalizado</option><option value="transparent">Transparente</option></select></label>
+      <label id="outsideColorField" class="field" hidden>Color exterior<input id="outsideColor" type="color" value="#202c29"></label><div id="blurField" class="parameter"><label for="blur">Intensidad de desenfoque</label><output id="blurOut"></output><input id="blur" type="range" min="0" max="40" step="1"></div></div>
+      <div class="parameter" id="cameraTiming"><label for="cameraDuration">Transición de cámara</label><output id="cameraDurationOut"></output><input id="cameraDuration" type="range" min="0" max="5" step="0.1"><p>Se mueve mientras pinta y conserva el encuadre durante las pausas.</p></div></details>
+      <div class="estimate" id="estimateBlock"><span>DURACIÓN CALCULADA</span><strong id="estimate">—</strong><small>Resulta de las velocidades y del dibujo. Las pausas no se cuentan.</small></div>
     </aside>
   </main>
   <dialog id="imagesDialog">
@@ -74,6 +86,6 @@
     <div class="dialog-footer"><span class="muted small">Archivos locales. Sin envíos ni servicios externos.</span><button id="applyImages" class="primary">Aplicar y volver al lienzo</button></div>
   </dialog>
   <input id="projectFile" type="file" accept=".json,.colorflow" hidden>
-  <script src="engine.js"></script><script src="preparation.js"></script><script src="player.js"></script><script src="codec.js"></script><script src="demo-data.js"></script><script src="app.js"></script>
+  <script src="engine.js"></script><script src="preparation.js"></script><script src="view.js"></script><script src="player.js"></script><script src="codec.js"></script><script src="demo-data.js"></script><script src="app.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@
     const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
     const number = (v, fallback, a, b) => Number.isFinite(+v) ? clamp(+v, a, b) : fallback;
     const point = p => ({ x: number(p && p.x, .5, 0, 1), y: number(p && p.y, .5, 0, 1) });
-    const emitter = p => ({ ...point(p), enabled: p?.enabled !== false, startMode: ['with', 'after', 'delay'].includes(p?.startMode) ? p.startMode : 'with', delay: number(p?.delay, 0, 0, 3600) });
+    const emitter = p => ({ ...point(p), enabled: p?.enabled !== false, startMode: ['with', 'after', 'delay'].includes(p?.startMode) ? p.startMode : 'with', delay: number(p?.delay, 0, 0, 3600), inheritRadii: p?.inheritRadii !== false, radius: number(p?.radius, .25, .01, 1.5), maxRadius: number(p?.maxRadius, 1.5, .01, 1.5) });
     function normalizeFrame(frame) {
       if (!frame || typeof frame !== 'object') return null;
       const x = number(frame.x, 0, 0, .98), y = number(frame.y, 0, 0, .98);
@@ -24,8 +24,20 @@
         fade: number(s.fade, .45, .05, 2), blackThreshold: number(s.blackThreshold, 65, 5, 160),
         windStrength: number(s.windStrength, 0, 0, 2), windAngle: number(s.windAngle, 0, 0, 359),
         pathSpeed: number(s.pathSpeed, .3, .01, 1), pauseAfter: !!s.pauseAfter,
-        frame: normalizeFrame(s.frame), cameraDuration: number(s.cameraDuration, .7, 0, 5)
+        ...normalizeView(s), cameraDuration: number(s.cameraDuration, .7, 0, 5)
       };
+    }
+    function normalizeView(v = {}) {
+      if (!v || typeof v !== 'object') v = {};
+      return { frame: normalizeFrame(v.frame), zoom: number(v.zoom, 1, 0, 1), highlightEnabled: v.highlightEnabled === true,
+        highlightLinked: v.highlightLinked !== false, highlightFrame: normalizeFrame(v.highlightFrame),
+        outside: ['show', 'blur', 'black', 'white', 'color', 'transparent'].includes(v.outside) ? v.outside : 'blur',
+        outsideColor: /^#[0-9a-f]{6}$/i.test(v.outsideColor || '') ? v.outsideColor : '#202c29', blur: number(v.blur, 12, 0, 40) };
+    }
+    function pointRadii(stage, p) { return p?.inheritRadii === false ? { radius: number(p.radius, stage.radius, .01, 1.5), maxRadius: number(p.maxRadius, stage.maxRadius, .01, 1.5) } : { radius: stage.radius, maxRadius: stage.maxRadius }; }
+    function radiusDistance(stage, center, point, aspect) {
+      const dx = point.x - center.x, dy = (point.y - center.y) * aspect, d = Math.hypot(dx, dy);
+      return d / Math.exp(stage.windStrength * (d ? Math.cos(Math.atan2(dy, dx) - stage.windAngle * Math.PI / 180) : 0));
     }
     function inPolygon(x, y, polygon) {
       if (!polygon) return true;
@@ -99,6 +111,7 @@
         return { dx, dy, cost: length / (width * stage.speed * Math.exp(stage.windStrength * (dx * wx + dy * wy) / length)) };
       });
       function solve(p, start) {
+        const radii = pointRadii(stage, p);
         const px = p.x * (width - 1), py = p.y * (height - 1), first = Math.round(py) * width + Math.round(px);
         if (!zone[first]) { ignoredSeeds++; return null; }
         const stamp = ++serial, heap = new Heap();
@@ -108,14 +121,14 @@
           boundaryStamps[i] = stamp;
           const dx = x - px, dy = y - py, d = Math.hypot(dx, dy);
           const dot = d ? (dx * wx + dy * wy) / d : 0, windRadius = Math.exp(stage.windStrength * dot);
-          const fraction = d / (stage.maxRadius * width * windRadius);
+          const fraction = d / (radii.maxRadius * width * windRadius);
           let cap = 0;
           if (fraction < 1) {
             const tail = clamp((fraction - .8) / .2, 0, 1);
             cap = Math.round(255 * (1 - tail * tail * (3 - 2 * tail)));
           }
           caps[i] = cap;
-          allowed[i] = cap > 0 && (luminosity[i] >= stage.blackThreshold || d <= stage.radius * width * windRadius) ? 1 : 0;
+          allowed[i] = cap > 0 && (luminosity[i] >= stage.blackThreshold || d <= radii.radius * width * windRadius) ? 1 : 0;
           return allowed[i] === 1;
         }
         // El centro redondeado siempre pertenece a su propio emisor, incluso con radios mínimos.
@@ -193,9 +206,9 @@
       let reached = 0, area = 0; for (let i = 0; i < n; i++) { area += zone[i]; if (opacity[i]) reached++; }
       return { times, fullTimes, opacity, accents, duration: emitters ? Math.max(duration, stage.cameraDuration) : 0, paintDuration: duration,
         reached, area, fade: stage.fade, name: stage.name, pauseAfter: stage.pauseAfter, ignoredSeeds, pointTimings, pathSamples,
-        skipped: !emitters, frame: stage.frame, cameraDuration: stage.cameraDuration };
+        skipped: !emitters, ...normalizeView(stage), cameraDuration: stage.cameraDuration };
     }
-    return { compute, normalizeStage, rasterizeZone, inPolygon };
+    return { compute, normalizeStage, normalizeView, pointRadii, radiusDistance, rasterizeZone, inPolygon };
   }
   root.createPaintEngine = createPaintEngine;
   root.PaintEngine = createPaintEngine();
