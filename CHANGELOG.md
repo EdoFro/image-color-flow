@@ -1,5 +1,14 @@
 # Cambios
 
+## v0.6.0
+
+- Desfase inicial de pintura por etapa, de 0 a 60 segundos y predeterminado cero, disponible en General y selección múltiple.
+- Primer punto activo y recorrido completo del pincel retrasados sin posponer cámara ni destacado; dependencias entre puntos conservadas.
+- Duración y exportación ajustadas al desfase, sin añadir espera a etapas visuales o deshabilitadas.
+- Clic del HTML exportado equivalente a flecha derecha: inicia o avanza, conserva las pausas manuales y no reinicia al terminar.
+- Proyectos de formato 6 con lectura de formatos 1 a 5; ejemplo con enfoque de 0,8 s y desfase de 1,2 s en la primera etapa.
+- 71 pruebas sin DOM y 79 pruebas en Chrome.
+
 ## v0.5.0
 
 - Habilitación individual de etapas, conservando sus datos y omitiendo pintado, cámara y tiempos al deshabilitarlas.

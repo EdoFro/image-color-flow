@@ -24,7 +24,7 @@
         fade: number(s.fade, .45, .05, 2), blackThreshold: number(s.blackThreshold, 65, 5, 160),
         windStrength: number(s.windStrength, 0, 0, 2), windAngle: number(s.windAngle, 0, 0, 359),
         pathSpeed: number(s.pathSpeed, .3, .01, 1), pauseAfter: !!s.pauseAfter,
-        ...normalizeView(s), cameraDuration: number(s.cameraDuration, .7, 0, 5), hold: number(s.hold, 0, 0, 60)
+        ...normalizeView(s), cameraDuration: number(s.cameraDuration, .7, 0, 5), paintDelay: number(s.paintDelay, 0, 0, 60), hold: number(s.hold, 0, 0, 60)
       };
     }
     function normalizeView(v = {}) {
@@ -92,7 +92,7 @@
       const stage = normalizeStage(rawStage), n = width * height, zone = rasterizeZone(width, height, stage.zone);
       if (!stage.enabled) {
         const times = new Float32Array(n), fullTimes = new Float32Array(n); times.fill(Infinity); fullTimes.fill(Infinity);
-        return { times, fullTimes, opacity: new Uint8Array(n), accents: { indices: new Uint32Array(0), times: new Float32Array(0), opacity: new Uint8Array(0) }, duration: 0, paintDuration: 0, reached: 0, area: 0, fade: stage.fade, name: stage.name, enabled: false, pauseAfter: stage.pauseAfter, ignoredSeeds: 0, pointTimings: [], pathSamples: 0, skipped: true, visualOnly: false, ...normalizeView(stage), cameraDuration: stage.cameraDuration, hold: stage.hold };
+        return { times, fullTimes, opacity: new Uint8Array(n), accents: { indices: new Uint32Array(0), times: new Float32Array(0), opacity: new Uint8Array(0) }, duration: 0, paintDuration: 0, reached: 0, area: 0, fade: stage.fade, name: stage.name, enabled: false, pauseAfter: stage.pauseAfter, ignoredSeeds: 0, pointTimings: [], pathSamples: 0, skipped: true, visualOnly: false, ...normalizeView(stage), cameraDuration: stage.cameraDuration, paintDelay: stage.paintDelay, hold: stage.hold };
       }
       const luminosity = new Float32Array(n), resistance = new Float32Array(n), hue = new Float32Array(n), chroma = new Float32Array(n);
       for (let i = 0; i < n; i++) {
@@ -170,7 +170,7 @@
       let previous = null;
       stage.points.forEach((p, index) => {
         if (!p.enabled) { pointTimings.push({ index, enabled: false, start: null, end: null }); return; }
-        const start = !previous ? 0 : p.startMode === 'after' ? previous.end : previous.start + (p.startMode === 'delay' ? p.delay : 0);
+        const start = !previous ? stage.paintDelay : p.startMode === 'after' ? previous.end : previous.start + (p.startMode === 'delay' ? p.delay : 0);
         const ownDuration = solve(p, start);
         const timing = { index, enabled: true, start, end: start + (ownDuration || 0), duration: ownDuration || 0, ignored: ownDuration === null };
         pointTimings.push(timing); previous = timing;
@@ -184,18 +184,18 @@
       }
       let pathSamples = 0;
       if (stage.path.length) {
-        solve(stage.path[0], 0); pathSamples++;
+        solve(stage.path[0], stage.paintDelay); pathSamples++;
         const spacing = Math.max(2, Math.min(width * .025, stage.maxRadius * width * .25), pathLength / 512);
         let sample = spacing;
         for (const segment of segments) {
           while (sample <= segment.end) {
             const f = (sample - segment.begin) / segment.length;
-            solve({ x: segment.a.x + (segment.b.x - segment.a.x) * f, y: segment.a.y + (segment.b.y - segment.a.y) * f }, sample / (width * stage.pathSpeed));
+            solve({ x: segment.a.x + (segment.b.x - segment.a.x) * f, y: segment.a.y + (segment.b.y - segment.a.y) * f }, stage.paintDelay + sample / (width * stage.pathSpeed));
             pathSamples++; sample += spacing;
             if (pathSamples % 8 === 0) onProgress?.({ part: 'path', index: pathSamples });
           }
         }
-        if (pathLength) { solve(stage.path[stage.path.length - 1], pathLength / (width * stage.pathSpeed)); pathSamples++; }
+        if (pathLength) { solve(stage.path[stage.path.length - 1], stage.paintDelay + pathLength / (width * stage.pathSpeed)); pathSamples++; }
       }
       const hasActive = stage.points.some(p => p.enabled) || stage.path.length > 0;
       if (hasActive && !emitters) throw new Error('«' + stage.name + '»: coloca al menos un punto o un tramo del recorrido dentro de la zona.');
@@ -210,7 +210,7 @@
       let reached = 0, area = 0; for (let i = 0; i < n; i++) { area += zone[i]; if (opacity[i]) reached++; }
       return { times, fullTimes, opacity, accents, duration: Math.max(duration, stage.cameraDuration) + stage.hold, paintDuration: duration,
         reached, area, fade: stage.fade, name: stage.name, pauseAfter: stage.pauseAfter, ignoredSeeds, pointTimings, pathSamples,
-        skipped: false, enabled: true, visualOnly: !emitters, ...normalizeView(stage), cameraDuration: stage.cameraDuration, hold: stage.hold };
+        skipped: false, enabled: true, visualOnly: !emitters, ...normalizeView(stage), cameraDuration: stage.cameraDuration, paintDelay: stage.paintDelay, hold: stage.hold };
     }
     return { compute, normalizeStage, normalizeView, pointRadii, radiusDistance, rasterizeZone, inPolygon };
   }

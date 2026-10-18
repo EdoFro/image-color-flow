@@ -26,6 +26,7 @@
       { key: 'outsideColor', label: 'Color exterior', group: 'Enfoque y destacado', type: 'color', scope: 'view' },
       numeric('blur', 'Intensidad de desenfoque', 'Enfoque y destacado', 0, 40, 1, 1, 'px', 'view'),
       numeric('cameraDuration', 'Transición de cámara y destacado', 'Tiempos', 0, 5, .1, 1, 's'),
+      numeric('paintDelay', 'Desfase inicial de pintura', 'Tiempos', 0, 60, .1, 1, 's'),
       numeric('hold', 'Permanencia adicional', 'Tiempos', 0, 60, .1, 1, 's'),
       choice('pauseAfter', 'Esperar al terminar', 'Tiempos', [[true, 'Clic o tecla'], [false, 'Continuar automáticamente']])
     ];

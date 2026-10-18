@@ -56,20 +56,30 @@ Los cambios pendientes no se guardan ni se exportan: confirma primero los que qu
 
 Una etapa puede no tener puntos ni recorrido, o tener todos sus puntos desactivados. En ese caso conserva la pintura acumulada y cambia únicamente la vista. Las etapas nuevas comienzan sin emisores, listas para configurar una vista o añadir puntos.
 
-**Transición de cámara y destacado** controla el movimiento de enfoque y el cambio gradual del tratamiento exterior. **Permanencia adicional**, inicialmente 0 segundos, añade una espera automática después de que terminen el pintado y la transición. La duración de una etapa es el máximo entre pintado y transición, más esa permanencia.
+**Transición de cámara y destacado** controla el movimiento de enfoque y el cambio gradual del tratamiento exterior. **Permanencia adicional**, inicialmente 0 segundos, añade una espera automática después de que terminen el pintado y la transición. La duración de una etapa es el máximo entre el final de pintura (incluido su desfase inicial) y la transición, más esa permanencia.
 
 La opción de esperar clic o tecla funciona también en etapas visuales intermedias. Una etapa de duración cero se ejecuta instantáneamente y puede detener la secuencia si tiene una pausa intermedia.
+
+## Separar el enfoque del pintado
+
+**Desfase inicial de pintura** se define por etapa, entre 0 y 60 segundos, y vale 0 por defecto. Se mide desde el inicio de la etapa: retrasa al primer punto activo y al comienzo de todo el recorrido del pincel, mientras el enfoque y el destacado empiezan inmediatamente. Los demás puntos mantienen sus dependencias respecto al anterior activo. Si desactivas el primero, el siguiente activo utiliza ese mismo desfase de etapa.
+
+Por ejemplo, con transición de 0,8 s y desfase de 1,2 s, el enfoque termina y permanece quieto 0,4 s antes de pintar. Con un desfase menor que la transición, ambos procesos se solapan. General y la selección múltiple permiten revisar y aplicar el desfase a varias etapas con la confirmación habitual.
+
+El desfase no añade tiempo a una etapa visual sin emisores ni a una etapa deshabilitada. La permanencia adicional sigue contando después de que terminen el pintado y la transición.
+
+![Desfase inicial y transición de enfoque](images/vista-desfase.png)
 
 ## Orden y tiempos de los puntos
 
 - **Junto al anterior activo**: comparte el instante de inicio del punto activo anterior.
 - **Al terminar el anterior activo**: espera a que termine su propia expansión, incluidos los últimos píxeles y su transición.
 - **Con demora desde el anterior activo**: comienza X segundos después de que ese anterior comienza; pueden pintar al mismo tiempo.
-- El **primer punto activo empieza en 0 s**. Conserva su modo y demora configurados para cuando vuelva a tener un anterior activo.
+- El **primer punto activo empieza tras el desfase inicial de pintura de la etapa** (0 s por defecto). Conserva su modo y demora configurados para cuando vuelva a tener un anterior activo.
 - Reordenar cambia los números en el lienzo. Cada punto conserva coordenadas, activación, modo y demora; las dependencias se recalculan.
 - Los desactivados aparecen atenuados y no emiten color ni intervienen en los tiempos. Si el punto 2 está desactivado, el 3 depende del 1.
 - La duración propia no se acorta por solaparse con pintura de otro emisor. Las etapas sin puntos activos ni recorrido se reproducen como etapas visuales, incluida su pausa.
-- El recorrido de pincel empieza al comenzar la etapa, independientemente de la secuencia de puntos.
+- El recorrido de pincel comienza tras el mismo desfase inicial de pintura, independientemente de la secuencia de puntos.
 
 ## Encuadres
 
@@ -97,7 +107,7 @@ La barra inferior comienza oculta. Un pequeño logo permanece en la esquina infe
 
 - **Espacio**: reproducir, pausar o continuar después de una pausa.
 - **← / →**: cambiar de etapa.
-- **Clic en la imagen**: reproducir, pausar o continuar.
+- **Clic en la imagen**: la misma acción que flecha derecha. En Inicio comienza; después avanza de etapa. Desde una pausa intermedia continúa reproduciendo; desde una pausa manual avanza conservando la pausa. En la última etapa muestra el final y se detiene. Los clics posteriores no reinician. Usa Espacio para pausar o continuar, o los controles para reiniciar.
 - **F** o el botón correspondiente: pantalla completa. F11 es una alternativa del navegador.
 - La barra permite desplazarse por la secuencia; el tiempo mostrado excluye pausas manuales.
 - Al cambiar a otra pestaña, la reproducción se pausa.
@@ -106,7 +116,7 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 5 y se pueden abrir también los de formatos 1, 2, 3 y 4. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 6 y se pueden abrir también los de formatos 1, 2, 3, 4 y 5. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 

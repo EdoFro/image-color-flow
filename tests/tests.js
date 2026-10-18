@@ -298,6 +298,50 @@
       const selected = [project.stages[0], project.stages[1]], excluded = JSON.stringify(project.stages[2]), scoped = general.scope(project, selected); project.stages.reverse(); general.apply(scoped, { radius: .4, speed: .3 });
       assert(selected.every(s => s.radius === .4 && s.speed === .3 && s.points.every(p => p.inheritRadii)) && JSON.stringify(project.stages[0]) === excluded && !selected[1].enabled, 'La aplicación afectó otra etapa o perdió sus destinos al reordenar.');
     });
+    test('El desfase inicial vale cero por defecto y se limita a un rango válido', () => {
+      assert(engine.normalizeStage({}).paintDelay === 0 && engine.normalizeStage({ paintDelay: -2 }).paintDelay === 0 && engine.normalizeStage({ paintDelay: 500 }).paintDelay === 60, 'El desfase no se normaliza correctamente.');
+    });
+    test('El desfase desplaza las llegadas sin cambiar la huella ni la duración propia', () => {
+      const a = calc(21, 11, image(21, 11)), b = calc(21, 11, image(21, 11), { paintDelay: 2 });
+      assert(b.times.every((t, i) => !Number.isFinite(t) || Math.abs(t - a.times[i] - 2) < 1e-5) && b.opacity.every((value, i) => value === a.opacity[i]) && b.pointTimings[0].duration === a.pointTimings[0].duration && Math.abs(b.duration - a.duration - 2) < 1e-5, 'El desfase alteró la propagación en lugar de desplazarla.');
+    });
+    test('El primer activo usa el desfase y los demás conservan sus dependencias', () => {
+      const field = calc(41, 11, image(41, 11), { paintDelay: 1.2, points: [{ x: .1, y: .5, enabled: false }, { x: .3, y: .5, startMode: 'delay', delay: 8 }, { x: .6, y: .5, startMode: 'delay', delay: .7 }, { x: .8, y: .5, startMode: 'after' }] });
+      assert(field.pointTimings[1].start === 1.2 && Math.abs(field.pointTimings[2].start - 1.9) < 1e-9 && field.pointTimings[3].start === field.pointTimings[2].end, 'La secuencia perdió su referencia al primer activo.');
+    });
+    test('El desfase también retrasa todas las posiciones muestreadas del pincel', () => {
+      const stage = { points: [], maxRadius: .12, path: [{ x: .1, y: .5 }, { x: .9, y: .5 }] }, a = calc(61, 31, image(61, 31), stage), b = calc(61, 31, image(61, 31), { ...stage, paintDelay: 2 });
+      assert(b.pathSamples === a.pathSamples && b.times.every((t, i) => !Number.isFinite(t) || Math.abs(t - a.times[i] - 2) < 1e-5), 'Alguna posición del pincel ignoró el desfase.');
+    });
+    test('El enfoque comienza antes de pintar y la permanencia sigue al final', () => {
+      const field = calc(3, 3, image(3, 3), { paintDelay: 1.2, cameraDuration: .8, hold: .5, frame: { x: .1, y: .1, width: .5, height: .5 } }), p = inspectPlayer([field], 3, 3);
+      try { p.player.seek(.8); assert(p.player.getState().camera.size === .5 && p.pixel(4) === 255, 'El enfoque esperó al desfase o pintó antes de tiempo.'); p.player.seek(1.3); assert(p.pixel(4) < 255, 'El punto no comenzó después del desfase.'); assert(field.duration === Math.max(field.paintDuration, .8) + .5, 'La permanencia no queda al final.'); } finally { p.player.destroy(); }
+    });
+    test('Las etapas visuales y deshabilitadas no consumen el desfase de pintura', () => {
+      const visual = calc(3, 3, image(3, 3), { points: [], paintDelay: 60, cameraDuration: .8, hold: .2 }), disabled = calc(3, 3, image(3, 3), { enabled: false, paintDelay: 60 });
+      assert(visual.duration === 1 && disabled.duration === 0, 'Se añadió un desfase sin pintura.');
+    });
+    test('General y la selección pueden unificar el desfase sin modificar otras etapas', () => {
+      const project = bulkProject(); project.stages[1].paintDelay = 2;
+      assert(general.summary(project, parameter('paintDelay')).mixed, 'No se detectaron distintos desfases.');
+      general.apply(general.scope(project, [project.stages[0]]), { paintDelay: 1 }); assert(project.stages[0].paintDelay === 1 && project.stages[1].paintDelay === 2, 'La selección modificó otra etapa.');
+      general.apply(project, { paintDelay: .8 }); assert(!general.summary(project, parameter('paintDelay')).mixed, 'General no unificó el desfase.');
+    });
+    test('El desfase y sus mapas temporales se conservan al empaquetar la presentación', () => {
+      const field = calc(3, 3, image(3, 3), { paintDelay: 1.2 }), decoded = root.PaintCodec.unpack(root.PaintCodec.pack(field), 9);
+      assert(decoded.paintDelay === 1.2 && Math.abs(decoded.times[4] - 1.2) <= field.duration / 65534, 'La exportación perdió el desfase.');
+    });
+    test('Avanzar inicia, respeta la pausa manual y no reinicia después del final', () => {
+      const field = { times: new Float32Array([0]), fade: .1, duration: 1 }, p = inspectPlayer([field, field]);
+      try { p.player.next(); assert(p.player.getState().playing && p.player.getState().index === 0, 'Avanzar desde Inicio no reproduce.'); p.player.pause(); p.player.next(); assert(!p.player.getState().playing && p.player.getState().index === 1 && p.player.getState().time === 0, 'Avanzar no conservó la pausa manual.'); p.player.next(); p.player.next(); assert(p.player.getState().ended && !p.player.getState().playing && p.player.getState().time === 1, 'Avanzar después del final reinició la presentación.'); } finally { p.player.destroy(); }
+    });
+    test('Avanzar desde una pausa intermedia continúa reproduciendo la siguiente etapa', () => {
+      const oldRaf = root.requestAnimationFrame, oldCancel = root.cancelAnimationFrame, queue = new Map(); let id = 0, p;
+      root.requestAnimationFrame = fn => { queue.set(++id, fn); return id; }; root.cancelAnimationFrame = key => queue.delete(key);
+      function advance(ms) { const tasks = [...queue.values()]; queue.clear(); tasks.forEach(fn => fn(ms)); }
+      try { const field = { times: new Float32Array([0]), fade: .1, duration: 1 }; p = inspectPlayer([{ ...field, pauseAfter: true }, field]); p.player.next(); advance(100); advance(1200); assert(p.player.getState().waiting, 'No se alcanzó la pausa.'); p.player.next(); assert(p.player.getState().index === 1 && p.player.getState().playing && !p.player.getState().waiting, 'Avanzar no continuó después de la pausa.'); }
+      finally { p?.player.destroy(); root.requestAnimationFrame = oldRaf; root.cancelAnimationFrame = oldCancel; }
+    });
     if (typeof document !== 'undefined') {
       test('Transición real entre exteriores opacos mezcla el color sin perder alfa', () => {
         const source = document.createElement('canvas'), output = document.createElement('canvas'); source.width = output.width = source.height = output.height = 20;

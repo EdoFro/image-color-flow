@@ -2,6 +2,17 @@
 
 [Volver al proyecto](../README.md)
 
+## v0.6.0 · Desfase de pintura y avance por clic
+
+Fecha: 18 de octubre de 2026.
+
+- 71 pruebas sin DOM y 79 pruebas correctas en Chrome. Los casos nuevos cubren normalización, desplazamiento de llegadas, duración propia, primer activo, dependencias, muestras del pincel, enfoque antes de pintar, permanencia, etapas visuales y deshabilitadas, edición colectiva, empaquetado y navegación desde pausas.
+- Control individual comprobado: modifica el desfase y muestra el valor actualizado. General detecta diferencias; una aplicación confirmada a dos etapas modifica únicamente sus desfases.
+- Proyecto descargado de formato 6 revisado: conserva el desfase por etapa. Proyecto de formato 5 normalizado a 6 con desfase cero en todas las etapas.
+- HTML exportado probado con clic real sobre el lienzo: el primero inicia, el segundo avanza reproduciendo y, después de pausar con Espacio, otro clic avanza conservando la pausa. En la última etapa termina y un clic adicional conserva el final sin reiniciar.
+- Barra oculta conservada durante los clics y ausencia de errores de consola comprobadas. La navegación desde una pausa intermedia se verifica con reloj simulado en las pruebas compartidas.
+- Ejemplos regenerados con primera transición de 0,8 s y desfase de 1,2 s. Captura del nuevo control y vista de presentación actualizadas.
+
 ## v0.5.0 · Selección de etapas y controles ocultos
 
 Fecha: 18 de octubre de 2026.

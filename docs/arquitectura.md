@@ -46,6 +46,7 @@ Se calculan mapas de llegada independientes mediante caminos de coste mínimo so
 - **Varios emisores**: cada uno respeta sus propios radios, inicio y barreras; un punto futuro no habilita el paso a uno anterior. Se conserva la contribución más intensa que haya llegado, sin sumar ni oscurecer los solapamientos.
 - **Pincel**: cada posición muestreada del trazo emite al pasar el pincel y tiene su propio radio máximo. La huella final forma una franja alrededor de todo el recorrido, deformada por el viento; el radio no se mide desde el comienzo del trazo.
 - **Zonas**: siempre son límites obligatorios. No se cruza diagonalmente por una esquina cerrada.
+- **Desfase inicial de pintura**: desplaza los tiempos absolutos del primer punto activo y de todas las muestras del pincel, sin alterar sus velocidades, huellas ni duraciones propias. Los siguientes puntos conservan sus relaciones con el anterior activo. La cámara y el destacado mantienen su inicio en 0 s.
 - **Duración**: el final más tardío entre todos los emisores y la transición de cámara. A ese máximo se añade la permanencia de la etapa. La duración total suma todas las etapas y excluye pausas que esperan interacción. Las etapas visuales usan transición más permanencia y conservan los mapas de color vacíos.
 - **Solapamiento**: el color ya revelado por una etapa anterior se conserva, incluida su intensidad parcial en los bordes.
 
@@ -53,7 +54,7 @@ Los tiempos exportados se cuantizan a 16 bits por etapa; su precisión es la dur
 
 ## Desarrollo y comprobaciones
 
-No hace falta instalar paquetes. Abre [las pruebas](../tests/index.html) en Chrome o Edge para ejecutar 69 casos, incluidos ocho que necesitan el lienzo real del navegador.
+No hace falta instalar paquetes. Abre [las pruebas](../tests/index.html) en Chrome o Edge para ejecutar 79 casos, incluidos ocho que necesitan el lienzo real del navegador.
 
 Opcionalmente, con Node.js 18 o posterior, desde la raíz:
 
@@ -62,7 +63,7 @@ node scripts/ejecutar-pruebas.mjs
 node scripts/generar-demo.mjs
 ```
 
-El primer comando ejecuta los 61 casos sin DOM y termina con error si alguno falla. El segundo regenera exclusivamente `examples/demo-data.js` desde las dos imágenes de `examples/images/`; no reexporta el proyecto ni la presentación. Ambos scripts resuelven rutas respecto a su propio archivo.
+El primer comando ejecuta los 71 casos sin DOM y termina con error si alguno falla. El segundo regenera exclusivamente `examples/demo-data.js` desde las dos imágenes de `examples/images/`; no reexporta el proyecto ni la presentación. Ambos scripts resuelven rutas respecto a su propio archivo.
 
 Si se cambian las imágenes o la configuración del ejemplo, guarda un nuevo proyecto y exporta de nuevo la presentación desde el editor. Conserva los resultados en `examples/ejemplo.colorflow.json` y `examples/presentacion-ejemplo.html`.
 

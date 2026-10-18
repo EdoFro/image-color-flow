@@ -4,14 +4,14 @@
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
-El formato actual es **5**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
+El formato actual es **6**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
 
 ## Estructura principal
 
 | Campo | Contenido |
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
-| `version` | Versión del formato: se guarda `5`; se leen `1`, `2`, `3`, `4` y `5`. |
+| `version` | Versión del formato: se guarda `6`; se leen `1`, `2`, `3`, `4`, `5` y `6`. |
 | `images.final` | Imagen coloreada obligatoria, con `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
 | `baseMode` | `uploaded` para preparar la inicial o `derived` para desaturar la final. Sin inicial se utiliza `derived`. |
@@ -33,7 +33,7 @@ Cada etapa contiene:
 - `path`, recorrido de pincel de hasta 2000 puntos, y `pathSpeed`.
 - `radius`, `maxRadius`, `speed`, `clarity`, `ink`, `hueResistance`, `fade` y `blackThreshold`.
 - `windStrength`, `windAngle` y los campos de vista descritos abajo.
-- `cameraDuration`, duración de la transición de cámara y destacado desde la vista anterior, y `hold`, permanencia adicional de 0 a 60 segundos, inicialmente 0.
+- `cameraDuration`, duración de la transición de cámara y destacado desde la vista anterior; `paintDelay`, desfase inicial de pintura de 0 a 60 segundos, inicialmente 0; y `hold`, permanencia adicional de 0 a 60 segundos, inicialmente 0.
 
 Un emisor tiene coordenadas `x`, `y` y estos campos:
 
@@ -45,7 +45,7 @@ Un emisor tiene coordenadas `x`, `y` y estos campos:
 | `inheritRadii` | Hereda ambos radios de la etapa, salvo que sea `false`. |
 | `radius`, `maxRadius` | Valores propios, utilizados cuando no hereda. |
 
-El primer punto activo empieza en 0 segundos, conservando su modo para posibles cambios de orden. El pincel utiliza los radios de la etapa en cada posición muestreada del recorrido.
+El primer punto activo empieza en `paintDelay` segundos desde el inicio de su etapa, conservando su modo para posibles cambios de orden. El pincel comienza con el mismo `paintDelay` y utiliza los radios de la etapa en cada posición muestreada del recorrido.
 
 ## Vista de Inicio y de las etapas
 
@@ -75,6 +75,8 @@ General no se almacena como etapa ni como conjunto de valores predeterminados: d
 El formato 5 añade `enabled` a las etapas. Los proyectos anteriores mantienen todas sus etapas habilitadas al abrirse; la activación de los puntos es independiente. Una etapa deshabilitada se conserva completa en el proyecto y se omite de la presentación exportada.
 
 La selección múltiple y sus pendientes son estado del editor y no se serializan. La visibilidad de la barra de presentación tampoco se guarda: cada apertura comienza con la barra oculta.
+
+El formato 6 añade `paintDelay`. Los proyectos anteriores reciben desfase cero y conservan sus tiempos anteriores. Este desfase no retrasa la cámara ni el destacado, y no se suma a etapas visuales o deshabilitadas.
 
 Los mapas de llegada no se guardan en el proyecto: se recalculan al reproducir o exportar.
 

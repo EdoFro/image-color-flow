@@ -12,7 +12,7 @@ Editor local para animar la aparición del color en dibujos con tinta, acuarela 
 4. Define etapas, zonas, puntos y recorridos; ajusta la propagación y reproduce.
 5. Usa **Guardar proyecto** para seguir editando y **Exportar HTML** para presentar.
 
-El editor prepara y alinea las imágenes. También puede obtener una base desaturada desde la versión coloreada. Los puntos admiten orden, activación, demoras y radios propios. Las etapas pueden pintar o cambiar únicamente el enfoque y el destacado, con transiciones graduales y permanencia. **General** permite revisar y unificar parámetros de toda la presentación antes de aplicarlos. Puedes deshabilitar etapas y usar Ctrl + clic para editar un grupo de ellas. La exportación ofrece fondo achurado, liso o transparente, sin marco ni sombra alrededor del dibujo. Sus controles comienzan ocultos y se muestran con el logo o la tecla H.
+El editor prepara y alinea las imágenes. También puede obtener una base desaturada desde la versión coloreada. Los puntos admiten orden, activación, demoras y radios propios. Las etapas pueden pintar o cambiar únicamente el enfoque y el destacado, con transiciones graduales, desfase inicial de pintura y permanencia. **General** permite revisar y unificar parámetros de toda la presentación antes de aplicarlos. Puedes deshabilitar etapas y usar Ctrl + clic para editar un grupo de ellas. La exportación ofrece fondo achurado, liso o transparente, sin marco ni sombra alrededor del dibujo. Sus controles comienzan ocultos y se muestran con el logo o la tecla H. Un clic en el dibujo inicia o avanza la presentación; Espacio permite pausar y continuar.
 
 ## Documentación y ejemplos
 
