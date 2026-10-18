@@ -13,13 +13,16 @@
     function highlight(config) { return (config?.highlightLinked !== false ? config?.frame : config?.highlightFrame) || { x: 0, y: 0, width: 1, height: 1 }; }
     function transparent(config) { return !!config?.highlightEnabled && config.outside === 'transparent'; }
     function createRenderer(createCanvas = () => document.createElement('canvas')) {
-      let surface, surfaceCtx;
-      function draw(ctx, source, width, height, config = {}, camera = full()) {
+      const layers = [];
+      function layer(index, width, height) {
+        if (!layers[index]) layers[index] = createCanvas();
+        const canvas = layers[index]; if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+        return canvas;
+      }
+      function styled(source, width, height, config, index) {
         let image = source;
         if (config.highlightEnabled && config.outside !== 'show') {
-          if (!surface) { surface = createCanvas(); surfaceCtx = surface.getContext('2d'); }
-          if (surface.width !== width || surface.height !== height) { surface.width = width; surface.height = height; }
-          const c = surfaceCtx, r = highlight(config); c.clearRect(0, 0, width, height);
+          const surface = layer(index, width, height), c = surface.getContext('2d'), r = highlight(config); c.clearRect(0, 0, width, height);
           c.save();
           if (config.outside === 'blur') {
             c.drawImage(source, 0, 0); c.filter = `blur(${(config.blur ?? 12) * Math.max(width, height) / 1080}px)`; c.drawImage(source, 0, 0); c.filter = 'none';
@@ -30,11 +33,31 @@
           c.drawImage(source, r.x * width, r.y * height, r.width * width, r.height * height, r.x * width, r.y * height, r.width * width, r.height * height);
           c.restore(); image = surface;
         }
+        return image;
+      }
+      function project(ctx, image, width, height, camera) {
         ctx.clearRect(0, 0, width, height);
         ctx.drawImage(image, camera.x * width, camera.y * height, camera.size * width, camera.size * height, 0, 0, width, height);
+      }
+      function draw(ctx, source, width, height, config = {}, camera = full()) {
+        project(ctx, styled(source, width, height, config, 0), width, height, camera);
         return transparent(config);
       }
-      return { draw };
+      function transition(ctx, source, width, height, from = {}, to = {}, amount = 1, camera = full()) {
+        if (amount <= 0) return draw(ctx, source, width, height, from, camera);
+        if (amount >= 1) return draw(ctx, source, width, height, to, camera);
+        const t = Math.max(0, Math.min(1, amount)), ease = t * t * (3 - 2 * t);
+        const a = highlight(from), b = highlight(to), rect = {};
+        for (const key of ['x', 'y', 'width', 'height']) rect[key] = a[key] + (b[key] - a[key]) * ease;
+        const left = styled(source, width, height, { ...from, highlightLinked: false, highlightFrame: rect }, 0);
+        const right = styled(source, width, height, { ...to, highlightLinked: false, highlightFrame: rect }, 1);
+        const mix = layer(2, width, height), c = mix.getContext('2d'); c.clearRect(0, 0, width, height); c.save();
+        // Suma ponderada en alfa premultiplicada: no crea un rectángulo opaco durante la transición.
+        c.globalAlpha = 1 - ease; c.drawImage(left, 0, 0); c.globalCompositeOperation = 'lighter';
+        c.globalAlpha = ease; c.drawImage(right, 0, 0); c.restore();
+        project(ctx, mix, width, height, camera); return transparent(from) || transparent(to);
+      }
+      return { draw, transition };
     }
     return { full, target, interpolate, highlight, transparent, createRenderer };
   }

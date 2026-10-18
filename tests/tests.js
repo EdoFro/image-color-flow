@@ -125,9 +125,10 @@
       const single = calc(41, 21, image(41, 21)), overlap = calc(41, 21, image(41, 21), { points: [{ x: .5, y: .5 }, { x: .5, y: .5 }] });
       assert(single.pointTimings[0].duration === overlap.pointTimings[0].duration && overlap.pointTimings[1].duration === single.pointTimings[0].duration, 'La duración depende del color depositado por otros emisores.');
     });
-    test('La etapa sin puntos activos ni recorrido se omite sin pausa ni duración', () => {
-      const f = calc(21, 11, image(21, 11), { points: [{ x: .5, y: .5, enabled: false }], pauseAfter: true });
-      assert(f.skipped && f.duration === 0 && f.reached === 0, 'La etapa vacía consume tiempo.');
+    test('La etapa sin emisores conserva transición, permanencia y pausa sin pintar', () => {
+      const f = calc(21, 11, image(21, 11), { points: [{ x: .5, y: .5, enabled: false }], cameraDuration: .8, hold: 1.2, pauseAfter: true });
+      assert(!f.skipped && f.visualOnly && f.duration === 2 && f.pauseAfter && f.reached === 0, 'La etapa visual perdió su duración o su pausa.');
+      assert(f.times.every(t => t === Infinity) && f.opacity.every(value => value === 0), 'La etapa visual deposita color.');
     });
     test('El pincel conserva su radio alrededor de todo el recorrido', () => {
       const f = calc(61, 31, image(61, 31), { points: [], maxRadius: .12, pathSpeed: .2, path: [{ x: .1, y: .5 }, { x: .9, y: .5 }] });
@@ -216,7 +217,70 @@
       const decoded = root.PaintCodec.unpack(root.PaintCodec.pack(f), 21 * 11);
       assert(decoded.zoom === 0 && decoded.highlightEnabled && decoded.highlightLinked === false && decoded.highlightFrame.x === .2 && decoded.outsideColor === '#123456', 'Se perdieron los ajustes visuales.');
     });
+    test('La permanencia se añade después del pintado y no cambia las llegadas', () => {
+      const a = calc(21, 11, image(21, 11)), b = calc(21, 11, image(21, 11), { hold: 3 });
+      assert(b.duration === a.duration + 3 && b.paintDuration === a.paintDuration && b.times.every((t, i) => t === a.times[i]), 'La permanencia alteró el pintado.');
+    });
+    test('Una etapa visual conserva el color acumulado y su cámara al buscar', () => {
+      const painted = { times: new Float32Array(9), fade: .1, duration: 1 }, visual = calc(3, 3, image(3, 3), { points: [], cameraDuration: 1, hold: 1, frame: { x: .1, y: .1, width: .5, height: .5 } });
+      const p = inspectPlayer([painted, visual], 3, 3);
+      try { p.player.seek(2.5); assert(p.pixel(0) === 0 && p.player.getState().index === 1 && p.player.getState().camera.size === .5, 'La etapa visual perdió el color o el enfoque.'); } finally { p.player.destroy(); }
+    });
+    test('Las etapas de duración cero se ejecutan y respetan una pausa intermedia', () => {
+      const oldRaf = root.requestAnimationFrame, oldCancel = root.cancelAnimationFrame, queue = new Map(); let id = 0, p;
+      root.requestAnimationFrame = fn => { queue.set(++id, fn); return id; }; root.cancelAnimationFrame = key => queue.delete(key);
+      try {
+        const zero = calc(3, 3, image(3, 3), { points: [], cameraDuration: 0, pauseAfter: true });
+        p = inspectPlayer([zero, { ...zero, pauseAfter: false }], 3, 3); p.player.play(); [...queue.values()].forEach(fn => fn(100)); queue.clear();
+        assert(p.player.getState().waiting && p.player.getState().index === 0, 'Se perdió la pausa de una etapa instantánea.');
+        p.player.play(); [...queue.values()].forEach(fn => fn(200)); assert(p.player.getState().ended, 'Una secuencia de duración cero no termina.');
+      } finally { p?.player.destroy(); root.requestAnimationFrame = oldRaf; root.cancelAnimationFrame = oldCancel; }
+    });
+    test('La exportación conserva etapas visuales y permanencia', () => {
+      const f = calc(3, 3, image(3, 3), { points: [], hold: 2, pauseAfter: true }), decoded = root.PaintCodec.unpack(root.PaintCodec.pack(f), 9);
+      assert(decoded.visualOnly && !decoded.skipped && decoded.hold === 2 && decoded.pauseAfter && decoded.duration === 2.7 && decoded.opacity.every(v => !v), 'Se perdió una etapa visual al exportar.');
+    });
+    function bulkProject() { return { stages: [engine.normalizeStage({ radius: .2, maxRadius: .4, points: [{ x: .2, y: .2, inheritRadii: false, radius: .3, maxRadius: .6 }] }), engine.normalizeStage({ radius: .2, maxRadius: .4 })], initialView: engine.normalizeView({ zoom: 0 }) }; }
+    const general = root.PaintGeneral, parameter = key => general.parameters.find(item => item.key === key);
+    test('General detecta diferencias de radios propios aunque las etapas coincidan', () => {
+      const project = bulkProject(), before = JSON.stringify(project), result = general.summary(project, parameter('radius'));
+      assert(result.mixed && result.min === .2 && result.max === .3 && JSON.stringify(project) === before, 'La consulta general modifica datos o ignora valores propios.');
+    });
+    test('General unifica radios y devuelve todos los puntos a la herencia', () => {
+      const project = bulkProject(); general.apply(project, { radius: .35 });
+      assert(!general.summary(project, parameter('radius')).mixed && project.stages.every(s => s.radius === .35 && s.points.every(p => p.inheritRadii && p.radius === .35 && p.maxRadius === s.maxRadius)), 'No se restauró la herencia de ambos radios.');
+    });
+    test('General aplica solo los parámetros indicados sin cambiar geometrías', () => {
+      const project = bulkProject(), before = project.stages.map(s => ({ radius: s.radius, points: JSON.stringify(s.points), frame: s.frame, name: s.name })); general.apply(project, { speed: .2, hold: 1.5 });
+      assert(project.stages.every((s, i) => s.speed === .2 && s.hold === 1.5 && s.radius === before[i].radius && JSON.stringify(s.points) === before[i].points && s.frame === before[i].frame && s.name === before[i].name), 'Se modificaron parámetros no solicitados.');
+    });
+    test('General incluye Inicio solo al solicitarlo y solo para parámetros de vista', () => {
+      const project = bulkProject(); assert(!general.summary(project, parameter('zoom')).mixed && general.summary(project, parameter('zoom'), true).mixed, 'Inicio afecta al resumen sin solicitarlo.');
+      general.apply(project, { zoom: .5, speed: .2 }, false); assert(project.initialView.zoom === 0, 'Se cambió Inicio sin incluirlo.');
+      general.apply(project, { zoom: .7, speed: .3 }, true); assert(project.initialView.zoom === .7 && !Object.hasOwn(project.initialView, 'speed'), 'Inicio recibió parámetros de propagación.');
+    });
+    test('General valida todo el lote antes de modificar el proyecto', () => {
+      const project = bulkProject(), before = JSON.stringify(project); let rejected = false;
+      try { general.apply(project, { speed: .2, outsideColor: 'incorrecto' }); } catch (_) { rejected = true; }
+      assert(rejected && JSON.stringify(project) === before, 'Una aplicación inválida dejó cambios parciales.');
+    });
+    test('General modifica puntos desactivados y conserva su orden', () => {
+      const project = bulkProject(); project.stages[0].points[0].enabled = false; general.apply(project, { startMode: 'delay', delay: 2 });
+      assert(project.stages[0].points[0].enabled === false && project.stages[0].points[0].x === .2 && project.stages.every(s => s.points.every(p => p.startMode === 'delay' && p.delay === 2)), 'Se perdió el estado o el orden del punto.');
+    });
     if (typeof document !== 'undefined') {
+      test('Transición real entre exteriores opacos mezcla el color sin perder alfa', () => {
+        const source = document.createElement('canvas'), output = document.createElement('canvas'); source.width = output.width = source.height = output.height = 20;
+        source.getContext('2d').fillRect(0, 0, 20, 20); const context = output.getContext('2d'), base = { highlightEnabled: true, frame: { x: .3, y: .3, width: .4, height: .4 } };
+        root.PaintView.createRenderer().transition(context, source, 20, 20, { ...base, outside: 'black' }, { ...base, outside: 'white' }, .5);
+        const edge = context.getImageData(2, 2, 1, 1).data; assert(edge[0] >= 126 && edge[0] <= 129 && edge[3] === 255, 'El cambio de destacado no se mezcla correctamente.');
+      });
+      test('Transición real a transparencia conserva el alfa parcial y llega a cero', () => {
+        const source = document.createElement('canvas'), output = document.createElement('canvas'); source.width = output.width = source.height = output.height = 20;
+        const s = source.getContext('2d'); s.fillStyle = '#ff0000'; s.fillRect(0, 0, 20, 20); const context = output.getContext('2d'), renderer = root.PaintView.createRenderer(), from = engine.normalizeView(), to = engine.normalizeView({ highlightEnabled: true, outside: 'transparent', frame: { x: .3, y: .3, width: .4, height: .4 } });
+        renderer.transition(context, source, 20, 20, from, to, .5); const alpha = context.getImageData(0, 0, 1, 1).data[3]; assert(alpha >= 126 && alpha <= 129, 'No hay transparencia gradual.');
+        renderer.transition(context, source, 20, 20, from, to, 1); assert(context.getImageData(0, 0, 1, 1).data[3] === 0 && context.getImageData(9, 9, 1, 1).data[3] === 255, 'No se alcanzó el destacado final.');
+      });
       for (const outside of ['show', 'black', 'white', 'color', 'transparent', 'blur']) test('Píxeles reales del destacado: ' + outside, () => {
         const source = document.createElement('canvas'), output = document.createElement('canvas'); source.width = output.width = 20; source.height = output.height = 20;
         const s = source.getContext('2d'), context = output.getContext('2d'); s.fillStyle = '#ff0000'; s.fillRect(0, 0, 20, 20);

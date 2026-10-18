@@ -19,6 +19,30 @@ Abre [index.html](../index.html) en Chrome o Edge. Conserva la estructura comple
 
 En **Editar**, el lienzo muestra la imagen final como referencia con las guías encima; **Imagen inicial** permite revisar la base preparada. La reproducción comienza desde esa base.
 
+## General
+
+**General** aparece antes de Inicio y no forma parte de la reproducción. Reúne los parámetros de propagación, radios, viento, pincel, puntos, enfoque, destacado y tiempos. Los nombres y las geometrías se editan individualmente.
+
+- **Negro / Valor uniforme**: todos los destinos usan el mismo valor.
+- **Morado / Varios valores**: hay diferencias. Los parámetros numéricos muestran su intervalo; no se presupone un valor intermedio.
+- Los radios también consideran los valores propios de los puntos, incluidos los desactivados.
+
+Modifica uno o varios controles y pulsa **Aplicar cambios…**. La revisión enumera los nuevos valores y la cantidad de etapas y puntos afectados. **Confirmar y aplicar** realiza los cambios; **Volver sin aplicar** conserva los pendientes. **Descartar pendientes** los elimina. Navegar por las etapas conserva los pendientes, pero abrir otro proyecto o recargar el ejemplo los descarta. Los valores fuera de rango bloquean la aplicación.
+
+Solo se modifican los parámetros elegidos. Al aplicar cualquiera de los radios, todos los puntos vuelven a heredar **ambos** radios de su etapa; la revisión lo indica porque también reemplaza los valores propios del otro radio. Para vista y destacado puedes marcar **Incluir Inicio**; por defecto afecta solo a las etapas. La activación, el modo de inicio y la demora de puntos se aplican a todos los puntos existentes, conservando su orden y posiciones.
+
+Los cambios pendientes no se guardan ni se exportan: confirma primero los que quieras incorporar. General muestra el estado actual del proyecto, sin guardar una configuración global independiente.
+
+![Panel General con valores uniformes y variados](images/vista-general.png)
+
+## Etapas visuales y permanencia
+
+Una etapa puede no tener puntos ni recorrido, o tener todos sus puntos desactivados. En ese caso conserva la pintura acumulada y cambia únicamente la vista. Las etapas nuevas comienzan sin emisores, listas para configurar una vista o añadir puntos.
+
+**Transición de cámara y destacado** controla el movimiento de enfoque y el cambio gradual del tratamiento exterior. **Permanencia adicional**, inicialmente 0 segundos, añade una espera automática después de que terminen el pintado y la transición. La duración de una etapa es el máximo entre pintado y transición, más esa permanencia.
+
+La opción de esperar clic o tecla funciona también en etapas visuales intermedias. Una etapa de duración cero se ejecuta instantáneamente y puede detener la secuencia si tiene una pausa intermedia.
+
 ## Orden y tiempos de los puntos
 
 - **Junto al anterior activo**: comparte el instante de inicio del punto activo anterior.
@@ -27,14 +51,14 @@ En **Editar**, el lienzo muestra la imagen final como referencia con las guías 
 - El **primer punto activo empieza en 0 s**. Conserva su modo y demora configurados para cuando vuelva a tener un anterior activo.
 - Reordenar cambia los números en el lienzo. Cada punto conserva coordenadas, activación, modo y demora; las dependencias se recalculan.
 - Los desactivados aparecen atenuados y no emiten color ni intervienen en los tiempos. Si el punto 2 está desactivado, el 3 depende del 1.
-- La duración propia no se acorta por solaparse con pintura de otro emisor. Las etapas sin puntos activos ni recorrido se omiten, incluida su pausa.
+- La duración propia no se acorta por solaparse con pintura de otro emisor. Las etapas sin puntos activos ni recorrido se reproducen como etapas visuales, incluida su pausa.
 - El recorrido de pincel empieza al comenzar la etapa, independientemente de la secuencia de puntos.
 
 ## Encuadres
 
 **Inicio** es una vista previa a la primera etapa: muestra la base preparada y espera Reproducir, un clic en la imagen o Espacio. No pinta ni cuenta como etapa. Reiniciar regresa a ella.
 
-Cada etapa tiene su propio enfoque y acercamiento. Con 0% se ve la página completa y con 100% la cámara se ajusta al rectángulo, conservando las proporciones. La cámara pasa suavemente desde la vista anterior mientras pinta y conserva su posición durante las pausas. Los encuadres no cambian las zonas ni las coordenadas de propagación.
+Cada etapa tiene su propio enfoque y acercamiento. Con 0% se ve la página completa y con 100% la cámara se ajusta al rectángulo, conservando las proporciones. La cámara pasa suavemente desde la vista anterior mientras pinta y conserva su posición durante las pausas. El rectángulo de destacado y el tratamiento exterior también cambian gradualmente durante esa transición, incluida la entrada o salida de transparencia. Los encuadres no cambian las zonas ni las coordenadas de propagación.
 
 **Habilitar destacado** viene desmarcado. Al activarlo, el exterior puede mostrarse normal, desenfocado, negro, blanco, de color personalizado o transparente. La intensidad del desenfoque es ajustable. **Usar el mismo rectángulo para enfoque y destacado** viene marcado; al desmarcarlo puedes dibujar el destacado por separado con su herramienta. Esto permite destacar una viñeta sin acercarla. El tratamiento se aplica al dibujo antes del recorte de cámara.
 
@@ -47,6 +71,8 @@ En **Puntos**, selecciona un origen en el lienzo o con **Editar radios** en la l
 Arrastra el asa **T** o **M** para cambiar cada radio. El punto usa inicialmente los valores de la etapa; al arrastrar pasa a valores propios. Marca **Usar radios de la etapa** para recuperar la herencia. También puedes ajustar sus dos deslizadores en el inspector. Con viento, las asas modifican el radio base y conservan la deformación. El pincel sigue utilizando ambos radios de la etapa en cada posición del recorrido.
 
 ## Presentar sin conexión
+
+Al pulsar **Exportar HTML**, elige **Achurado diagonal** (predeterminado), **Color liso** o **Transparente** para el fondo. El achurado se genera con CSS dentro del archivo y permanece fijo detrás del dibujo. El lienzo no tiene marco ni sombra; sus zonas transparentes muestran ese fondo o la página que lo contiene. Las opciones de fondo se conservan en el proyecto después de confirmar la exportación.
 
 La exportación es **un único archivo HTML**: incluye la base preparada, la imagen final, los mapas de tiempos y el reproductor. No necesita la carpeta del editor, servidor, instalación ni conexión. Ábrelo con un navegador y haz clic en Reproducir.
 
@@ -61,7 +87,7 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 3 y se pueden abrir también los de formatos 1 y 2. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 4 y se pueden abrir también los de formatos 1, 2 y 3. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 

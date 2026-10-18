@@ -24,7 +24,7 @@
         fade: number(s.fade, .45, .05, 2), blackThreshold: number(s.blackThreshold, 65, 5, 160),
         windStrength: number(s.windStrength, 0, 0, 2), windAngle: number(s.windAngle, 0, 0, 359),
         pathSpeed: number(s.pathSpeed, .3, .01, 1), pauseAfter: !!s.pauseAfter,
-        ...normalizeView(s), cameraDuration: number(s.cameraDuration, .7, 0, 5)
+        ...normalizeView(s), cameraDuration: number(s.cameraDuration, .7, 0, 5), hold: number(s.hold, 0, 0, 60)
       };
     }
     function normalizeView(v = {}) {
@@ -204,9 +204,9 @@
         accents.indices[dest] = accentIds[k]; accents.times[dest] = accentTimes[k]; accents.opacity[dest++] = accentOpacity[k];
       }
       let reached = 0, area = 0; for (let i = 0; i < n; i++) { area += zone[i]; if (opacity[i]) reached++; }
-      return { times, fullTimes, opacity, accents, duration: emitters ? Math.max(duration, stage.cameraDuration) : 0, paintDuration: duration,
+      return { times, fullTimes, opacity, accents, duration: Math.max(duration, stage.cameraDuration) + stage.hold, paintDuration: duration,
         reached, area, fade: stage.fade, name: stage.name, pauseAfter: stage.pauseAfter, ignoredSeeds, pointTimings, pathSamples,
-        skipped: !emitters, ...normalizeView(stage), cameraDuration: stage.cameraDuration };
+        skipped: false, visualOnly: !emitters, ...normalizeView(stage), cameraDuration: stage.cameraDuration, hold: stage.hold };
     }
     return { compute, normalizeStage, normalizeView, pointRadii, radiusDistance, rasterizeZone, inPolygon };
   }

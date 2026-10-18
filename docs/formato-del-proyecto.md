@@ -4,19 +4,20 @@
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
-El formato actual es **3**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
+El formato actual es **4**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
 
 ## Estructura principal
 
 | Campo | Contenido |
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
-| `version` | Versión del formato: se guarda `3`; se leen `1`, `2` y `3`. |
+| `version` | Versión del formato: se guarda `4`; se leen `1`, `2`, `3` y `4`. |
 | `images.final` | Imagen coloreada obligatoria, con `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
 | `baseMode` | `uploaded` para preparar la inicial o `derived` para desaturar la final. Sin inicial se utiliza `derived`. |
 | `resolution` | Lado mayor de trabajo: 720, 1080 o 1440 píxeles. |
 | `alignment` | Desplazamiento `x`, `y`, escalas `sx`, `sy` y giro `angle`. |
+| `presentation` | Fondo exportado: `background` (`hatch`, `color` o `transparent`) y `color` hexadecimal; valores iniciales `hatch` y `#e5e7e3`. |
 | `initialView` | Enfoque, acercamiento y destacado de Inicio; no contiene emisores. |
 | `stages` | Lista ordenada de 1 a 64 etapas. |
 
@@ -32,7 +33,7 @@ Cada etapa contiene:
 - `path`, recorrido de pincel de hasta 2000 puntos, y `pathSpeed`.
 - `radius`, `maxRadius`, `speed`, `clarity`, `ink`, `hueResistance`, `fade` y `blackThreshold`.
 - `windStrength`, `windAngle` y los campos de vista descritos abajo.
-- `cameraDuration`, duración de la transición desde la vista anterior.
+- `cameraDuration`, duración de la transición de cámara y destacado desde la vista anterior, y `hold`, permanencia adicional de 0 a 60 segundos, inicialmente 0.
 
 Un emisor tiene coordenadas `x`, `y` y estos campos:
 
@@ -66,6 +67,10 @@ Sin rectángulo de destacado se utiliza la página completa. Los ajustes del ext
 La apertura normaliza los datos mediante `validateProject` en `src/app.js` y las funciones de `src/engine.js`. El editor limita cantidades y rangos, valida las imágenes incorporadas y rechaza versiones desconocidas. No basta con cambiar `version` para convertir un formato futuro.
 
 Los archivos de formato 2 conservan sus puntos, tiempos, radios, tono y encuadres. Al faltar los campos de formato 3 reciben Inicio de página completa, destacado desactivado, rectángulos vinculados y radios heredados. Los campos antiguos que falten, también en formato 1, reciben los valores del motor: por ejemplo, puntos activos simultáneos, resistencia al tono cero y radio máximo de 1,5 veces el ancho.
+
+El formato 4 añade la permanencia y las opciones de fondo exportado. Al abrir formatos anteriores se asigna permanencia cero y fondo achurado. Las etapas sin emisores ahora se reproducen como etapas visuales, conservando sus opciones de cámara y pausa.
+
+General no se almacena como etapa ni como conjunto de valores predeterminados: deriva el resumen de las etapas y puntos actuales y aplica cambios a esos datos. Los borradores pendientes no se serializan.
 
 Los mapas de llegada no se guardan en el proyecto: se recalculan al reproducir o exportar.
 

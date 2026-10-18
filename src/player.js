@@ -4,7 +4,7 @@
   function createPaintPlayer(canvas, model, onState = () => {}) {
     const { width, height, base, final } = model;
     const views = model.viewAPI || globalThis.PaintView, initialView = model.initialView || {};
-    const fields = model.fields.map((f, i) => ({ ...f, stageIndex: f.stageIndex ?? i })).filter(f => !f.skipped && f.duration > 0);
+    const fields = model.fields.map((f, i) => ({ ...f, stageIndex: f.stageIndex ?? i })).filter(f => !f.skipped && f.duration >= 0);
     canvas.width = width; canvas.height = height;
     const ctx = canvas.getContext('2d'), frame = ctx.createImageData(width, height);
     const committed = new Uint8Array(width * height), alpha = new Float32Array(width * height);
@@ -27,7 +27,8 @@
       const t = fields[index]?.cameraDuration ? Math.min(1, time / fields[index].cameraDuration) : 1, ease = t * t * (3 - 2 * t);
       return { x: from.x + (target.x - from.x) * ease, y: from.y + (target.y - from.y) * ease, size: from.size + (target.size - from.size) * ease };
     }
-    function state() { return { index: fields[index]?.stageIndex ?? 0, time, atStart, playing, waiting, ended, empty: !fields.length, elapsed: (offsets[index] || 0) + time, total, name: atStart ? 'Inicio' : fields[index]?.name || '', camera: camera(), transparent: views ? views.transparent(atStart ? initialView : fields[index]) : false }; }
+    function transition() { return atStart ? 1 : fields[index]?.cameraDuration ? Math.min(1, time / fields[index].cameraDuration) : 1; }
+    function state() { return { index: fields[index]?.stageIndex ?? 0, time, atStart, playing, waiting, ended, empty: !fields.length, elapsed: (offsets[index] || 0) + time, total, name: atStart ? 'Inicio' : fields[index]?.name || '', camera: camera(), transparent: views ? views.transparent(atStart ? initialView : fields[index]) || (!atStart && transition() < 1 && views.transparent(index ? fields[index - 1] : initialView)) : false }; }
     function commit(field) {
       if (!field) return;
       for (let i = 0; i < committed.length; i++) {
@@ -52,7 +53,10 @@
       }
       if (surfaceCtx) {
         surfaceCtx.putImageData(frame, 0, 0); const view = camera();
-        if (renderer) renderer.draw(ctx, surface, width, height, atStart ? initialView : field, view);
+        if (renderer) {
+          if (!atStart && renderer.transition) renderer.transition(ctx, surface, width, height, index ? fields[index - 1] : initialView, field, transition(), view);
+          else renderer.draw(ctx, surface, width, height, atStart ? initialView : field, view);
+        }
         else ctx.drawImage(surface, view.x * width, view.y * height, view.size * width, view.size * height, 0, 0, width, height);
       } else ctx.putImageData(frame, 0, 0);
       onState(state());

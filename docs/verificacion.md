@@ -2,6 +2,19 @@
 
 [Volver al proyecto](../README.md)
 
+## v0.4.0 · General y etapas visuales
+
+Fecha: 18 de octubre de 2026.
+
+- 54 pruebas sin DOM y 62 pruebas correctas en Chrome. Los nuevos casos cubren etapas visuales, permanencia, pausas de duración cero, color acumulado, resumen de radios efectivos, aplicación colectiva, validación del lote y alcance opcional de Inicio.
+- Transiciones comprobadas con píxeles reales: mezcla de negro a blanco con alfa opaco y paso gradual desde imagen opaca a exterior transparente.
+- General comprobado en la interfaz: valores uniformes y variados, cambio pendiente, revisión de destinos, cancelación sin aplicar, conservación al navegar y confirmación que unifica el valor. Un valor fuera de rango bloquea la aplicación.
+- Proyecto descargado de formato 4 revisado: conserva fondo exportado, permanencia y radios heredados. Un proyecto anterior de formato 3 se normaliza a 4 conservando sus encuadres, con permanencia cero y fondo achurado.
+- Secuencia con todos los puntos desactivados reproducida como etapas visuales hasta la primera pausa, sin descartarlas.
+- Presentación exportada comprobada en Chrome: fondo achurado real, borde y sombra del lienzo ausentes, última etapa visual conserva el color y deja ver el patrón a través del exterior transparente; sin errores de consola.
+- Los fondos achurado, liso personalizado y transparente se comprobaron en la salida del constructor real de la presentación. Sintaxis del script incorporado correcta y sin recursos externos.
+- Ejemplos editable y autónomo regenerados con una cuarta etapa exclusivamente visual. Capturas del editor, General y presentación actualizadas.
+
 ## v0.3.1 · Reorganización
 
 Fecha: 18 de octubre de 2026.

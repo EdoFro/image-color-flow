@@ -1,5 +1,15 @@
 # Cambios
 
+## v0.4.0
+
+- Panel General anterior a Inicio, con valores uniformes en negro y variados en morado, incluidos los radios efectivos de puntos.
+- Cambios colectivos pendientes, revisión por parámetro y confirmación explícita antes de aplicar; restauración de herencia de radios.
+- Etapas visuales sin emisores, con permanencia adicional y pausas manuales.
+- Transiciones graduales del destacado, su rectángulo, tratamiento exterior y transparencia.
+- Exportación con fondo achurado predeterminado, color liso o transparente, sin marco ni sombra del lienzo.
+- Proyectos de formato 4 con lectura de formatos 1 a 3; ejemplos y capturas actualizados.
+- 54 pruebas sin DOM y 62 pruebas en Chrome.
+
 ## v0.3.1
 
 - Reorganización del código, estilos, ejemplos, pruebas y documentación en carpetas separadas.
