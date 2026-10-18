@@ -1,0 +1,9 @@
+Herramienta: edición de imágenes integrada (image_gen).
+
+Use case: style-transfer, strictly a colorization edit.
+Edit target: the supplied complete Spanish manga page. Color this exact page, not a recreation. Preserve every original detail and all Spanish lettering verbatim, every panel, face, expression, anatomical feature, object, clothing pattern, hatch mark, solid black, speech balloon, caption, frame and page number 37. Preserve original full-page framing and proportions.
+Apply subtle Japanese-inspired watercolor beneath all original black ink. Black ink must remain sharp, intact, dominant and uncolored. Transparent delicate washes, restrained dramatic grief, austerity and fragility.
+Neutralize the photograph's blue cast into soft pale ivory paper, retaining existing paper texture. Speech balloon interiors, caption boxes, gutters and margins must remain unpainted ivory with unchanged black text. Do not add strong paper texture.
+Palette: diluted indigo, smoke gray, muted earth brown, aged ochre and very muted moss green. Pale warm skin, gentle gray-violet shadows appropriate to each character's condition. Clothing muted gray-blue, earth and discreet green, all patterns intact and solid black garments remain black. Wood desaturated brown and soft ochre, exterior gray-green foliage and cool shade.
+Top panels sober smoke gray and indigo. Large central scene with children slightly warmer with subdued wood, skin and ochre. Bottom panels cooler and more desaturated, conveying mourning. Subtle shifts with page-wide coherence.
+Very subtle hand-colored vintage page, translucent washes, soft edges and slight watercolor irregularity with paper showing through. No vivid colors, no red accents, no shiny digital finish, no blur, no additions or removals, no redrawing. All text fully legible and unchanged.

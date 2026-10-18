@@ -1,0 +1,13 @@
+# Archivos locales y temporales; los ejemplos entregados sí se versionan.
+node_modules/
+.cache/
+coverage/
+*.log
+*.tmp
+*.temp
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#202c29">
+  <title>Tinta y color · Editor de animaciones</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="./index.html"><span class="brand-mark" aria-hidden="true">◒</span><span>Tinta y color<small>ESTUDIO DE ANIMACIÓN</small></span></a>
+    <span class="offline"><i></i> Todo ocurre en tu equipo</span>
+    <nav aria-label="Archivos">
+      <button id="imagesButton">Imágenes</button><button id="openButton">Abrir proyecto</button><button id="saveButton">Guardar proyecto</button><button id="exportButton" class="primary">Exportar HTML <span aria-hidden="true">↗</span></button>
+    </nav>
+  </header>
+  <main class="studio">
+    <aside class="sequence panel">
+      <div class="eyebrow">01 / SECUENCIA</div>
+      <div class="section-heading"><h1>Un color a la vez.</h1><button id="addStage" class="square" title="Añadir etapa" aria-label="Añadir etapa">+</button></div>
+      <p class="muted intro">Define dónde empieza. El dibujo guía el resto.</p>
+      <div id="stageList" class="stage-list" aria-label="Etapas de la animación"></div>
+      <div class="sequence-actions"><button id="duplicateStage">Duplicar</button><button id="deleteStage">Eliminar</button></div>
+      <div class="sequence-note"><span>↳</span><p>Las etapas se reproducen en orden. Puedes detener la presentación entre ellas.</p></div>
+      <details class="help"><summary>Cómo preparar una animación</summary><ol><li>Carga la imagen coloreada y, si tienes, la inicial.</li><li>Delimita una zona con un rectángulo o polígono.</li><li>Marca puntos o dibuja un recorrido.</li><li>Ajusta la propagación y reproduce.</li><li>Guarda tu proyecto y exporta el HTML.</li></ol><p>Polígono: clic para añadir vértices, Enter o doble clic para cerrar; Escape cancela. Arrastra los puntos para moverlos. El radio y las velocidades se expresan respecto al ancho de la imagen.</p></details>
+      <button id="exampleButton" class="text-button">Volver a cargar el ejemplo</button>
+    </aside>
+    <section class="workspace" aria-label="Vista previa y edición">
+      <div class="workspace-heading"><div><span class="eyebrow">LIENZO</span><h2 id="canvasTitle">Preparando las imágenes…</h2></div><label class="view-select">Vista <select id="viewMode"><option value="edit">Editar</option><option value="initial">Imagen inicial</option><option value="final">Imagen final</option></select></label></div>
+      <div class="toolbar" role="toolbar" aria-label="Herramientas de dibujo">
+        <button data-tool="point" class="active" title="Añadir o mover puntos de inicio">⊙ <span>Puntos</span></button>
+        <button data-tool="rect" title="Arrastrar para delimitar una zona rectangular">▧ <span>Rectángulo</span></button>
+        <button data-tool="polygon" title="Clic para añadir vértices; Enter para terminar">⬡ <span>Polígono</span></button>
+        <button data-tool="path" title="Arrastrar para dibujar un recorrido de pincel">〰 <span>Recorrido</span></button>
+        <span class="toolbar-divider"></span><button id="clearZone" title="Permitir pintar en toda la imagen">Quitar zona</button><button id="clearPath">Quitar recorrido</button>
+      </div>
+      <div class="canvas-area" id="canvasArea"><div class="canvas-wrap" id="canvasWrap"><canvas id="canvas" aria-label="Imagen animada"></canvas><canvas id="overlay" tabindex="0" aria-label="Lienzo de edición. Usa el ratón para marcar puntos y zonas."></canvas></div><div id="emptyState" hidden>Carga una imagen coloreada para comenzar.</div></div>
+      <div class="canvas-caption"><span id="toolHint">Haz clic para añadir un punto; arrástralo para moverlo.</span><span id="dimensions">—</span></div>
+      <section class="transport" aria-label="Reproducción">
+        <div class="transport-buttons"><button id="restartButton" class="square" title="Volver al inicio" aria-label="Volver al inicio">↶</button><button id="playButton" class="play" aria-label="Reproducir">▶</button><button id="nextButton" class="square" title="Avanzar a la siguiente etapa" aria-label="Siguiente etapa">↦</button></div>
+        <div class="timeline"><div><strong id="playStatus">Listo para explorar</strong><span id="timeLabel">0:00 / —</span></div><input id="timeline" type="range" min="0" max="1000" value="0" aria-label="Posición en la animación"></div>
+        <button id="editButton">Volver a editar</button>
+      </section>
+      <div id="status" class="status" role="status">Abriendo el ejemplo local…</div>
+    </section>
+    <aside class="inspector panel">
+      <div class="eyebrow">02 / PROPAGACIÓN</div><h2>El movimiento del color</h2>
+      <label class="field">Nombre de la etapa<input id="stageName" maxlength="80"></label>
+      <div class="parameter"><label for="radius">Radio antes de detenerse en negro</label><output id="radiusOut"></output><input id="radius" type="range" min="1" max="150" step="1"><p>Fuera de este radio, la tinta bloquea el avance.</p></div>
+      <div class="parameter"><label for="speed">Velocidad base</label><output id="speedOut"></output><input id="speed" type="range" min="1" max="60" step="1"></div>
+      <div class="parameter"><label for="clarity">Impulso en colores claros</label><output id="clarityOut"></output><input id="clarity" type="range" min="0" max="8" step="0.1"></div>
+      <div class="parameter"><label for="ink">Demora al atravesar negro</label><output id="inkOut"></output><input id="ink" type="range" min="0" max="30" step="0.5"></div>
+      <div class="parameter"><label for="fade">Aparición de cada píxel</label><output id="fadeOut"></output><input id="fade" type="range" min="0.05" max="2" step="0.05"></div>
+      <details open class="wind-section"><summary><span>↗ Viento</span><span id="windSummary">Sin viento</span></summary><div class="parameter"><label for="wind">Fuerza</label><output id="windOut"></output><input id="wind" type="range" min="0" max="2" step="0.05"></div><div class="parameter"><label for="direction">Dirección hacia la que sopla</label><output id="directionOut"></output><input id="direction" type="range" min="0" max="359" step="1"><p>0° → · 90° ↓ · 180° ← · 270° ↑</p></div></details>
+      <details class="advanced"><summary>Recorrido y detección de tinta</summary><div class="parameter"><label for="pathSpeed">Velocidad del pincel</label><output id="pathSpeedOut"></output><input id="pathSpeed" type="range" min="1" max="100" step="1"></div><div class="parameter"><label for="black">Umbral de negro</label><output id="blackOut"></output><input id="black" type="range" min="5" max="160" step="1"><p>Los píxeles con luminosidad menor a este valor se consideran tinta.</p></div></details>
+      <label class="checkbox"><input id="pauseAfter" type="checkbox"><span>Esperar clic o tecla al terminar esta etapa</span></label>
+      <div class="point-heading">Puntos de inicio <span id="pointCount">0</span></div><div id="pointList" class="point-list"></div>
+      <p class="muted small" id="pathInfo">Sin recorrido de pincel.</p>
+      <div class="estimate"><span>DURACIÓN CALCULADA</span><strong id="estimate">—</strong><small>Resulta de las velocidades y del dibujo. Las pausas no se cuentan.</small></div>
+    </aside>
+  </main>
+  <dialog id="imagesDialog">
+    <form method="dialog" class="dialog-heading"><div><span class="eyebrow">EL PAPEL Y LA TINTA</span><h2>Preparar las imágenes</h2></div><button aria-label="Cerrar" class="square">×</button></form>
+    <div class="upload-grid"><label class="upload">Imagen final coloreada<input id="finalFile" type="file" accept="image/*"><span id="finalName">Sin imagen</span></label><label class="upload">Imagen inicial · opcional<input id="initialFile" type="file" accept="image/*"><span id="initialName">Sin imagen</span></label></div>
+    <label class="field">Imagen inicial utilizada<select id="baseMode"><option value="uploaded">Preparar archivo inicial: neutralizar papel y alinear</option><option value="derived">Obtener imagen sin color desde la imagen final</option></select></label>
+    <label class="field">Resolución de trabajo (lado mayor)<select id="resolution"><option value="720">720 px · ágil</option><option value="1080" selected>1080 px · equilibrada</option><option value="1440">1440 px · más detalle</option></select></label>
+    <p class="muted">La imagen final determina las proporciones. El original se conserva en el proyecto. Obtener la base desde la imagen final evita diferencias de alineación; convierte el color a gris y conserva el papel claro.</p>
+    <details open><summary>Alineación del archivo inicial</summary><p class="muted small">La alineación automática ajusta posición, escala y giro. Puedes afinarla aquí; diferencias locales del dibujo pueden permanecer.</p><canvas id="alignPreview" aria-label="Superposición de la base preparada y la imagen final para comprobar alineación"></canvas><p class="muted small">Superposición al 50%: los contornos dobles indican diferencias.</p><div class="alignment-grid"><label class="field">Horizontal (%)<input id="alignX" type="number" min="-30" max="30" step="0.1" value="0"></label><label class="field">Vertical (%)<input id="alignY" type="number" min="-30" max="30" step="0.1" value="0"></label><label class="field">Escala X (%)<input id="alignSX" type="number" min="70" max="130" step="0.1" value="100"></label><label class="field">Escala Y (%)<input id="alignSY" type="number" min="70" max="130" step="0.1" value="100"></label><label class="field">Giro (°)<input id="alignAngle" type="number" min="-10" max="10" step="0.1" value="0"></label></div><button id="autoAlign" type="button">Alinear automáticamente</button></details>
+    <div class="dialog-footer"><span class="muted small">Archivos locales. Sin envíos ni servicios externos.</span><button id="applyImages" class="primary">Aplicar y volver al lienzo</button></div>
+  </dialog>
+  <input id="projectFile" type="file" accept=".json,.colorflow" hidden>
+  <script src="engine.js"></script><script src="preparation.js"></script><script src="player.js"></script><script src="demo-data.js"></script><script src="app.js"></script>
+</body>
+</html>
