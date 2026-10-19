@@ -58,9 +58,9 @@ node automation/cli.mjs prepare --project output/proyecto-base.colorflow.json --
 
 `prepare` decodifica las imágenes, aplica opcionalmente `--auto-align` a una inicial cargada y genera `base.png`, `referencia.png`, `comparacion.png`, `proyecto.colorflow.json` e `informe.json`. No calcula propagación ni produce un HTML. El informe indica `imageDecodingChecked: true` y `calculationChecked: false`.
 
-Para probar otra transformación, utiliza `update` con un parche que incluya el objeto `baseGeneration` y vuelve a preparar en un directorio nuevo. El objeto del parche reemplaza la configuración completa; los campos omitidos de ese objeto reciben sus valores predeterminados. En proyectos antiguos, `method: "grayscale"` mantiene la desaturación anterior; elige explícitamente `ink` para cambiarla.
+Para probar otra transformación, utiliza `update` con un parche que incluya el objeto `baseGeneration` y vuelve a preparar en un directorio nuevo. El objeto del parche reemplaza la configuración completa; los campos omitidos de ese objeto reciben sus valores predeterminados. En proyectos antiguos, `method: "grayscale"` mantiene la desaturación anterior. Usa `baseGeneration: { "method": "coherent" }` para seleccionar K; el ejemplo [base-lineas.json](../examples/plans/base-lineas.json) incluye sus valores recomendados. Los nuevos proyectos ya utilizan K; formato 7 conserva ink al abrirse.
 
-La API ofrece la misma operación: `await api.prepare({ project, outputDir })`. En MCP se utiliza `colorflow_prepare`, seguido de `colorflow_read_image` sobre `base.png`. Los proyectos de salida son de formato 7, con todos los parámetros de generación guardados. El renderizado completo también incluye `base.png`.
+La API ofrece la misma operación: `await api.prepare({ project, outputDir })`. En MCP se utiliza `colorflow_prepare`, seguido de `colorflow_read_image` sobre `base.png`. Los proyectos de salida son de formato 8, con todos los parámetros de generación guardados. El renderizado completo también incluye `base.png`.
 
 ## Comandos y errores
 
@@ -82,6 +82,8 @@ Las respuestas correctas salen en JSON por stdout. Los fallos salen en JSON por 
 El tiempo máximo de renderizado es 120 segundos; puede ajustarse de 1000 a 600000 ms con `--timeout`. Las imágenes de entrada están limitadas a 40 MB, los proyectos JSON a 150 MB y la respuesta del navegador a 256 MB. Siguen vigentes los límites de resolución y emisores del editor.
 
 ## Conectar un asistente por MCP
+
+Para nuevas bases se recomienda `baseGeneration.method: "coherent"` (K). La preparación analiza el original hasta 1600 px de lado mayor antes de reducir el resultado a la resolución de animación; el informe incluye `baseSourceSize`. No se necesitan bibliotecas adicionales ni un servicio de imágenes.
 
 El servidor usa [MCP stdio](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports). Necesitas un cliente que pueda iniciar procesos locales y leer imágenes; no todos los asistentes web ofrecen esa conexión.
 
@@ -142,6 +144,6 @@ console.log(result.artifacts);
 
 Los métodos son asíncronos. `render` acepta `signal` de un `AbortController`. Los errores tienen `code`, `message` y `details`. El contrato del plan está en [el esquema JSON](../schemas/animation.schema.json); imágenes, rutas de salida y opciones de ejecución son argumentos separados.
 
-En un navegador que cargue `engine`, `base-generation`, `project`, `preparation`, `view`, `player`, `codec`, `presentation` y `automation`, `PaintAutomation.prepare(project)` devuelve proyecto normalizado, imágenes preparadas e informe sin propagación; `PaintAutomation.compile(project)` añade campos calculados y HTML. `previews(compiled)` genera fotogramas y `contactSheet(checkpoints)` la hoja de secuencia. No necesitan montar el editor ni simular clics. Preparar requiere Canvas; compilar también necesita Web Workers.
+En un navegador que cargue `engine`, `ink-lines`, `base-generation`, `project`, `preparation`, `view`, `player`, `codec`, `presentation` y `automation`, `PaintAutomation.prepare(project)` devuelve proyecto normalizado, imágenes preparadas e informe sin propagación; `PaintAutomation.compile(project)` añade campos calculados y HTML. `previews(compiled)` genera fotogramas y `contactSheet(checkpoints)` la hoja de secuencia. No necesitan montar el editor ni simular clics. Preparar requiere Canvas; compilar también necesita Web Workers.
 
 Las pruebas específicas se ejecutan con `node tests/automation.test.mjs`; `npm test` ejecuta además las pruebas del motor sin DOM. Las comprobaciones reales y sus límites se registran en [verificación](verificacion.md).

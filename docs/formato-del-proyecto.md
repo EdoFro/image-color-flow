@@ -4,14 +4,14 @@
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
-El formato actual es **7**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
+El formato actual es **8**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
 
 ## Estructura principal
 
 | Campo | Contenido |
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
-| `version` | Versión del formato: se guarda `7`; se leen `1`, `2`, `3`, `4`, `5`, `6` y `7`. |
+| `version` | Versión del formato: se guarda `8`; se leen formatos `1` a `8`. |
 | `images.final` | Imagen coloreada obligatoria, con `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
 | `baseMode` | `uploaded` para preparar la inicial o `derived` para generarla desde la final. Sin inicial se utiliza `derived`. |
@@ -81,19 +81,21 @@ El formato 6 añade `paintDelay`. Los proyectos anteriores reciben desfase cero 
 
 Los mapas de llegada no se guardan en el proyecto: se recalculan al reproducir o exportar.
 
-El formato 7 añade `baseGeneration`. Al abrir formatos 1 a 6 se asigna `method: "grayscale"` para conservar exactamente la desaturación anterior. Los nuevos proyectos utilizan `method: "ink"`, que lleva los pigmentos detectables al papel y conserva por defecto grises intermedios y negros sólidos. El archivo inicial cargado no recibe esta transformación.
+El formato 7 añade `baseGeneration`. Al abrir formatos 1 a 6 se asigna `method: "grayscale"` para conservar exactamente la desaturación anterior. El formato 8 recomienda `method: "coherent"` (K) para nuevas bases. Los proyectos de formato 7 conservan `ink` y sus parámetros; incluso sin configuración explícita mantienen el filtro anterior. `ink` sigue disponible para retirar pigmentos y conservar grises intermedios según sus parámetros. El archivo inicial cargado no recibe esta transformación.
 
 | Campo de `baseGeneration` | Rango y significado |
 | --- | --- |
-| `method` | `ink` (nuevo valor predeterminado) o `grayscale` (compatibilidad). |
+| `method` | `coherent` (K, predeterminado en formato 8), `ink` (filtro de formato 7) o `grayscale` (desaturación). |
 | `colorToGray` | 0 a 1: desde papel hasta gris del pigmento; inicialmente 0. |
-| `sensitivity` | 0 a 1, inicialmente 0.7; mayor sensibilidad detecta pigmentos más tenues. |
-| `blackPoint` | 0 a 0.9, inicialmente 0.14; 0 conserva los grises oscuros. |
-| `whitePoint` | 0.1 a 1, inicialmente 0.94; 1 conserva los grises claros. Debe ser mayor que `blackPoint`. |
-| `smoothness` | 0 a 1, inicialmente 0.08; el editor muestra de 0 a 100%. |
-| `paper` | `matched` para el tono estimado del papel final o `white` para blanco puro. |
+| `sensitivity` | 0 a 1, inicialmente 0.7. En K exige mayor contraste al aumentar, descartando detalles débiles; en ink detecta pigmentos más tenues. |
+| `blackPoint` | 0 a 0.9; 0 en K y 0.14 en ink. Refuerzo posterior de grises oscuros. |
+| `whitePoint` | 0.1 a 1; 1 en K y 0.94 en ink. Refuerzo posterior de grises claros. Debe ser mayor que `blackPoint`. |
+| `smoothness` | 0 a 1; 0 en K (acabado sin suavizado extra), 0.08 en ink; el editor muestra de 0 a 100%. |
+| `paper` | `white` (inicial en K) para blanco puro o `matched` (inicial en ink) para el tono estimado del papel final. |
 
 En `grayscale` sólo actúa la selección de papel; los demás controles se conservan pero no intervienen. Los puntos de partida del editor son configuraciones de estos campos, sin un nombre de preset adicional en el archivo. Los PNG se regeneran a partir de los originales y estos parámetros.
+
+`coherent` analiza el original hasta 1600 px de lado mayor antes de reducir la base a `resolution`. Los informes de preparación incluyen `baseSourceSize` con las dimensiones de análisis; es `null` en los métodos anteriores o al preparar una inicial cargada. El papel blanco y los umbrales 0/1 con suavidad 0 conservan el acabado de K; los otros controles permiten modificarlo explícitamente.
 
 ## Presentación exportada
 
@@ -101,4 +103,4 @@ El HTML autónomo es un producto distinto. Incorpora imágenes preparadas, mapas
 
 ## Planes para automatización
 
-Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 7, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
+Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 8, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.

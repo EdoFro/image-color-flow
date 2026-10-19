@@ -38,7 +38,7 @@ export function check(value, schema = planSchema, path = '$', root = planSchema)
     }
     if (schema === root.$defs?.frame && (value.x + value.width > 1.00000001 || value.y + value.height > 1.00000001)) fail('El rectángulo debe quedar dentro de la imagen.');
     if (schema === root.$defs?.baseGeneration) {
-      const grayscale = value.method === 'grayscale', black = value.blackPoint ?? (grayscale ? 0 : .14), white = value.whitePoint ?? (grayscale ? 1 : .94);
+      const legacyInk = value.method === 'ink', black = value.blackPoint ?? (legacyInk ? .14 : 0), white = value.whitePoint ?? (legacyInk ? .94 : 1);
       if (black >= white) fail('blackPoint debe ser menor que whitePoint.');
     }
   }

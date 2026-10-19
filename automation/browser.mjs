@@ -10,7 +10,7 @@ const assets = new Map([
   ['runner.html', new URL('./runner.html', import.meta.url)],
   ['runner.js', new URL('./runner.js', import.meta.url)],
   ['runner.css', new URL('./runner.css', import.meta.url)],
-  ...['engine', 'base-generation', 'project', 'preparation', 'view', 'player', 'codec', 'presentation', 'automation'].map(name => [`src/${name}.js`, new URL(`../src/${name}.js`, import.meta.url)])
+  ...['engine', 'ink-lines', 'base-generation', 'project', 'preparation', 'view', 'player', 'codec', 'presentation', 'automation'].map(name => [`src/${name}.js`, new URL(`../src/${name}.js`, import.meta.url)])
 ]);
 
 // Transporte efímero para el renderizador: sólo loopback, ruta aleatoria y recursos enumerados.
@@ -58,10 +58,10 @@ export async function startRenderJob(project, { autoAlign = false, operation = '
 export async function findBrowser(explicit) {
   if (explicit) { await access(explicit); return explicit; }
   const candidates = process.platform === 'win32' ? [
-    join(process.env['PROGRAMFILES(X86)'] || 'C:/Program Files (x86)', 'Microsoft/Edge/Application/msedge.exe'),
-    join(process.env.PROGRAMFILES || 'C:/Program Files', 'Microsoft/Edge/Application/msedge.exe'),
     join(process.env.PROGRAMFILES || 'C:/Program Files', 'Google/Chrome/Application/chrome.exe'),
-    join(process.env.LOCALAPPDATA || '', 'Google/Chrome/Application/chrome.exe')
+    join(process.env.LOCALAPPDATA || '', 'Google/Chrome/Application/chrome.exe'),
+    join(process.env['PROGRAMFILES(X86)'] || 'C:/Program Files (x86)', 'Microsoft/Edge/Application/msedge.exe'),
+    join(process.env.PROGRAMFILES || 'C:/Program Files', 'Microsoft/Edge/Application/msedge.exe')
   ] : process.platform === 'darwin' ? ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge', '/Applications/Chromium.app/Contents/MacOS/Chromium'] : ['/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome', '/opt/google/chrome/chrome', '/usr/bin/microsoft-edge'];
   for (const candidate of candidates) { try { await access(candidate); return candidate; } catch {} }
   throw new AutomationError('BROWSER_NOT_FOUND', 'Instala Chrome/Edge/Chromium o indica su ejecutable con --browser.');

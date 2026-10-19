@@ -2,6 +2,7 @@
 (function (root) {
   'use strict';
   const presets = {
+    coherent: { method: 'coherent', colorToGray: 0, sensitivity: .7, blackPoint: 0, whitePoint: 1, smoothness: 0, paper: 'white' },
     ink: { method: 'ink', colorToGray: 0, sensitivity: .7, blackPoint: .14, whitePoint: .94, smoothness: .08, paper: 'matched' },
     soft: { method: 'ink', colorToGray: .35, sensitivity: .7, blackPoint: .08, whitePoint: .98, smoothness: .1, paper: 'matched' },
     grayscale: { method: 'grayscale', colorToGray: 1, sensitivity: .7, blackPoint: 0, whitePoint: 1, smoothness: .08, paper: 'matched' }
@@ -10,20 +11,43 @@
   const number = (value, fallback, a, b) => typeof value === 'number' && Number.isFinite(value) ? limit(value, a, b) : fallback;
   function normalize(value = {}) {
     if (!value || typeof value !== 'object') value = {};
-    const defaults = value.method === 'grayscale' ? presets.grayscale : presets.ink;
+    const defaults = value.method === 'grayscale' ? presets.grayscale : value.method === 'ink' ? presets.ink : presets.coherent;
     const blackPoint = number(value.blackPoint, defaults.blackPoint, 0, .9);
     return {
       method: defaults.method, colorToGray: number(value.colorToGray, defaults.colorToGray, 0, 1),
       sensitivity: number(value.sensitivity, defaults.sensitivity, 0, 1), blackPoint,
       whitePoint: Math.max(blackPoint + .01, number(value.whitePoint, defaults.whitePoint, .1, 1)),
-      smoothness: number(value.smoothness, defaults.smoothness, 0, 1), paper: value.paper === 'white' ? 'white' : 'matched'
+      smoothness: number(value.smoothness, defaults.smoothness, 0, 1), paper: value.paper === 'white' || value.paper === undefined && defaults.paper === 'white' ? 'white' : 'matched'
     };
   }
   const smooth = (a, b, value) => { const t = b > a ? limit((value - a) / (b - a)) : value >= b ? 1 : 0; return t * t * (3 - 2 * t); };
-  function derive(rgba, estimatedPaper, settings) {
+  function derive(rgba, estimatedPaper, settings, width, height) {
     const config = normalize(settings), out = new Uint8ClampedArray(rgba.length);
     const paper = config.paper === 'white' ? [255, 255, 255] : estimatedPaper;
     const paperLight = Math.max(1, .2126 * paper[0] + .7152 * paper[1] + .0722 * paper[2]);
+    if (config.method === 'coherent') {
+      if (!root.PaintInkLines) throw new Error('No se cargó el motor de extracción de líneas.');
+      let values = root.PaintInkLines.compute(rgba, estimatedPaper, width, height, config.sensitivity);
+      // Suavizado opcional de acabado; cero conserva exactamente el ensayo K.
+      if (config.smoothness > 0) {
+        const radius = Math.ceil(config.smoothness * 3), sigma = Math.max(.15, config.smoothness), kernel = [];
+        let sum = 0; for (let k = -radius; k <= radius; k++) { const v = Math.exp(-k * k / (2 * sigma * sigma)); kernel.push(v); sum += v; }
+        const temp = new Float32Array(values.length), filtered = new Uint8Array(values.length);
+        for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) { let v = 0; for (let k = -radius; k <= radius; k++) v += values[y * width + Math.max(0, Math.min(width - 1, x + k))] * kernel[k + radius]; temp[y * width + x] = v / sum; }
+        for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) { let v = 0; for (let k = -radius; k <= radius; k++) v += temp[Math.max(0, Math.min(height - 1, y + k)) * width + x] * kernel[k + radius]; filtered[y * width + x] = Math.round(v / sum); }
+        values = filtered;
+      }
+      for (let i = 0; i < values.length; i++) {
+        let value = values[i] / 255;
+        const light = limit((.2126 * rgba[i * 4] / Math.max(1, estimatedPaper[0]) + .7152 * rgba[i * 4 + 1] / Math.max(1, estimatedPaper[1]) + .0722 * rgba[i * 4 + 2] / Math.max(1, estimatedPaper[2])));
+        value *= 1 - config.colorToGray * (1 - light);
+        const softness = Math.min(.08, (config.whitePoint - config.blackPoint) / 2);
+        if (config.blackPoint) value *= smooth(config.blackPoint, config.blackPoint + softness, value);
+        if (config.whitePoint < 1) value += (1 - value) * smooth(config.whitePoint - softness, config.whitePoint, value);
+        for (let c = 0; c < 3; c++) out[i * 4 + c] = value * paper[c]; out[i * 4 + 3] = 255;
+      }
+      return out;
+    }
     const threshold = .18 - .17 * config.sensitivity;
     const softness = Math.min(config.smoothness, (config.whitePoint - config.blackPoint) / 2);
     for (let k = 0; k < rgba.length; k += 4) {
@@ -53,5 +77,5 @@
     const config = normalize(settings);
     return Object.keys(presets).find(name => Object.keys(config).every(key => config[key] === presets[name][key])) || 'custom';
   }
-  root.PaintBase = { normalize, derive, presetName, preset: name => ({ ...(presets[name] || presets.ink) }) };
+  root.PaintBase = { normalize, derive, presetName, preset: name => ({ ...(presets[name] || presets.coherent) }) };
 })(typeof window === 'undefined' ? globalThis : window);

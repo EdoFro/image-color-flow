@@ -1,5 +1,12 @@
 # Cambios
 
+## v0.9.0
+
+- Tinta y líneas (K) como método recomendado para nuevas bases: fondo mediano, grises graduales, protección de trazos finos y recuperación direccional. JavaScript local sin dependencias.
+- Mismo algoritmo en editor, API, CLI y MCP; métodos ink y grayscale conservados. Controles de pigmento a gris, sensibilidad, umbrales, suavizado opcional y papel.
+- Formato editable 8: lectura de 1–7 sin cambiar el método anterior. Ejemplo de plan K, esquema y guías actualizados. Vista previa hasta 400%.
+- 88 pruebas sin DOM y 24 de automatización. Comparación nativa con Calvin y samurái: diferencia máxima de un nivel de gris respecto al prototipo. Preparación real con Chrome: PNG idéntico entre API, CLI y MCP, y exportación HTML autónoma.
+
 ## v0.8.0
 
 - Generación configurable de la imagen inicial: tinta sobre papel, tinta con grises suaves y desaturación anterior.

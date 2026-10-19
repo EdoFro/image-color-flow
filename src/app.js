@@ -5,7 +5,7 @@
   const zeroAlignment = () => ({ x: 0, y: 0, sx: 1, sy: 1, angle: 0 });
   const presentationDefaults = () => ({ background: 'hatch', color: '#e5e7e3' });
   const normalizePresentation = value => window.PaintProject.normalizePresentation(value);
-  let project = { format: 'tinta-y-color', version: 7, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage({ maxRadius: .4 })] };
+  let project = { format: 'tinta-y-color', version: 8, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage({ maxRadius: .4 })] };
   let decoded = {}, prepared = null, selected = 0, tool = 'point', draft = null, draftDecoded = null;
   let selectedPoint = 0, radiusHandles = [];
   let generalDraft = {}, generalReview = null;
@@ -433,7 +433,9 @@
       $(id).value = Math.round(config[key] * 100); $(id).disabled = config.method === 'grayscale';
       $(id + 'Out').textContent = `${Math.round(config[key] * 100)}%`;
     }
-    $('baseMethodNote').textContent = config.method === 'grayscale' ? 'Compatibilidad: desatura y conserva las sombras. Elige Tinta sobre papel para retirar el pigmento.' : 'Los valores iniciales conservan negros sólidos y grises intermedios. Los pigmentos muy oscuros o poco saturados pueden requerir ajustes.';
+    $('baseSensitivityHelp').textContent = config.method === 'coherent' ? 'Auméntala para descartar contrastes débiles de pigmento o textura; puede debilitar trazos.' : 'Auméntala para retirar colores tenues.';
+    $('baseSmoothnessHelp').textContent = config.method === 'coherent' ? '0% conserva el acabado de K. Auméntala para suavizar bordes; puede perder nitidez.' : 'Transiciones más amplias entre tinta, grises y papel. Rango completo de 0 a 100%.';
+    $('baseMethodNote').textContent = config.method === 'coherent' ? 'K conserva tinta, recupera líneas y reduce la trama del color. Sensibilidad mayor descarta contrastes débiles; suavidad añade un acabado opcional. Compara letras, rayas y pigmentos oscuros antes de aplicar.' : config.method === 'grayscale' ? 'Compatibilidad: desatura y conserva las sombras. Elige Tinta sobre papel para retirar el pigmento.' : 'Los valores iniciales conservan negros sólidos y grises intermedios. Los pigmentos muy oscuros o poco saturados pueden requerir ajustes.';
   }
   function setBaseZoom() {
     const zoom = $('basePreviewZoom').value;
@@ -449,7 +451,8 @@
     }
     basePreviewGenerated = true; $('basePreviews').hidden = false; $('downloadBase').disabled = false;
     $('generateBase').textContent = 'Actualizar vista previa'; setBaseZoom();
-    $('basePreviewStatus').textContent = `${generatedBase.width} × ${generatedBase.height} px · Compara la base antes de aplicar. Los ajustes todavía no modifican el proyecto.`;
+    const analysis = generatedBase.baseSourceSize;
+    $('basePreviewStatus').textContent = `${generatedBase.width} × ${generatedBase.height} px${analysis ? ` · Tinta analizada a ${analysis.width} × ${analysis.height} px` : ''} · Compara la base antes de aplicar. Los ajustes todavía no modifican el proyecto.`;
   }
   function resetBasePreview() {
     clearTimeout(basePreviewTimer); basePreviewGenerated = false; generatedBase = null;
@@ -549,7 +552,7 @@
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
-    project = { format: 'tinta-y-color', version: 7, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
+    project = { format: 'tinta-y-color', version: 8, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
       engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17, startMode: 'delay', delay: .7 }, { x: .16, y: .17, startMode: 'delay', delay: .7 }], radius: .22, maxRadius: .4, speed: .13, hueResistance: 8, paintDelay: 1.2, cameraDuration: .8, pauseAfter: true, frame: { x: .53, y: .03, width: .44, height: .27 } }),
       engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5, startMode: 'after' }], radius: .35, maxRadius: .5, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true, frame: { x: .06, y: .29, width: .91, height: .38 } }),
       engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 }),

@@ -7,7 +7,7 @@
     function image(w, h, value = 220) { const data = new Uint8ClampedArray(w * h * 4); for (let i = 0; i < w * h; i++) { data[i * 4] = data[i * 4 + 1] = data[i * 4 + 2] = value; data[i * 4 + 3] = 255; } return data; }
     function paint(data, w, x, y, value) { const i = (y * w + x) * 4; data[i] = data[i + 1] = data[i + 2] = value; }
     function calc(w, h, rgba, stage = {}) { return engine.compute({ width: w, height: h, rgba, stage: { points: [{ x: .5, y: .5 }], radius: 1.5, clarity: 0, ink: 0, speed: .1, fade: .2, ...stage } }); }
-    const pixel = (rgb, config, paper = [255, 255, 255]) => [...root.PaintBase.derive(new Uint8ClampedArray([...rgb, 255]), paper, config)];
+    const pixel = (rgb, config, paper = [255, 255, 255]) => [...root.PaintBase.derive(new Uint8ClampedArray([...rgb, 255]), paper, {method:'ink',...config})];
     test('La base de tinta lleva pigmentos claros y oscuros al papel y conserva el negro sólido', () => {
       for (const color of [[210,40,40],[0,0,80],[230,190,120]]) assert(pixel(color)[0] === 255, 'Un pigmento detectable no quedó blanco.');
       assert(pixel([0,0,0]).slice(0,3).every(v=>v===0), 'Se borró el negro.');
@@ -51,8 +51,46 @@
     test('Los proyectos de formato 6 conservan desaturación y los nuevos usan tinta sobre papel', () => {
       const data={format:'tinta-y-color',version:6,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
       const old=root.PaintProject.normalize(data), fresh=root.PaintProject.normalize({...data,version:7});
-      assert(old.version===7 && old.baseGeneration.method==='grayscale', 'No se preservó la compatibilidad.');
+      assert(old.version===8 && old.baseGeneration.method==='grayscale', 'No se preservó la compatibilidad.');
       assert(fresh.baseGeneration.method==='ink' && fresh.baseGeneration.colorToGray===0, 'No se configuró tinta sobre papel.');
+    });
+    test('Formato 8 usa K y formato 7 conserva tinta anterior, incluso sin configuración', () => {
+      const data={format:'tinta-y-color',version:8,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
+      assert(root.PaintProject.normalize(data).baseGeneration.method==='coherent','No se seleccionó K.');
+      assert(root.PaintProject.normalize({...data,version:7,baseGeneration:{}}).baseGeneration.method==='ink','Cambió el método de formato 7.');
+      assert(root.PaintBase.presetName(root.PaintBase.normalize())==='coherent','No es el preset recomendado.');
+    });
+    const fixture = root.INK_FIXTURE;
+    const sourceK = () => new Uint8ClampedArray([...atob(fixture.rgba)].map(c=>c.charCodeAt(0)));
+    const baseK = config => root.PaintBase.derive(sourceK(),fixture.paper,{method:'coherent',...config},fixture.width,fixture.height);
+    test('K exige dimensiones y rechaza buffers incompatibles', () => {
+      for (const dims of [[0,80],[96,0],[95,80],[96.5,80],[undefined,undefined]]) { let failed=false;try { root.PaintBase.derive(sourceK(),fixture.paper,{method:'coherent'},...dims); }catch(e){failed=/dimensiones/.test(e.message);}assert(failed,'Se aceptaron dimensiones inválidas.'); }
+    });
+    test('K reproduce la referencia independiente con tolerancia de un nivel de gris', () => {
+      const actual=baseK(),expected=atob(fixture.expected);let error=0;
+      for(let i=0;i<expected.length;i++){const delta=Math.abs(actual[i*4]-expected.charCodeAt(i));assert(delta<=1,'Diferencia de tinta en píxel '+i);error+=delta;assert(actual[i*4+3]===255,'Se alteró el alfa.');}
+      assert(error/expected.length<.01,'Se acumulan demasiadas diferencias.');
+    });
+    test('K conserva negros y recupera rayas sin rellenar el pigmento', () => {
+      const out=baseK(),v=(x,y)=>out[(y*fixture.width+x)*4];
+      assert(v(70,15)===0,'Se vació el negro sólido.');assert(v(30,14)===255,'Se conservó un relleno rojo.');assert(v(30,20)<170,'Se perdió la raya sobre rojo.');
+    });
+    test('K no convierte una trama débil de tela en motas', () => {
+      const out=baseK();for(let y=48;y<65;y++)for(let x=70;x<82;x++)assert(out[(y*fixture.width+x)*4]===255,'Se recuperó textura interior débil.');
+    });
+    test('Los controles de K conservan pigmento en gris y permiten papel cálido', () => {
+      const plain=baseK(),gray=baseK({colorToGray:1}),i=(14*fixture.width+30)*4;
+      assert(gray[i]<plain[i] && gray[(15*fixture.width+70)*4]===0,'El gris cambia la tinta o ignora el pigmento.');
+      const out=root.PaintBase.derive(sourceK(),[250,245,230],{method:'coherent',paper:'matched'},fixture.width,fixture.height);
+      assert(out[0]===250 && out[1]===245 && out[2]===230,'No se conservó el tono de papel.');
+    });
+    test('Sensibilidad y suavizado de K modifican la extracción sin cambiar el tamaño', () => {
+      const a=baseK({sensitivity:0}),b=baseK({sensitivity:1}),normal=baseK(),soft=baseK({smoothness:.8});
+      assert(a.some((v,i)=>v!==b[i]),'Sensibilidad ignorada.');assert(normal.some((v,i)=>v!==soft[i]),'Suavizado ignorado.');assert(soft.length===sourceK().length,'Cambió el tamaño.');
+    });
+    test('Los umbrales de K refuerzan los oscuros y aclaran los bordes grises', () => {
+      const normal=baseK(),dark=baseK({blackPoint:.4}),white=baseK({whitePoint:.6});
+      assert(normal.some((v,i)=>i%4!==3 && dark[i]<v),'Umbral de negro ignorado.');assert(normal.some((v,i)=>i%4!==3 && white[i]>v),'Umbral de blanco ignorado.');
     });
     test('La expansión sin viento es simétrica y aumenta con la distancia', () => {
       const f = calc(41, 41, image(41, 41));

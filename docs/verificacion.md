@@ -2,6 +2,16 @@
 
 [Volver al proyecto](../README.md)
 
+## v0.9.0 · Integración de K
+
+- 88/88 pruebas sin DOM: referencia sintética independiente del prototipo Python, rayas sobre rojo, textura débil, negros sólidos, dimensiones, controles y compatibilidad de formatos. 24/24 pruebas API/CLI/MCP.
+- A resolución nativa, Calvin (1600 × 1153) difiere en 42 píxeles y samurái (1035 × 1520) en 72 píxeles respecto al PNG experimental K. La diferencia máxima es de un nivel de gris; diferencia media menor de 0.00005 niveles. El método ink reproduce exactamente sus PNG anteriores.
+- Aproximadamente 3.3 s y 2.8 s respectivamente en Node de esta sesión; son mediciones locales, no garantías de tiempo. K analiza el original con un lado mayor de hasta 1600 px y reduce después la base a la resolución de animación (720, 1080 o 1440). Así la detección no cambia de escala al elegir una animación más pequeña.
+- Preparación real del samurái a 720 px con Chrome: base de 490 × 720, archivo PNG idéntico en API, CLI y MCP; exportación real autocontenida y proyecto editable de formato 8.
+- El Edge instalado se cerró antes de entregar el trabajo headless. La selección automática en Windows prioriza ahora Chrome cuando está disponible; también se puede indicar browser/--browser. La preparación y exportación se comprobaron con la selección automática de Chrome. El editor conserva su apertura directa en navegador.
+- No se hizo una nueva revisión interactiva del editor en navegador desde esta sesión. Las pruebas sin DOM y las operaciones reales de preparación/exportación no equivalen a comprobar cada interacción visual.
+- Las copias experimentales y el comparador se mantuvieron separados y sin modificaciones. No se incorporaron imágenes de Calvin ni dependencias Python/sharp a la aplicación.
+
 ## v0.8.0 · Base de tinta configurable
 
 Fecha: 18 de octubre de 2026.

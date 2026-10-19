@@ -1,0 +1,15 @@
+{
+  "baseGeneration": {
+    "method": "coherent",
+    "colorToGray": 0,
+    "sensitivity": 0.7,
+    "blackPoint": 0,
+    "whitePoint": 1,
+    "smoothness": 0,
+    "paper": "white"
+  },
+  "resolution": 1080,
+  "stages": [
+    { "name": "Colorear", "points": [{ "x": 0.5, "y": 0.5 }], "maxRadius": 1.5 }
+  ]
+}

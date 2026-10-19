@@ -149,12 +149,12 @@
     },
     "baseGeneration": {
       "$ref": "#/$defs/baseGeneration",
-      "description": "Generación global de la base cuando baseMode es derived. Nuevos proyectos: tinta sobre papel. Proyectos de formato 1–6 mantienen desaturación al abrirse."
+      "description": "GeneraciÃ³n global de la base cuando baseMode es derived. Nuevos proyectos: tinta sobre papel. Proyectos de formato 1â€“6 mantienen desaturaciÃ³n al abrirse."
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Plan de animación Tinta y color",
-  "description": "Coordenadas x/y normalizadas 0–1, radios y velocidades relativos al ancho, tiempos en segundos. Campos omitidos reciben valores del motor. stages reemplaza la lista completa; points:[] crea una etapa visual. frame debe quedar dentro de la imagen. No incluye imágenes: se suministran como archivos a la API.",
+  "title": "Plan de animaciÃ³n Tinta y color",
+  "description": "Coordenadas x/y normalizadas 0â€“1, radios y velocidades relativos al ancho, tiempos en segundos. Campos omitidos reciben valores del motor. stages reemplaza la lista completa; points:[] crea una etapa visual. frame debe quedar dentro de la imagen. No incluye imÃ¡genes: se suministran como archivos a la API.",
   "$defs": {
     "point": {
       "type": "object",
@@ -164,13 +164,13 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1,
-          "description": "Fracción del ancho, de izquierda a derecha."
+          "description": "FracciÃ³n del ancho, de izquierda a derecha."
         },
         "y": {
           "type": "number",
           "minimum": 0,
           "maximum": 1,
-          "description": "Fracción del alto, de arriba hacia abajo."
+          "description": "FracciÃ³n del alto, de arriba hacia abajo."
         }
       },
       "required": [
@@ -218,13 +218,13 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1,
-          "description": "Fracción del ancho, de izquierda a derecha."
+          "description": "FracciÃ³n del ancho, de izquierda a derecha."
         },
         "y": {
           "type": "number",
           "minimum": 0,
           "maximum": 1,
-          "description": "Fracción del alto, de arriba hacia abajo."
+          "description": "FracciÃ³n del alto, de arriba hacia abajo."
         },
         "enabled": {
           "type": "boolean",
@@ -356,7 +356,7 @@
               "maxRadius": 1.5
             }
           ],
-          "description": "Puntos en orden. Una lista vacía evita el punto central predeterminado."
+          "description": "Puntos en orden. Una lista vacÃ­a evita el punto central predeterminado."
         },
         "path": {
           "type": "array",
@@ -387,14 +387,14 @@
           "minimum": 0.01,
           "maximum": 1.5,
           "default": 0.25,
-          "description": "Fracción del ancho de la imagen."
+          "description": "FracciÃ³n del ancho de la imagen."
         },
         "maxRadius": {
           "type": "number",
           "minimum": 0.01,
           "maximum": 1.5,
           "default": 1.5,
-          "description": "Fracción del ancho de la imagen."
+          "description": "FracciÃ³n del ancho de la imagen."
         },
         "speed": {
           "type": "number",
@@ -483,15 +483,16 @@
     "baseGeneration": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Tratamiento global de pigmentos y grises. blackPoint debe ser menor que whitePoint. Los números son fracciones 0–1; los ajustes no afectan una inicial cargada.",
+      "description": "Tratamiento global de pigmentos y grises. blackPoint debe ser menor que whitePoint. Los nÃºmeros son fracciones 0â€“1; los ajustes no afectan una inicial cargada.",
       "properties": {
         "method": {
           "enum": [
+            "coherent",
             "ink",
             "grayscale"
           ],
-          "default": "ink",
-          "description": "ink retira pigmentos; grayscale conserva la desaturación anterior e ignora los controles de tinta."
+          "default": "coherent",
+          "description": "coherent es Tinta y líneas (K), recomendado para nuevas bases. ink conserva el filtro anterior; grayscale desatura."
         },
         "colorToGray": {
           "type": "number",
@@ -505,35 +506,35 @@
           "minimum": 0,
           "maximum": 1,
           "default": 0.7,
-          "description": "Mayor sensibilidad detecta pigmentos más tenues."
+          "description": "En coherent exige más contraste al aumentar: elimina variaciones débiles de pigmento/textura. En ink detecta pigmentos más tenues."
         },
         "blackPoint": {
           "type": "number",
           "minimum": 0,
           "maximum": 0.9,
-          "default": 0.14,
+          "default": 0,
           "description": "Grises bajo este umbral pasan a negro. 0 desactiva el refuerzo."
         },
         "whitePoint": {
           "type": "number",
           "minimum": 0.1,
           "maximum": 1,
-          "default": 0.94,
+          "default": 1,
           "description": "Grises sobre este umbral pasan al papel. 1 conserva grises claros."
         },
         "smoothness": {
           "type": "number",
           "minimum": 0,
           "maximum": 1,
-          "default": 0.08,
-          "description": "Suavidad de 0 a 1 (0–100%); amplía las transiciones entre pigmento, gris y papel."
+          "default": 0,
+          "description": "0–1. En coherent añade suavizado gaussiano de acabado (0 conserva K). En ink amplía transiciones entre pigmento y papel."
         },
         "paper": {
           "enum": [
             "matched",
             "white"
           ],
-          "default": "matched",
+          "default": "white",
           "description": "Tono estimado del papel final o blanco puro."
         }
       }

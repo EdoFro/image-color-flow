@@ -12,6 +12,7 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 | `assets/styles.css` | Presentación del editor y adaptación al tamaño de pantalla. |
 | `src/app.js` | Estado del proyecto, eventos del editor, herramientas del lienzo, archivos y coordinación con las APIs compartidas de cálculo y exportación. |
 | `src/project.js` | Normalización compartida del formato editable y opciones de presentación. |
+| `src/ink-lines.js` | Extracción K sin DOM: mediana local, recuperación gradual, protección fina y líneas coherentes en ocho direcciones. |
 | `src/base-generation.js` | Transformación pura de píxeles, presets y normalización de la generación de base, sin DOM. |
 | `src/presentation.js` | Constructor único del HTML autónomo, incluido el reinicio final. |
 | `src/automation.js` | Preparación completa, cálculo en Web Worker, informe, fotogramas y hoja de secuencia sin montar el editor. |
@@ -77,7 +78,7 @@ También se puede usar cualquier servidor estático local para desarrollo. El se
 
 ## Automatización opcional
 
-La API de Node.js usa el mismo normalizador que el editor, junto con un contrato estricto de planes que rechaza errores antes de aplicar valores predeterminados. Utiliza el formato editable 7 y lee formatos 1 a 6 conservando su desaturación anterior. Los comandos y MCP son adaptadores de esta API; no duplican la propagación ni el constructor HTML.
+La API de Node.js usa el mismo normalizador que el editor, junto con un contrato estricto de planes que rechaza errores antes de aplicar valores predeterminados. Utiliza el formato editable 8. Lee formatos 1 a 6 conservando su desaturación anterior, y formato 7 conservando su filtro de tinta y parámetros. Los comandos y MCP son adaptadores de esta API; no duplican la propagación ni el constructor HTML.
 
 Canvas, decodificación, alineación, Web Worker y fotogramas se ejecutan en Chrome/Edge/Chromium sin ventana con un perfil temporal aislado. El proceso de Node sirve exclusivamente recursos enumerados y el trabajo actual en loopback, mediante una ruta aleatoria. El resultado regresa por HTTP local; el servidor, navegador y perfil se cierran al finalizar, cancelar o fallar. El renderizador admite una sesión de navegador externa para las pruebas visuales del mismo trabajo.
 

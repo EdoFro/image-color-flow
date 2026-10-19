@@ -34,11 +34,23 @@
     const width = Math.max(2, Math.round(finalImage.width * ratio)), height = Math.max(2, Math.round(finalImage.height * ratio));
     const finalCanvas = draw(finalImage, width, height), final = finalCanvas.getContext('2d').getImageData(0, 0, width, height);
     const baseCanvas = canvas(width, height), ctx = baseCanvas.getContext('2d', { willReadFrequently: true });
-    const paper = paperColor(final.data);
+    const paper = paperColor(final.data); let baseSourceSize = null;
     if (options.baseMode === 'derived' || !initialImage) {
       const base = ctx.createImageData(width, height);
-      base.data.set(root.PaintBase.derive(final.data, paper, options.baseGeneration));
-      ctx.putImageData(base, 0, 0);
+      const config = root.PaintBase.normalize(options.baseGeneration);
+      if (config.method === 'coherent') {
+        // Mantener la densidad de análisis al cambiar la resolución de animación.
+        // Calvin y la acuarela se ensayaron a su tamaño nativo, hasta 1600 px.
+        const scale = Math.min(1, 1600 / Math.max(finalImage.width, finalImage.height));
+        const sw = Math.max(2, Math.round(finalImage.width * scale)), sh = Math.max(2, Math.round(finalImage.height * scale));
+        const source = draw(finalImage, sw, sh), sourceCtx = source.getContext('2d', { willReadFrequently: true }), sourceData = sourceCtx.getImageData(0, 0, sw, sh);
+        const pixels = sourceCtx.createImageData(sw, sh);
+        pixels.data.set(root.PaintBase.derive(sourceData.data, paperColor(sourceData.data), config, sw, sh));
+        sourceCtx.putImageData(pixels, 0, 0); ctx.drawImage(source, 0, 0, width, height); baseSourceSize = { width: sw, height: sh };
+      } else {
+        base.data.set(root.PaintBase.derive(final.data, paper, config, width, height));
+        ctx.putImageData(base, 0, 0);
+      }
     } else {
       const source = draw(initialImage, width, height), sourceCtx = source.getContext('2d'), pixels = sourceCtx.getImageData(0, 0, width, height);
       const l = gray(pixels.data), white = percentile(l, .9), black = Math.min(45, percentile(l, .015));
@@ -52,7 +64,7 @@
       const a = options.alignment || { x: 0, y: 0, sx: 1, sy: 1, angle: 0 };
       ctx.save(); ctx.translate(width / 2 + a.x * width, height / 2 + a.y * height); ctx.rotate(a.angle * Math.PI / 180); ctx.scale(a.sx, a.sy); ctx.drawImage(source, -width / 2, -height / 2); ctx.restore();
     }
-    return { width, height, base: ctx.getImageData(0, 0, width, height), final, baseCanvas, finalCanvas };
+    return { width, height, baseSourceSize, base: ctx.getImageData(0, 0, width, height), final, baseCanvas, finalCanvas };
   }
   function autoAlign(finalImage, initialImage) {
     if (!initialImage) return { x: 0, y: 0, sx: 1, sy: 1, angle: 0 };

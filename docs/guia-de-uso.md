@@ -21,22 +21,24 @@ En **Editar**, el lienzo muestra la imagen final como referencia con las guías 
 
 ## Generar la imagen inicial
 
-En **Imágenes**, elige **Generar imagen inicial desde la imagen final** y pulsa **Generar vista previa**. El panel muestra la referencia y la base propuesta una junto a otra, sin superponerlas. Una vez generada, los controles actualizan la comparación automáticamente. **Ampliación** permite ajustar las imágenes al panel o verlas al 100% y 200%, con desplazamiento dentro de cada imagen.
+En **Imágenes**, elige **Generar imagen inicial desde la imagen final** y pulsa **Generar vista previa**. El panel muestra la referencia y la base propuesta una junto a otra, sin superponerlas. Una vez generada, los controles actualizan la comparación automáticamente. **Ampliación** permite ajustar las imágenes al panel o verlas al 100%, 200% y 400%, con desplazamiento dentro de cada imagen.
 
-Hay tres puntos de partida: **Tinta sobre papel** retira pigmentos detectables, **Tinta y grises suaves** conserva parte de su gris y **Desaturación anterior** reproduce el método antiguo, que conserva sombras. Al modificar los controles aparece **Personalizado**. Los nuevos proyectos usan Tinta sobre papel; los proyectos de formatos anteriores mantienen su desaturación hasta que cambies el punto de partida.
+Hay cuatro puntos de partida: **Tinta y líneas (K)** es la opción recomendada, con fondo robusto, protección de detalles finos y recuperación de líneas.  **Tinta sobre papel** retira pigmentos detectables, **Tinta y grises suaves** conserva parte de su gris y **Desaturación anterior** reproduce el método antiguo, que conserva sombras. Al modificar los controles aparece **Personalizado**. Los nuevos proyectos usan K. Los archivos de formato 7 mantienen su filtro de tinta; formatos 1–6 mantienen la desaturación. Para usar K en un proyecto existente, selecciónalo en Punto de partida y revisa la nueva base antes de aplicar.
 
 | Control | Funcionamiento |
 | --- | --- |
 | Zonas coloreadas: papel ↔ gris | 0% lleva el pigmento detectado al papel; 100% conserva su gris. |
-| Sensibilidad al color | Auméntala para retirar acuarelas o pigmentos más tenues. Un gris neutro permanece gris. |
+| Sensibilidad al color | En K, auméntala para descartar contrastes débiles de pigmento/textura, con posible pérdida de trazos. En Tinta sobre papel detecta pigmentos más tenues. |
 | Llevar grises oscuros a negro | Luminosidad por debajo de la cual se refuerza a negro. 0% conserva los grises oscuros. |
 | Llevar grises claros al papel | Luminosidad a partir de la cual se aclara al papel. 100% conserva los grises claros. |
-| Suavidad de la transformación | Rango completo de 0 a 100%, inicialmente 8%. Amplía las transiciones entre pigmento, gris y papel. Las transiciones de gris se limitan para no cruzar sus umbrales. |
+| Suavidad de la transformación | De 0 a 100%. En K parte de 0% y añade un suavizado de acabado; puede reducir nitidez. En el filtro anterior parte de 8% y amplía las transiciones entre pigmento, gris y papel. |
 | Papel | Tono estimado del papel de la imagen final o blanco puro. |
 
-Por defecto se conservan los grises intermedios y los negros sólidos. Se evalúan luminosidad y diferencia de canales para evitar que un azul oscuro se convierta automáticamente en tinta negra. La detección es aproximada: pigmentos casi neutros o muy oscuros pueden requerir ajustes. Los controles de tinta no actúan en Desaturación anterior; el papel sigue siendo seleccionable.
+K retira los rellenos, conserva negros sólidos y recupera detalles usando el entorno y la continuidad de los trazos. El filtro anterior conserva por defecto los grises intermedios. Se evalúan luminosidad y diferencia de canales para evitar que un azul oscuro se convierta automáticamente en tinta negra. La detección es aproximada: pigmentos casi neutros o muy oscuros pueden requerir ajustes. Los controles de tinta no actúan en Desaturación anterior; el papel sigue siendo seleccionable.
 
 **Aplicar y volver al lienzo** guarda el método y sus parámetros. Si todavía no generaste la comparación, el primer clic la genera y mantiene abierto el diálogo para revisarla. Cerrar con × o Escape descarta los cambios pendientes. **Descargar imagen inicial PNG** permite guardar la base completa que estás revisando, sin enfoques ni destacados. La inicial cargada como archivo no recibe estos controles.
+
+K analiza el original hasta 1600 px de lado mayor y después reduce la base a la resolución elegida para la animación. De este modo, elegir 720 px no reduce de antemano los detalles que necesita detectar. El estado de la vista previa indica ambas dimensiones. La generación puede tardar unos segundos en imágenes grandes.
 
 ![Comparación de la imagen final y la base generada, con suavidad hasta 100%](images/vista-base.png)
 
@@ -141,7 +143,7 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 7 y se pueden abrir también los de formatos 1, 2, 3, 4, 5 y 6. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 8 y se pueden abrir también los de formatos 1 a 7. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 
