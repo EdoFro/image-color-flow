@@ -36,12 +36,8 @@
     const baseCanvas = canvas(width, height), ctx = baseCanvas.getContext('2d', { willReadFrequently: true });
     const paper = paperColor(final.data);
     if (options.baseMode === 'derived' || !initialImage) {
-      const base = ctx.createImageData(width, height), l = gray(final.data);
-      for (let i = 0; i < l.length; i++) {
-        // Desaturación: retiene tinta y sombreado; no pretende reconstruir el dibujo original.
-        for (let k = 0; k < 3; k++) base.data[i * 4 + k] = clamp(l[i] * paper[k] / Math.max(1, .2126 * paper[0] + .7152 * paper[1] + .0722 * paper[2]));
-        base.data[i * 4 + 3] = 255;
-      }
+      const base = ctx.createImageData(width, height);
+      base.data.set(root.PaintBase.derive(final.data, paper, options.baseGeneration));
       ctx.putImageData(base, 0, 0);
     } else {
       const source = draw(initialImage, width, height), sourceCtx = source.getContext('2d'), pixels = sourceCtx.getImageData(0, 0, width, height);

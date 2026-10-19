@@ -12,11 +12,12 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 | `assets/styles.css` | Presentación del editor y adaptación al tamaño de pantalla. |
 | `src/app.js` | Estado del proyecto, eventos del editor, herramientas del lienzo, archivos y coordinación con las APIs compartidas de cálculo y exportación. |
 | `src/project.js` | Normalización compartida del formato editable y opciones de presentación. |
+| `src/base-generation.js` | Transformación pura de píxeles, presets y normalización de la generación de base, sin DOM. |
 | `src/presentation.js` | Constructor único del HTML autónomo, incluido el reinicio final. |
 | `src/automation.js` | Preparación completa, cálculo en Web Worker, informe, fotogramas y hoja de secuencia sin montar el editor. |
 | `automation/` | API de Node.js, CLI, servidor MCP stdio y renderizador mediante navegador local. |
 | `schemas/animation.schema.json` | Contrato estricto de planes sin imágenes para agentes y clientes. |
-| `src/preparation.js` | Decodificación de imágenes, preparación del papel, base desaturada y alineación. |
+| `src/preparation.js` | Decodificación de imágenes, preparación del papel, generación de base configurable y alineación. |
 | `src/engine.js` | Normalización de parámetros y propagación, independiente del DOM. |
 | `src/player.js` | Tiempo, pausas, navegación y mezcla de las etapas. |
 | `src/view.js` | Cámara, destacado y tratamiento del exterior. |
@@ -35,7 +36,7 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 5. El reproductor mezcla la base con la imagen final y acumula el color revelado. La vista aplica el destacado y la cámara. Durante una transición interpola el rectángulo y combina los estilos en alfa premultiplicada, conservando la transparencia.
 6. El guardado de proyecto conserva datos editables; la exportación incorpora imágenes preparadas, mapas y funciones necesarias en un único HTML.
 
-El orden de carga del editor es motor, formato de proyecto, preparación, vista, reproductor, códec, parámetros generales, imágenes de ejemplo, exportación, automatización y aplicación. Las fábricas del motor, reproductor, vista y códec deben seguir siendo autocontenidas: sus funciones se incorporan al trabajador o al HTML exportado mediante `toString()`.
+El orden de carga del editor es motor, generación de base, formato de proyecto, preparación, vista, reproductor, códec, parámetros generales, imágenes de ejemplo, exportación, automatización y aplicación. Las fábricas del motor, reproductor, vista y códec deben seguir siendo autocontenidas: sus funciones se incorporan al trabajador o al HTML exportado mediante `toString()`.
 
 ## Cómo se propaga el color
 
@@ -59,7 +60,7 @@ Los tiempos exportados se cuantizan a 16 bits por etapa; su precisión es la dur
 
 ## Desarrollo y comprobaciones
 
-No hace falta instalar paquetes. Abre [las pruebas](../tests/index.html) en Chrome o Edge para ejecutar 79 casos, incluidos ocho que necesitan el lienzo real del navegador.
+No hace falta instalar paquetes. Abre [las pruebas](../tests/index.html) en Chrome o Edge para ejecutar 88 casos, incluidos ocho que necesitan el lienzo real del navegador.
 
 Opcionalmente, con Node.js 22 o posterior, desde la raíz:
 
@@ -68,7 +69,7 @@ node scripts/ejecutar-pruebas.mjs
 node scripts/generar-demo.mjs
 ```
 
-El primer comando ejecuta los 71 casos sin DOM y termina con error si alguno falla. El segundo regenera exclusivamente `examples/demo-data.js` desde las dos imágenes de `examples/images/`; no reexporta el proyecto ni la presentación. Ambos scripts resuelven rutas respecto a su propio archivo.
+El primer comando ejecuta los 80 casos sin DOM y termina con error si alguno falla. El segundo regenera exclusivamente `examples/demo-data.js` desde las dos imágenes de `examples/images/`; no reexporta el proyecto ni la presentación. Ambos scripts resuelven rutas respecto a su propio archivo. Las 24 pruebas de automatización se ejecutan con `node tests/automation.test.mjs`.
 
 Si se cambian las imágenes o la configuración del ejemplo, guarda un nuevo proyecto y exporta de nuevo la presentación desde el editor. Conserva los resultados en `examples/ejemplo.colorflow.json` y `examples/presentacion-ejemplo.html`.
 
@@ -76,8 +77,8 @@ También se puede usar cualquier servidor estático local para desarrollo. El se
 
 ## Automatización opcional
 
-La API de Node.js usa el mismo normalizador que el editor, junto con un contrato estricto de planes que rechaza errores antes de aplicar valores predeterminados. Conserva el formato editable 6. Los comandos y MCP son adaptadores de esta API; no duplican la propagación ni el constructor HTML.
+La API de Node.js usa el mismo normalizador que el editor, junto con un contrato estricto de planes que rechaza errores antes de aplicar valores predeterminados. Utiliza el formato editable 7 y lee formatos 1 a 6 conservando su desaturación anterior. Los comandos y MCP son adaptadores de esta API; no duplican la propagación ni el constructor HTML.
 
 Canvas, decodificación, alineación, Web Worker y fotogramas se ejecutan en Chrome/Edge/Chromium sin ventana con un perfil temporal aislado. El proceso de Node sirve exclusivamente recursos enumerados y el trabajo actual en loopback, mediante una ruta aleatoria. El resultado regresa por HTTP local; el servidor, navegador y perfil se cierran al finalizar, cancelar o fallar. El renderizador admite una sesión de navegador externa para las pruebas visuales del mismo trabajo.
 
-MCP utiliza JSON-RPC por stdio, sin dependencias, con descubrimiento de seis herramientas, esquema y guía como recursos, resultados estructurados y cancelación. La raíz de archivos se limita tanto léxicamente como al resolver enlaces. La validación de estructura no pretende garantizar la interpretación visual del pedido. La IA debe revisar plan y fotogramas; consulta la [guía de integración](automatizacion.md).
+MCP utiliza JSON-RPC por stdio, sin dependencias, con descubrimiento de siete herramientas, esquema y guía como recursos, resultados estructurados y cancelación. `prepare` ejecuta decodificación y preparación sin instanciar el trabajador de propagación. Produce la base completa y una comparación; `render` añade cálculo y presentación. La raíz de archivos se limita tanto léxicamente como al resolver enlaces. La validación de estructura no pretende garantizar la interpretación visual del pedido. La IA debe revisar base, plan y fotogramas; consulta la [guía de integración](automatizacion.md).

@@ -22,7 +22,7 @@ node automation/cli.mjs validate --project output/mi-proyecto.colorflow.json
 node automation/cli.mjs render --project output/mi-proyecto.colorflow.json --out output/mi-presentacion
 ```
 
-El plan incluido contiene un acercamiento sin pintura, una etapa de color y un regreso a página completa. Al no proporcionar imagen inicial, se deriva una base desaturada de la final. Esa base conserva sombras y aguadas; no reconstruye un dibujo original de tinta. Si sólo aportas una foto en blanco y negro, la herramienta no inventa los colores que faltan.
+El plan incluido contiene un acercamiento sin pintura, una etapa de color y un regreso a página completa. Al no proporcionar imagen inicial, se genera tinta sobre papel desde la final. Los pigmentos detectables pasan al papel; se conservan grises neutros intermedios y negros sólidos. La detección es aproximada y debe revisarse. Si sólo aportas una foto en blanco y negro, la herramienta no inventa los colores que faltan.
 
 Con dos imágenes:
 
@@ -40,11 +40,27 @@ Cada renderizado entrega:
 | `presentacion.html` | Presentación autónoma, sin recursos externos. |
 | `proyecto.colorflow.json` | Proyecto completo para abrir y retocar en el editor. |
 | `informe.json` | Duración calculada, tamaño, tiempos por etapa y avisos. Excluye pausas que esperan interacción. |
+| `base.png` | Base completa preparada, sin aplicar la vista Inicio, enfoques ni destacados. |
 | `plan.png` | Referencia coloreada con zonas, recorridos, enfoques y puntos numerados como etapa.punto. |
 | `storyboard.png` | Inicio, mitad de cada etapa habilitada y final. |
 | `inicio.png`, `final.png`, `etapa-NN.png` | Fotogramas individuales con cámara y destacado aplicados. |
 
 ![Generación local con vistas previas](images/vista-automatizacion.png)
+
+## Preparar la base sin calcular la animación
+
+El bloque `baseGeneration` del plan y del proyecto controla el tratamiento de pigmentos, grises y papel. Sus números son fracciones: `smoothness: 1` equivale al 100% del editor. Consulta los campos y límites en el [formato del proyecto](formato-del-proyecto.md).
+
+```sh
+node automation/cli.mjs create --image examples/images/samurai-final.png --plan examples/plans/base-tinta.json --out output/proyecto-base.colorflow.json
+node automation/cli.mjs prepare --project output/proyecto-base.colorflow.json --out output/base
+```
+
+`prepare` decodifica las imágenes, aplica opcionalmente `--auto-align` a una inicial cargada y genera `base.png`, `referencia.png`, `comparacion.png`, `proyecto.colorflow.json` e `informe.json`. No calcula propagación ni produce un HTML. El informe indica `imageDecodingChecked: true` y `calculationChecked: false`.
+
+Para probar otra transformación, utiliza `update` con un parche que incluya el objeto `baseGeneration` y vuelve a preparar en un directorio nuevo. El objeto del parche reemplaza la configuración completa; los campos omitidos de ese objeto reciben sus valores predeterminados. En proyectos antiguos, `method: "grayscale"` mantiene la desaturación anterior; elige explícitamente `ink` para cambiarla.
+
+La API ofrece la misma operación: `await api.prepare({ project, outputDir })`. En MCP se utiliza `colorflow_prepare`, seguido de `colorflow_read_image` sobre `base.png`. Los proyectos de salida son de formato 7, con todos los parámetros de generación guardados. El renderizado completo también incluye `base.png`.
 
 ## Comandos y errores
 
@@ -57,7 +73,7 @@ node automation/cli.mjs --help
 
 `inspect` devuelve el plan completo y los nombres de imágenes, sin volcar sus grandes bloques base64. `update` aplica un parche a una etapa si se indica `--stage` (índice desde cero); sin él aplica un parche al proyecto. Los campos omitidos se conservan. Los objetos y listas incluidos reemplazan ese campo completo: por ejemplo, `stages` reemplaza toda la secuencia y `points` todos los puntos de esa etapa.
 
-`update` modifica el mismo archivo por defecto. Usa `--out copia.colorflow.json` para conservar el original. `create` y `render` rechazan destinos existentes salvo que se indique `--force`. Renderizar de nuevo con `--force` reemplaza sus artefactos actuales; no elimina archivos adicionales de ese directorio.
+`update` modifica el mismo archivo por defecto. Usa `--out copia.colorflow.json` para conservar el original. `create`, `prepare` y `render` rechazan destinos existentes salvo que se indique `--force`. Preparar o renderizar de nuevo con `--force` reemplaza sus artefactos actuales; no elimina archivos adicionales de ese directorio.
 
 Todas las rutas se resuelven respecto a `--root`, por defecto la carpeta actual. No se permiten rutas ni enlaces que conduzcan fuera de ella. Elige una carpeta de trabajo que contenga únicamente los archivos que quieras poner a disposición del asistente.
 
@@ -96,6 +112,7 @@ Para un navegador en una ubicación distinta, añade `"--browser", "/ruta/al/eje
 | `colorflow_inspect` | Obtener el plan editable y los nombres de imágenes. |
 | `colorflow_update` | Cambiar parámetros o una etapa mediante `stageIndex`. |
 | `colorflow_validate` | Revisar estructura, rangos y geometría. |
+| `colorflow_prepare` | Generar y revisar la base sin calcular la animación. |
 | `colorflow_render` | Generar HTML, proyecto, informe y vistas previas. |
 | `colorflow_read_image` | Entregar una fuente o vista previa como imagen al modelo. |
 
@@ -125,6 +142,6 @@ console.log(result.artifacts);
 
 Los métodos son asíncronos. `render` acepta `signal` de un `AbortController`. Los errores tienen `code`, `message` y `details`. El contrato del plan está en [el esquema JSON](../schemas/animation.schema.json); imágenes, rutas de salida y opciones de ejecución son argumentos separados.
 
-En un navegador que cargue `engine`, `project`, `preparation`, `view`, `player`, `codec`, `presentation` y `automation`, `PaintAutomation.compile(project)` devuelve los datos preparados, campos calculados, informe y HTML. `previews(compiled)` genera fotogramas y `contactSheet(checkpoints)` la hoja de secuencia. No necesitan montar el editor ni simular clics. Compilar requiere un contexto donde estén permitidos Canvas y Web Workers.
+En un navegador que cargue `engine`, `base-generation`, `project`, `preparation`, `view`, `player`, `codec`, `presentation` y `automation`, `PaintAutomation.prepare(project)` devuelve proyecto normalizado, imágenes preparadas e informe sin propagación; `PaintAutomation.compile(project)` añade campos calculados y HTML. `previews(compiled)` genera fotogramas y `contactSheet(checkpoints)` la hoja de secuencia. No necesitan montar el editor ni simular clics. Preparar requiere Canvas; compilar también necesita Web Workers.
 
 Las pruebas específicas se ejecutan con `node tests/automation.test.mjs`; `npm test` ejecuta además las pruebas del motor sin DOM. Las comprobaciones reales y sus límites se registran en [verificación](verificacion.md).

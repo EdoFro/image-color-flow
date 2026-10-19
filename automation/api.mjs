@@ -6,10 +6,10 @@ import { assertPlan, planSchema, AutomationError } from './validation.mjs';
 import { renderInBrowser } from './browser.mjs';
 
 const context = createContext({});
-for (const name of ['engine', 'project']) runInContext(await readFile(new URL(`../src/${name}.js`, import.meta.url), 'utf8'), context);
+for (const name of ['engine', 'base-generation', 'project']) runInContext(await readFile(new URL(`../src/${name}.js`, import.meta.url), 'utf8'), context);
 const normalize = input => JSON.parse(JSON.stringify(context.PaintProject.normalize(input)));
 const mimeTypes = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.bmp': 'image/bmp', '.avif': 'image/avif' };
-export const version = '0.7.0';
+export const version = '0.8.0';
 export { planSchema };
 
 export async function createAutomation({ root = process.cwd(), browser, renderer = renderInBrowser } = {}) {
@@ -68,6 +68,25 @@ export async function createAutomation({ root = process.cwd(), browser, renderer
   async function load(path) {
     try { return normalize(await json(path)); } catch (error) { if (error instanceof AutomationError) throw error; throw new AutomationError('INVALID_PROJECT', error.message); }
   }
+  async function generate({ project, outputDir, overwrite = false, autoAlign = false, timeout = 120000, signal }, operation) {
+    const validation = await api.validate({ project });
+    if (!validation.valid) throw new AutomationError('INVALID_PROJECT', 'El proyecto tiene valores fuera del contrato.', validation.errors);
+    const target = await filePath(outputDir, true);
+    try { const info = await stat(target); if (!info.isDirectory() || !overwrite) throw new AutomationError('OUTPUT_EXISTS', 'El destino ya existe. Usa otro directorio o overwrite: true.'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+    const result = await renderer(await load(project), { browser, operation, autoAlign, timeout, signal });
+    const artifacts = {};
+    const put = async (name, content) => { artifacts[name] = await save(resolve(target, name), content, overwrite); };
+    if (operation === 'render') await put('presentacion.html', result.html);
+    await put('proyecto.colorflow.json', JSON.stringify(normalize(result.project)));
+    const warnings = operation === 'prepare' ? validation.warnings.filter(w => ['DERIVED_BASE','INK_BASE_APPROXIMATION'].includes(w.code)) : validation.warnings;
+    result.report.warnings = [...warnings, ...(result.report.warnings || [])];
+    await put('informe.json', JSON.stringify(result.report, null, 2) + '\n');
+    for (const [name, data] of Object.entries(result.images)) {
+      if (!/^(base|referencia|comparacion|inicio|final|plan|storyboard|etapa-\d{2})\.png$/.test(name) || !/^data:image\/png;base64,/.test(data)) throw new AutomationError('INVALID_RENDER_RESULT', 'Vista previa no válida.');
+      await put(name, Buffer.from(data.split(',')[1], 'base64'));
+    }
+    return { artifacts, report: result.report };
+  }
   const api = {
     root: workspace, schema: planSchema,
     readJson: json,
@@ -75,7 +94,7 @@ export async function createAutomation({ root = process.cwd(), browser, renderer
       assertPlan(plan);
       const images = { final: await image(finalPath) }; if (initialImage) images.initial = await image(initialImage);
       if (plan.baseMode === 'uploaded' && !initialImage) throw new AutomationError('INITIAL_IMAGE_REQUIRED', 'baseMode uploaded necesita una imagen inicial.');
-      const project = normalize({ format: 'tinta-y-color', version: 6, ...plan, baseMode: plan.baseMode || (initialImage ? 'uploaded' : 'derived'), images, stages: plan.stages || [{ maxRadius: .4 }] });
+      const project = normalize({ format: 'tinta-y-color', version: 7, ...plan, baseMode: plan.baseMode || (initialImage ? 'uploaded' : 'derived'), images, stages: plan.stages || [{ maxRadius: .4 }] });
       const path = await save(output, JSON.stringify(project), overwrite);
       return summary(project, path);
     },
@@ -97,30 +116,14 @@ export async function createAutomation({ root = process.cwd(), browser, renderer
       try { assertPlan(planOf(raw)); } catch (e) { errors.push(...(e.details || [{ path: '$', message: e.message }])); }
       const warnings = [];
       if (normalized.stages.every(s => !s.enabled)) warnings.push({ code: 'NO_ENABLED_STAGES', message: 'Todas las etapas están deshabilitadas.' });
-      if (normalized.baseMode === 'derived') warnings.push({ code: 'DERIVED_BASE', message: 'La base derivada conserva sombras; no reconstruye la tinta original.' });
+      if (normalized.baseMode === 'derived') warnings.push(normalized.baseGeneration.method === 'grayscale' ? { code: 'DERIVED_BASE', message: 'La desaturación conserva sombras; no reconstruye la tinta original.' } : { code: 'INK_BASE_APPROXIMATION', message: 'La detección de pigmentos es aproximada. Revisa base.png antes de presentar.' });
       normalized.stages.forEach((s, index) => {
         if (s.enabled && s.zone && s.points.some(p => p.enabled && !context.PaintEngine.inPolygon(p.x, p.y, s.zone))) warnings.push({ code: 'OUTSIDE_ZONE', stageIndex: index, message: 'Hay puntos activos fuera de la zona.' });
       });
       return { valid: !errors.length, errors, warnings, imageDecodingChecked: false, calculationChecked: false, formatVersion: normalized.version };
     },
-    async render({ project, outputDir, overwrite = false, autoAlign = false, timeout = 120000, signal }) {
-      const validation = await api.validate({ project });
-      if (!validation.valid) throw new AutomationError('INVALID_PROJECT', 'El proyecto tiene valores fuera del contrato.', validation.errors);
-      const target = await filePath(outputDir, true);
-      try { const info = await stat(target); if (!info.isDirectory() || !overwrite) throw new AutomationError('OUTPUT_EXISTS', 'El destino ya existe. Usa otro directorio o overwrite: true.'); } catch (e) { if (e.code !== 'ENOENT') throw e; }
-      const result = await renderer(await load(project), { browser, autoAlign, timeout, signal });
-      const artifacts = {};
-      const put = async (name, content) => { artifacts[name] = await save(resolve(target, name), content, overwrite); };
-      await put('presentacion.html', result.html);
-      await put('proyecto.colorflow.json', JSON.stringify(normalize(result.project)));
-      result.report.warnings = [...validation.warnings, ...(result.report.warnings || [])];
-      await put('informe.json', JSON.stringify(result.report, null, 2) + '\n');
-      for (const [name, data] of Object.entries(result.images)) {
-        if (!/^(inicio|final|plan|storyboard|etapa-\d{2})\.png$/.test(name) || !/^data:image\/png;base64,/.test(data)) throw new AutomationError('INVALID_RENDER_RESULT', 'Vista previa no válida.');
-        await put(name, Buffer.from(data.split(',')[1], 'base64'));
-      }
-      return { artifacts, report: result.report };
-    },
+    async prepare(options) { return generate(options, 'prepare'); },
+    async render(options) { return generate(options, 'render'); },
     async readImage({ path }) {
       const item = await image(path), [prefix, data] = item.data.split(',');
       if (Buffer.from(data, 'base64').length > 10000000) throw new AutomationError('FILE_TOO_LARGE', 'Para inspección visual usa una vista previa de menos de 10 MB.');

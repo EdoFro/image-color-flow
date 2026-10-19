@@ -146,6 +146,10 @@
       "items": {
         "$ref": "#/$defs/stage"
       }
+    },
+    "baseGeneration": {
+      "$ref": "#/$defs/baseGeneration",
+      "description": "Generación global de la base cuando baseMode es derived. Nuevos proyectos: tinta sobre papel. Proyectos de formato 1–6 mantienen desaturación al abrirse."
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -473,6 +477,64 @@
           "maximum": 60,
           "default": 0,
           "description": "Segundos."
+        }
+      }
+    },
+    "baseGeneration": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Tratamiento global de pigmentos y grises. blackPoint debe ser menor que whitePoint. Los números son fracciones 0–1; los ajustes no afectan una inicial cargada.",
+      "properties": {
+        "method": {
+          "enum": [
+            "ink",
+            "grayscale"
+          ],
+          "default": "ink",
+          "description": "ink retira pigmentos; grayscale conserva la desaturación anterior e ignora los controles de tinta."
+        },
+        "colorToGray": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0,
+          "description": "0 lleva pigmentos al papel; 1 conserva su gris."
+        },
+        "sensitivity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.7,
+          "description": "Mayor sensibilidad detecta pigmentos más tenues."
+        },
+        "blackPoint": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.9,
+          "default": 0.14,
+          "description": "Grises bajo este umbral pasan a negro. 0 desactiva el refuerzo."
+        },
+        "whitePoint": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 1,
+          "default": 0.94,
+          "description": "Grises sobre este umbral pasan al papel. 1 conserva grises claros."
+        },
+        "smoothness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.08,
+          "description": "Suavidad de 0 a 1 (0–100%); amplía las transiciones entre pigmento, gris y papel."
+        },
+        "paper": {
+          "enum": [
+            "matched",
+            "white"
+          ],
+          "default": "matched",
+          "description": "Tono estimado del papel final o blanco puro."
         }
       }
     }

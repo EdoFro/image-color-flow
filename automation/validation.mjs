@@ -37,6 +37,10 @@ export function check(value, schema = planSchema, path = '$', root = planSchema)
       else if (schema.additionalProperties === false) errors.push({ path: `${path}.${key}`, message: 'Campo desconocido.' });
     }
     if (schema === root.$defs?.frame && (value.x + value.width > 1.00000001 || value.y + value.height > 1.00000001)) fail('El rectángulo debe quedar dentro de la imagen.');
+    if (schema === root.$defs?.baseGeneration) {
+      const grayscale = value.method === 'grayscale', black = value.blackPoint ?? (grayscale ? 0 : .14), white = value.whitePoint ?? (grayscale ? 1 : .94);
+      if (black >= white) fail('blackPoint debe ser menor que whitePoint.');
+    }
   }
   return errors;
 }

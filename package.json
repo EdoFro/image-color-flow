@@ -1,9 +1,11 @@
 {
   "name": "image-color-flow",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "description": "Editor offline y automatización local para animar la aparición del color",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "colorflow": "node automation/cli.mjs",
     "mcp": "node automation/mcp.mjs",

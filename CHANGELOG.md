@@ -1,5 +1,14 @@
 # Cambios
 
+## v0.8.0
+
+- Generación configurable de la imagen inicial: tinta sobre papel, tinta con grises suaves y desaturación anterior.
+- Comparación explícita en Imágenes, ampliación al 100%/200%, vista previa antes de aplicar y descarga de la base PNG; cierre sin aplicar conserva el proyecto.
+- Controles para destino del pigmento, sensibilidad, umbrales de grises y papel. Suavidad ampliada de 0 a 100%.
+- Transformación compartida por editor y automatización; proyectos de formato 7 con lectura de formatos 1 a 6 sin cambiar la desaturación anterior.
+- Operación API/CLI `prepare` y herramienta MCP `colorflow_prepare`, sin calcular propagación; base completa, referencia, comparación e informe. El renderizado incluye `base.png` sin cámara.
+- Esquema, guías, plan de ejemplo y captura actualizados. 80 pruebas sin DOM, 88 en Chrome y 24 de automatización.
+
 ## v0.7.0
 
 - API local y CLI para crear, inspeccionar, actualizar, validar y renderizar proyectos desde imágenes y planes JSON.

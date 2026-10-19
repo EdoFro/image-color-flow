@@ -10,11 +10,12 @@ const assets = new Map([
   ['runner.html', new URL('./runner.html', import.meta.url)],
   ['runner.js', new URL('./runner.js', import.meta.url)],
   ['runner.css', new URL('./runner.css', import.meta.url)],
-  ...['engine', 'project', 'preparation', 'view', 'player', 'codec', 'presentation', 'automation'].map(name => [`src/${name}.js`, new URL(`../src/${name}.js`, import.meta.url)])
+  ...['engine', 'base-generation', 'project', 'preparation', 'view', 'player', 'codec', 'presentation', 'automation'].map(name => [`src/${name}.js`, new URL(`../src/${name}.js`, import.meta.url)])
 ]);
 
 // Transporte efímero para el renderizador: sólo loopback, ruta aleatoria y recursos enumerados.
-export async function startRenderJob(project, { autoAlign = false, timeout = 120000, signal } = {}) {
+export async function startRenderJob(project, { autoAlign = false, operation = 'render', timeout = 120000, signal } = {}) {
+  if (!['render', 'prepare'].includes(operation)) throw new AutomationError('INVALID_OPERATION', 'Operación de navegador desconocida.');
   if (!Number.isFinite(timeout) || timeout < 1000 || timeout > 600000) throw new AutomationError('INVALID_TIMEOUT', 'timeout debe estar entre 1000 y 600000 ms.');
   const token = randomBytes(24).toString('hex');
   let resolveResult, rejectResult, finished = false, origin;
@@ -28,7 +29,7 @@ export async function startRenderJob(project, { autoAlign = false, timeout = 120
     if (!req.url.startsWith(prefix)) return reply(404, 'No encontrado.');
     const name = req.url.slice(prefix.length);
     try {
-      if (req.method === 'GET' && name === 'job.json') return reply(200, JSON.stringify({ project, options: { autoAlign } }), 'application/json');
+      if (req.method === 'GET' && name === 'job.json') return reply(200, JSON.stringify({ project, options: { autoAlign, operation } }), 'application/json');
       if (req.method === 'POST' && name === 'result') {
         if (finished) return reply(409, 'Trabajo terminado.');
         if (!req.headers['content-type']?.startsWith('application/json')) return reply(415, 'Se esperaba JSON.');
@@ -36,7 +37,7 @@ export async function startRenderJob(project, { autoAlign = false, timeout = 120
         for await (const chunk of req) { size += chunk.length; if (size > 256 * 1024 * 1024) throw new Error('El resultado supera 256 MB.'); chunks.push(chunk); }
         const data = JSON.parse(Buffer.concat(chunks).toString('utf8'));
         if (data.error) { fail(new AutomationError('RENDER_FAILED', String(data.error))); return reply(200, 'Error recibido.'); }
-        if (typeof data.html !== 'string' || !data.images || !data.report || !data.project) throw new Error('Resultado de renderizado incompleto.');
+        if ((operation === 'render' && typeof data.html !== 'string') || !data.images || !data.report || !data.project) throw new Error('Resultado de renderizado incompleto.');
         finished = true; resolveResult(data); return reply(200, 'Resultado recibido.');
       }
       if (req.method === 'GET' && assets.has(name)) return reply(200, await readFile(assets.get(name)), name.endsWith('.html') ? 'text/html; charset=utf-8' : name.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/javascript; charset=utf-8');

@@ -9,21 +9,22 @@ node automation/cli.mjs create --image imagen.png --plan plan.json --out trabajo
 node automation/cli.mjs inspect --project trabajo.colorflow.json
 node automation/cli.mjs validate --project trabajo.colorflow.json
 node automation/cli.mjs update --project trabajo.colorflow.json --plan cambios.json [--stage 0] [--out copia.colorflow.json]
+node automation/cli.mjs prepare --project trabajo.colorflow.json --out output/base [--auto-align]
 node automation/cli.mjs render --project trabajo.colorflow.json --out output/presentacion [--auto-align]
 node automation/cli.mjs schema
 
 Opciones: --root carpeta, --browser ejecutable, --initial imagen.jpg (create),
---force (sobrescribir), --timeout milisegundos (render, 120000 por defecto).
+--force (sobrescribir), --timeout milisegundos (prepare/render, 120000 por defecto).
 Las rutas se resuelven dentro de --root (por defecto la carpeta actual).
-create/update/inspect/validate/schema no necesitan navegador. render utiliza Chrome/Edge/Chromium.
+create/update/inspect/validate/schema no necesitan navegador. prepare/render utilizan Chrome/Edge/Chromium.
 Salida JSON; errores JSON por stderr y código de salida 1. No se envían imágenes a servicios externos.
 `;
 
-export async function main(argv, { stdout = process.stdout, stderr = process.stderr } = {}) {
+export async function main(argv, { stdout = process.stdout, stderr = process.stderr, createApi = createAutomation } = {}) {
   try {
     const [command, ...args] = argv;
     if (!command || ['help', '--help', '-h'].includes(command)) { stdout.write(help); return 0; }
-    if (!['create', 'inspect', 'validate', 'update', 'render', 'schema'].includes(command)) throw new AutomationError('INVALID_COMMAND', 'Comando desconocido. Usa --help.');
+    if (!['create', 'inspect', 'validate', 'update', 'prepare', 'render', 'schema'].includes(command)) throw new AutomationError('INVALID_COMMAND', 'Comando desconocido. Usa --help.');
     const flags = {}, booleans = new Set(['force', 'auto-align']);
     const allowed = new Set(['root','browser','image','initial','plan','out','stage','project','force','auto-align','timeout']);
     for (let i = 0; i < args.length; i++) {
@@ -32,7 +33,7 @@ export async function main(argv, { stdout = process.stdout, stderr = process.std
       if (booleans.has(key)) flags[key] = true;
       else { if (!args[i + 1] || args[i + 1].startsWith('--')) throw new AutomationError('INVALID_ARGUMENT', `Falta el valor de --${key}.`); flags[key] = args[++i]; }
     }
-    const api = await createAutomation({ root: flags.root, browser: flags.browser });
+    const api = await createApi({ root: flags.root, browser: flags.browser });
     let result;
     const common = { project: flags.project };
     if (command === 'schema') result = api.schema;
@@ -40,7 +41,7 @@ export async function main(argv, { stdout = process.stdout, stderr = process.std
     if (command === 'inspect') result = await api.inspect(common);
     if (command === 'validate') result = await api.validate(common);
     if (command === 'update') result = await api.update({ ...common, patch: await api.readJson(flags.plan), stageIndex: flags.stage === undefined ? undefined : Number(flags.stage), output: flags.out || flags.project, overwrite: flags.force || !flags.out || flags.out === flags.project });
-    if (command === 'render') result = await api.render({ ...common, outputDir: flags.out, overwrite: !!flags.force, autoAlign: !!flags['auto-align'], timeout: flags.timeout === undefined ? undefined : Number(flags.timeout) });
+    if (command === 'render' || command === 'prepare') result = await api[command]({ ...common, outputDir: flags.out, overwrite: !!flags.force, autoAlign: !!flags['auto-align'], timeout: flags.timeout === undefined ? undefined : Number(flags.timeout) });
     stdout.write(JSON.stringify(result, null, 2) + '\n');
     return command === 'validate' && !result.valid ? 1 : 0;
   } catch (error) { stderr.write(JSON.stringify({ error: errorData(error) }) + '\n'); return 1; }

@@ -7,6 +7,53 @@
     function image(w, h, value = 220) { const data = new Uint8ClampedArray(w * h * 4); for (let i = 0; i < w * h; i++) { data[i * 4] = data[i * 4 + 1] = data[i * 4 + 2] = value; data[i * 4 + 3] = 255; } return data; }
     function paint(data, w, x, y, value) { const i = (y * w + x) * 4; data[i] = data[i + 1] = data[i + 2] = value; }
     function calc(w, h, rgba, stage = {}) { return engine.compute({ width: w, height: h, rgba, stage: { points: [{ x: .5, y: .5 }], radius: 1.5, clarity: 0, ink: 0, speed: .1, fade: .2, ...stage } }); }
+    const pixel = (rgb, config, paper = [255, 255, 255]) => [...root.PaintBase.derive(new Uint8ClampedArray([...rgb, 255]), paper, config)];
+    test('La base de tinta lleva pigmentos claros y oscuros al papel y conserva el negro sólido', () => {
+      for (const color of [[210,40,40],[0,0,80],[230,190,120]]) assert(pixel(color)[0] === 255, 'Un pigmento detectable no quedó blanco.');
+      assert(pixel([0,0,0]).slice(0,3).every(v=>v===0), 'Se borró el negro.');
+    });
+    test('La base de tinta conserva por defecto grises intermedios y refuerza sólo los oscuros', () => {
+      assert(pixel([128,128,128]).slice(0,3).every(v=>v===128), 'Se cambió el gris intermedio.');
+      assert(pixel([25,25,25])[0] === 0, 'No se reforzó el gris oscuro.');
+      assert(pixel([25,25,25],{blackPoint:0})[0] === 25, 'No se pudo desactivar el refuerzo.');
+    });
+    test('El destino del pigmento permite papel, gris y una mezcla intermedia', () => {
+      const white=pixel([200,30,30],{colorToGray:0})[0], gray=pixel([200,30,30],{colorToGray:1})[0], middle=pixel([200,30,30],{colorToGray:.5})[0];
+      assert(white===255 && gray<128 && middle>gray && middle<white, 'El control no interpola el pigmento.');
+    });
+    test('La sensibilidad permite retirar acuarela tenue sin cambiar un gris neutro', () => {
+      const color=[220,210,200], low=pixel(color,{sensitivity:0})[0], high=pixel(color,{sensitivity:1})[0];
+      assert(high>low && high===255, 'No se retiró el pigmento tenue.');
+      assert(pixel([128,128,128],{sensitivity:1})[0]===128, 'Se confundió gris neutro con color.');
+    });
+    test('Los umbrales de gris y la suavidad producen transiciones sin alterar el rango', () => {
+      const hard=pixel([60,60,60],{blackPoint:.25,smoothness:0})[0], soft=pixel([60,60,60],{blackPoint:.2,smoothness:.15})[0];
+      assert(hard===0 && soft>0 && soft<60, 'No hay transición suave al negro.');
+      assert(pixel([230,230,230],{whitePoint:.8})[0]===255, 'No se aclaró el gris.');
+      assert(pixel([230,230,230],{whitePoint:1,blackPoint:0})[0]===230, 'No se pudo conservar el gris claro.');
+    });
+    test('El papel cálido no se considera pigmento y puede reemplazarse por blanco puro', () => {
+      const paper=[250,245,230];
+      assert(pixel(paper,{},paper).slice(0,3).every((v,i)=>v===paper[i]), 'Se cambió el tono de papel.');
+      assert(pixel(paper,{paper:'white'},paper).slice(0,3).every(v=>v===255), 'No se obtuvo papel blanco.');
+      const mid=paper.map(v=>Math.round(v/2)); assert(pixel(mid,{},paper)[0]<200, 'Se borró un gris neutralizado.');
+    });
+    test('La suavidad admite hasta 100% y amplía la transición del pigmento', () => {
+      const source=[150,100,100], normal=pixel(source,{smoothness:.3})[0], high=pixel(source,{smoothness:1})[0];
+      assert(root.PaintBase.normalize({smoothness:1}).smoothness===1, 'Se limitó la suavidad por debajo del 100%.');
+      assert(high<normal && high>100, 'El tramo superior del control no modifica la transición.');
+    });
+    test('La desaturación anterior se reproduce exactamente, incluso con papel cálido', () => {
+      const paper=[248,243,232], input=[55,111,201], lum=Math.fround(.2126*input[0]+.7152*input[1]+.0722*input[2]), pl=.2126*paper[0]+.7152*paper[1]+.0722*paper[2];
+      const expected=new Uint8ClampedArray(paper.map(v=>Math.max(0,Math.min(255,lum*v/pl))));
+      assert(pixel(input,{method:'grayscale'},paper).slice(0,3).every((v,i)=>v===expected[i]), 'Cambió la base de un proyecto anterior.');
+    });
+    test('Los proyectos de formato 6 conservan desaturación y los nuevos usan tinta sobre papel', () => {
+      const data={format:'tinta-y-color',version:6,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
+      const old=root.PaintProject.normalize(data), fresh=root.PaintProject.normalize({...data,version:7});
+      assert(old.version===7 && old.baseGeneration.method==='grayscale', 'No se preservó la compatibilidad.');
+      assert(fresh.baseGeneration.method==='ink' && fresh.baseGeneration.colorToGray===0, 'No se configuró tinta sobre papel.');
+    });
     test('La expansión sin viento es simétrica y aumenta con la distancia', () => {
       const f = calc(41, 41, image(41, 41));
       assert(Math.abs(f.times[20 * 41 + 10] - f.times[20 * 41 + 30]) < 1e-6, 'La simetría horizontal no se conserva.');

@@ -7,7 +7,7 @@
 Abre [index.html](../index.html) en Chrome o Edge. Conserva la estructura completa de carpetas al copiar o descomprimir el editor. El ejemplo se incluye en `examples/demo-data.js` para no tener que leer imágenes locales mediante peticiones web.
 
 1. En **Imágenes**, carga la versión coloreada y opcionalmente la inicial.
-2. Elige entre neutralizar el papel del archivo inicial o generar una base desaturada desde la final. Con dos imágenes puedes alinear automáticamente sus contornos y afinar posición, escalas y giro con una superposición de referencia.
+2. Elige entre neutralizar el papel del archivo inicial o generar una base de tinta sobre papel desde la final. Genera la vista previa y ajusta la transformación antes de aplicar. Con dos imágenes puedes alinear automáticamente sus contornos y afinar posición, escalas y giro con una superposición de referencia.
 3. Crea etapas y ordénalas con las flechas de la lista. Para renombrar, haz doble clic en el nombre, usa el lápiz o edita el campo del inspector. Enter guarda y Escape cancela.
 4. Delimita cada zona con un rectángulo o polígono. El polígono se cierra con **Enter** o doble clic; **Escape** cancela los vértices pendientes.
 5. Con **Puntos**, haz clic para añadir y arrastra para mover. Un doble clic sobre un punto lo elimina; también puedes eliminarlo desde el inspector.
@@ -18,6 +18,27 @@ Abre [index.html](../index.html) en Chrome o Edge. Conserva la estructura comple
 10. Descarga el **proyecto** para retomarlo y **Exportar HTML** para presentar.
 
 En **Editar**, el lienzo muestra la imagen final como referencia con las guías encima; **Imagen inicial** permite revisar la base preparada. La reproducción comienza desde esa base.
+
+## Generar la imagen inicial
+
+En **Imágenes**, elige **Generar imagen inicial desde la imagen final** y pulsa **Generar vista previa**. El panel muestra la referencia y la base propuesta una junto a otra, sin superponerlas. Una vez generada, los controles actualizan la comparación automáticamente. **Ampliación** permite ajustar las imágenes al panel o verlas al 100% y 200%, con desplazamiento dentro de cada imagen.
+
+Hay tres puntos de partida: **Tinta sobre papel** retira pigmentos detectables, **Tinta y grises suaves** conserva parte de su gris y **Desaturación anterior** reproduce el método antiguo, que conserva sombras. Al modificar los controles aparece **Personalizado**. Los nuevos proyectos usan Tinta sobre papel; los proyectos de formatos anteriores mantienen su desaturación hasta que cambies el punto de partida.
+
+| Control | Funcionamiento |
+| --- | --- |
+| Zonas coloreadas: papel ↔ gris | 0% lleva el pigmento detectado al papel; 100% conserva su gris. |
+| Sensibilidad al color | Auméntala para retirar acuarelas o pigmentos más tenues. Un gris neutro permanece gris. |
+| Llevar grises oscuros a negro | Luminosidad por debajo de la cual se refuerza a negro. 0% conserva los grises oscuros. |
+| Llevar grises claros al papel | Luminosidad a partir de la cual se aclara al papel. 100% conserva los grises claros. |
+| Suavidad de la transformación | Rango completo de 0 a 100%, inicialmente 8%. Amplía las transiciones entre pigmento, gris y papel. Las transiciones de gris se limitan para no cruzar sus umbrales. |
+| Papel | Tono estimado del papel de la imagen final o blanco puro. |
+
+Por defecto se conservan los grises intermedios y los negros sólidos. Se evalúan luminosidad y diferencia de canales para evitar que un azul oscuro se convierta automáticamente en tinta negra. La detección es aproximada: pigmentos casi neutros o muy oscuros pueden requerir ajustes. Los controles de tinta no actúan en Desaturación anterior; el papel sigue siendo seleccionable.
+
+**Aplicar y volver al lienzo** guarda el método y sus parámetros. Si todavía no generaste la comparación, el primer clic la genera y mantiene abierto el diálogo para revisarla. Cerrar con × o Escape descarta los cambios pendientes. **Descargar imagen inicial PNG** permite guardar la base completa que estás revisando, sin enfoques ni destacados. La inicial cargada como archivo no recibe estos controles.
+
+![Comparación de la imagen final y la base generada, con suavidad hasta 100%](images/vista-base.png)
 
 ## Habilitación y selección de etapas
 
@@ -120,14 +141,14 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 6 y se pueden abrir también los de formatos 1, 2, 3, 4 y 5. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 7 y se pueden abrir también los de formatos 1, 2, 3, 4, 5 y 6. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 
 - Imágenes raster PNG, JPEG, WebP, GIF, BMP y AVIF que el navegador pueda decodificar. En formatos animados se utiliza una imagen estática.
 - Resolución de trabajo de 720, 1080 o 1440 píxeles de lado mayor; los originales se conservan en el proyecto. Hasta 64 etapas, 64 puntos por etapa y un recorrido por etapa.
 - La alineación compensa desplazamiento, escala por eje y giro; no corrige redibujos o deformaciones locales. Una imagen inicial derivada de la final coincide exactamente en geometría.
-- La base derivada desatura los colores y conserva las sombras. No reconstruye un dibujo de tinta sin todas sus aguadas.
+- La base generada separa aproximadamente pigmento y tonos neutros mediante ajustes globales. No reconstruye con certeza el dibujo original ni ofrece correcciones por zonas. La desaturación anterior sigue disponible.
 - Las líneas abiertas pueden dejar pasar color: delimita una zona si necesitas un contorno garantizado. El umbral de negro permite adaptar el motor a tinta gris o fotografías.
 - El estilo es una revelación guiada por el dibujo, no una simulación física de acuarela. El tono genera demora; no se incluye una barrera rígida por tono ni seguimiento automático de cámara al pincel.
 - El trazo se muestrea por longitud de arco. Muchos emisores, trazos largos y resoluciones altas requieren más cálculo y pueden producir exportaciones mayores.

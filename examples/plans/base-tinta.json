@@ -1,0 +1,12 @@
+{
+  "baseMode": "derived",
+  "baseGeneration": {
+    "method": "ink",
+    "colorToGray": 0,
+    "sensitivity": 0.7,
+    "blackPoint": 0.14,
+    "whitePoint": 0.94,
+    "smoothness": 0.08,
+    "paper": "matched"
+  }
+}

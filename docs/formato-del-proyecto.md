@@ -4,17 +4,18 @@
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
-El formato actual es **6**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
+El formato actual es **7**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
 
 ## Estructura principal
 
 | Campo | Contenido |
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
-| `version` | Versión del formato: se guarda `6`; se leen `1`, `2`, `3`, `4`, `5` y `6`. |
+| `version` | Versión del formato: se guarda `7`; se leen `1`, `2`, `3`, `4`, `5`, `6` y `7`. |
 | `images.final` | Imagen coloreada obligatoria, con `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
-| `baseMode` | `uploaded` para preparar la inicial o `derived` para desaturar la final. Sin inicial se utiliza `derived`. |
+| `baseMode` | `uploaded` para preparar la inicial o `derived` para generarla desde la final. Sin inicial se utiliza `derived`. |
+| `baseGeneration` | Método y parámetros globales para generar la base; sólo actúan en `derived`. |
 | `resolution` | Lado mayor de trabajo: 720, 1080 o 1440 píxeles. |
 | `alignment` | Desplazamiento `x`, `y`, escalas `sx`, `sy` y giro `angle`. |
 | `presentation` | Fondo exportado: `background` (`hatch`, `color` o `transparent`) y `color` hexadecimal; valores iniciales `hatch` y `#e5e7e3`. |
@@ -80,10 +81,24 @@ El formato 6 añade `paintDelay`. Los proyectos anteriores reciben desfase cero 
 
 Los mapas de llegada no se guardan en el proyecto: se recalculan al reproducir o exportar.
 
+El formato 7 añade `baseGeneration`. Al abrir formatos 1 a 6 se asigna `method: "grayscale"` para conservar exactamente la desaturación anterior. Los nuevos proyectos utilizan `method: "ink"`, que lleva los pigmentos detectables al papel y conserva por defecto grises intermedios y negros sólidos. El archivo inicial cargado no recibe esta transformación.
+
+| Campo de `baseGeneration` | Rango y significado |
+| --- | --- |
+| `method` | `ink` (nuevo valor predeterminado) o `grayscale` (compatibilidad). |
+| `colorToGray` | 0 a 1: desde papel hasta gris del pigmento; inicialmente 0. |
+| `sensitivity` | 0 a 1, inicialmente 0.7; mayor sensibilidad detecta pigmentos más tenues. |
+| `blackPoint` | 0 a 0.9, inicialmente 0.14; 0 conserva los grises oscuros. |
+| `whitePoint` | 0.1 a 1, inicialmente 0.94; 1 conserva los grises claros. Debe ser mayor que `blackPoint`. |
+| `smoothness` | 0 a 1, inicialmente 0.08; el editor muestra de 0 a 100%. |
+| `paper` | `matched` para el tono estimado del papel final o `white` para blanco puro. |
+
+En `grayscale` sólo actúa la selección de papel; los demás controles se conservan pero no intervienen. Los puntos de partida del editor son configuraciones de estos campos, sin un nombre de preset adicional en el archivo. Los PNG se regeneran a partir de los originales y estos parámetros.
+
 ## Presentación exportada
 
 El HTML autónomo es un producto distinto. Incorpora imágenes preparadas, mapas temporales cuantizados, contribuciones tenues y el reproductor. No conserva las herramientas ni todos los datos necesarios para editar el proyecto. Sus mapas se empaquetan en `src/codec.js`; conserva siempre el JSON si necesitas continuar editando.
 
 ## Planes para automatización
 
-Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 6, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
+Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 7, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.

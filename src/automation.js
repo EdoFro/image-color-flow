@@ -21,7 +21,7 @@
     } finally { worker?.terminate(); URL.revokeObjectURL(url); }
     return fields;
   }
-  async function compile(input, { autoAlign = false, onProgress } = {}) {
+  async function prepare(input, { autoAlign = false } = {}) {
     const project = root.PaintProject.normalize(input);
     const [finalImage, initialImage] = await Promise.all([
       root.PaintPreparation.loadImage(project.images.final.data),
@@ -29,9 +29,14 @@
     ]);
     if (autoAlign && initialImage && project.baseMode === 'uploaded') project.alignment = root.PaintPreparation.autoAlign(finalImage, initialImage);
     const prepared = root.PaintPreparation.prepare(finalImage, initialImage, project);
-    const fields = await calculate(prepared, project.stages, onProgress);
+    const report = { width: prepared.width, height: prepared.height, baseMode: project.baseMode, baseGeneration: project.baseGeneration, imageDecodingChecked: true, calculationChecked: false, warnings: [] };
+    return { project, prepared, report };
+  }
+  async function compile(input, options = {}) {
+    const { project, prepared, report: preparationReport } = await prepare(input, options);
+    const fields = await calculate(prepared, project.stages, options.onProgress);
     const report = {
-      width: prepared.width, height: prepared.height,
+      ...preparationReport, calculationChecked: true,
       duration: fields.reduce((sum, f) => sum + f.duration, 0),
       durationExcludesManualPauses: true,
       stages: fields.map(f => ({ index: f.stageIndex, name: f.name, enabled: !f.skipped, duration: f.duration, paintDuration: f.paintDuration, reached: f.reached, area: f.area, ignoredSeeds: f.ignoredSeeds, visualOnly: f.visualOnly, pauseAfter: f.pauseAfter, pointTimings: f.pointTimings })),
@@ -45,7 +50,7 @@
     const { prepared: p, project, fields, report } = compiled;
     const make = () => document.createElement('canvas');
     const canvas = make(), player = root.createPaintPlayer(canvas, { width: p.width, height: p.height, base: p.base.data, final: p.final.data, fields, initialView: project.initialView });
-    const images = { 'inicio.png': canvas.toDataURL('image/png') };
+    const images = { 'base.png': p.baseCanvas.toDataURL('image/png'), 'inicio.png': canvas.toDataURL('image/png') };
     const checkpoints = [{ name: 'Inicio', image: images['inicio.png'] }];
     let offset = 0;
     fields.forEach(f => {
@@ -93,5 +98,5 @@
     }
     return canvas.toDataURL('image/png');
   }
-  root.PaintAutomation = { compile, calculate, previews, contactSheet };
+  root.PaintAutomation = { prepare, compile, calculate, previews, contactSheet };
 })(typeof window === 'undefined' ? globalThis : window);

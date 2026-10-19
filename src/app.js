@@ -5,7 +5,7 @@
   const zeroAlignment = () => ({ x: 0, y: 0, sx: 1, sy: 1, angle: 0 });
   const presentationDefaults = () => ({ background: 'hatch', color: '#e5e7e3' });
   const normalizePresentation = value => window.PaintProject.normalizePresentation(value);
-  let project = { format: 'tinta-y-color', version: 6, presentation: presentationDefaults(), initialView: engine.normalizeView(), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage({ maxRadius: .4 })] };
+  let project = { format: 'tinta-y-color', version: 7, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage({ maxRadius: .4 })] };
   let decoded = {}, prepared = null, selected = 0, tool = 'point', draft = null, draftDecoded = null;
   let selectedPoint = 0, radiusHandles = [];
   let generalDraft = {}, generalReview = null;
@@ -34,7 +34,7 @@
   function status(message, error = false) { $('status').textContent = message; $('status').classList.toggle('error', error); }
   function timeLabel(seconds) { if (!Number.isFinite(seconds)) return '—'; const s = Math.round(seconds); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
   function report(error) { console.error(error); status(error.message || String(error), true); }
-  async function action(fn) { if (busy) return; busy = true; document.body.classList.add('busy'); const controls = [...document.querySelectorAll('button,input,select')].map(e => [e, e.disabled]); controls.forEach(([e]) => e.disabled = true); try { await fn(); } catch (error) { report(error); } finally { busy = false; document.body.classList.remove('busy'); controls.forEach(([e, disabled]) => e.disabled = disabled); if (player) playerState(player.getState()); } }
+  async function action(fn) { if (busy) return; busy = true; document.body.classList.add('busy'); const controls = [...document.querySelectorAll('button,input,select')].map(e => [e, e.disabled]); controls.forEach(([e]) => e.disabled = true); try { await fn(); } catch (error) { report(error); } finally { busy = false; document.body.classList.remove('busy'); controls.forEach(([e, disabled]) => e.disabled = disabled); if ($('imagesDialog').open) { syncBaseControls(); $('downloadBase').disabled = !basePreviewGenerated; } if (player) playerState(player.getState()); } }
   function destroyPlayer() { if (player) player.destroy(); player = null; }
   function enterEdit() { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); $('viewMode').value = 'edit'; $('playButton').textContent = '▶'; $('playButton').setAttribute('aria-label', 'Reproducir'); $('playStatus').textContent = 'Listo para explorar'; $('playButton').disabled = false; $('nextButton').disabled = false; drawEditor(); }
   function invalidate() { revision++; cached = null; dirty = true; $('estimate').textContent = 'Por calcular'; $('timeLabel').textContent = '0:00 / —'; $('timeline').value = 0; enterEdit(); }
@@ -424,18 +424,70 @@
   });
   document.addEventListener('visibilitychange', () => { if (document.hidden && player?.getState().playing) player.pause(); });
 
+  let basePreviewGenerated = false, generatedBase = null, basePreviewTimer;
+  const baseControls = { baseColorToGray: 'colorToGray', baseSensitivity: 'sensitivity', baseBlackPoint: 'blackPoint', baseWhitePoint: 'whitePoint', baseSmoothness: 'smoothness' };
+  function syncBaseControls() {
+    const config = draft.baseGeneration = window.PaintBase.normalize(draft.baseGeneration);
+    $('basePreset').value = window.PaintBase.presetName(config); $('basePaper').value = config.paper;
+    for (const [id, key] of Object.entries(baseControls)) {
+      $(id).value = Math.round(config[key] * 100); $(id).disabled = config.method === 'grayscale';
+      $(id + 'Out').textContent = `${Math.round(config[key] * 100)}%`;
+    }
+    $('baseMethodNote').textContent = config.method === 'grayscale' ? 'Compatibilidad: desatura y conserva las sombras. Elige Tinta sobre papel para retirar el pigmento.' : 'Los valores iniciales conservan negros sólidos y grises intermedios. Los pigmentos muy oscuros o poco saturados pueden requerir ajustes.';
+  }
+  function setBaseZoom() {
+    const zoom = $('basePreviewZoom').value;
+    $('basePreviews').classList.toggle('native-size', zoom !== 'fit');
+    for (const id of ['comparisonFinal', 'comparisonBase']) $(id).style.setProperty('--preview-width', `${$(id).width * (+zoom || 1)}px`);
+  }
+  function generateBasePreview() {
+    clearTimeout(basePreviewTimer);
+    if (!draftDecoded?.final || draft.baseMode !== 'derived') return;
+    generatedBase = PaintPreparation.prepare(draftDecoded.final, draftDecoded.initial, draft);
+    for (const [id, source] of [['comparisonFinal', generatedBase.finalCanvas], ['comparisonBase', generatedBase.baseCanvas]]) {
+      const c = $(id); c.width = source.width; c.height = source.height; c.getContext('2d').drawImage(source, 0, 0);
+    }
+    basePreviewGenerated = true; $('basePreviews').hidden = false; $('downloadBase').disabled = false;
+    $('generateBase').textContent = 'Actualizar vista previa'; setBaseZoom();
+    $('basePreviewStatus').textContent = `${generatedBase.width} × ${generatedBase.height} px · Compara la base antes de aplicar. Los ajustes todavía no modifican el proyecto.`;
+  }
+  function resetBasePreview() {
+    clearTimeout(basePreviewTimer); basePreviewGenerated = false; generatedBase = null;
+    $('basePreviews').hidden = true; $('downloadBase').disabled = true; $('generateBase').textContent = 'Generar vista previa';
+    $('basePreviewStatus').textContent = 'Pulsa Generar vista previa para ver la base propuesta.';
+  }
+  function scheduleBasePreview() {
+    clearTimeout(basePreviewTimer);
+    if (basePreviewGenerated && draft.baseMode === 'derived') basePreviewTimer = setTimeout(generateBasePreview, 120);
+  }
   function fillImageDialog() {
     $('finalName').textContent = draft.images.final?.name || 'Sin imagen'; $('initialName').textContent = draft.images.initial?.name || 'No se necesita si generas la base desde la final';
     $('baseMode').value = draft.baseMode; $('resolution').value = draft.resolution;
     for (const [id, key, scale] of [['alignX', 'x', 100], ['alignY', 'y', 100], ['alignSX', 'sx', 100], ['alignSY', 'sy', 100], ['alignAngle', 'angle', 1]]) $(id).value = +(draft.alignment[key] * scale).toFixed(3);
-    previewAlignment();
+    $('baseGenerationPanel').hidden = draft.baseMode !== 'derived'; $('imageAlignment').hidden = draft.baseMode === 'derived';
+    $('imagesDialog').classList.toggle('deriving', draft.baseMode === 'derived'); syncBaseControls();
+    if (draft.baseMode === 'uploaded') previewAlignment();
   }
   function previewAlignment() {
     if (!draftDecoded?.final) return;
     const p = PaintPreparation.prepare(draftDecoded.final, draftDecoded.initial, { ...draft, resolution: 380 }), c = $('alignPreview');
     c.width = p.width; c.height = p.height; const context = c.getContext('2d'); context.drawImage(p.baseCanvas, 0, 0); context.globalAlpha = .5; context.drawImage(p.finalCanvas, 0, 0); context.globalAlpha = 1;
   }
-  $('imagesButton').onclick = () => { player?.pause(); draft = structuredClone(project); draftDecoded = { ...decoded }; $('finalFile').value = $('initialFile').value = ''; fillImageDialog(); $('imagesDialog').showModal(); };
+  $('imagesButton').onclick = () => { player?.pause(); draft = structuredClone(project); draftDecoded = { ...decoded }; resetBasePreview(); $('basePreviewZoom').value = 'fit'; $('finalFile').value = $('initialFile').value = ''; fillImageDialog(); $('imagesDialog').showModal(); };
+  $('imagesDialog').addEventListener('close', () => { clearTimeout(basePreviewTimer); generatedBase = null; });
+  $('generateBase').onclick = generateBasePreview; $('basePreviewZoom').onchange = setBaseZoom;
+  $('basePreset').onchange = () => { draft.baseGeneration = window.PaintBase.preset($('basePreset').value); syncBaseControls(); scheduleBasePreview(); };
+  $('basePaper').onchange = () => { draft.baseGeneration.paper = $('basePaper').value; syncBaseControls(); scheduleBasePreview(); };
+  for (const [id, key] of Object.entries(baseControls)) $(id).oninput = () => {
+    draft.baseGeneration[key] = +$(id).value / 100;
+    if (key === 'whitePoint' && draft.baseGeneration.whitePoint <= draft.baseGeneration.blackPoint) draft.baseGeneration.blackPoint = draft.baseGeneration.whitePoint - .01;
+    syncBaseControls(); scheduleBasePreview();
+  };
+  $('downloadBase').onclick = () => action(async () => {
+    generateBasePreview(); if (!generatedBase) return;
+    const blob = await new Promise(resolve => generatedBase.baseCanvas.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('No se pudo generar el PNG.'); download('imagen-inicial.png', blob, 'image/png');
+  });
   function readFile(file) {
     return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(new Error('No se pudo leer el archivo.')); reader.readAsDataURL(file); });
   }
@@ -446,10 +498,10 @@
     const data = await readFile(file), image = await PaintPreparation.loadImage(data);
     draft.images[kind] = { name: file.name, data }; draftDecoded[kind] = image;
     if (kind === 'final' && !draftDecoded.initial) draft.baseMode = 'derived';
-    draft.alignment = zeroAlignment(); fillImageDialog(); status(`Imagen cargada: ${file.name}. Aplica para actualizar el lienzo.`);
+    draft.alignment = zeroAlignment(); resetBasePreview(); fillImageDialog(); status(`Imagen cargada: ${file.name}. Aplica para actualizar el lienzo.`);
   });
-  $('baseMode').onchange = () => { draft.baseMode = $('baseMode').value; previewAlignment(); };
-  $('resolution').onchange = () => { draft.resolution = +$('resolution').value; };
+  $('baseMode').onchange = () => { draft.baseMode = $('baseMode').value; clearTimeout(basePreviewTimer); fillImageDialog(); scheduleBasePreview(); };
+  $('resolution').onchange = () => { draft.resolution = +$('resolution').value; scheduleBasePreview(); };
   for (const [id, key, scale] of [['alignX', 'x', 100], ['alignY', 'y', 100], ['alignSX', 'sx', 100], ['alignSY', 'sy', 100], ['alignAngle', 'angle', 1]]) $(id).oninput = () => {
     const value = +$(id).value; if (!Number.isFinite(value) || value < +$(id).min || value > +$(id).max) return; draft.alignment[key] = value / scale; previewAlignment();
   };
@@ -460,6 +512,8 @@
   $('applyImages').onclick = () => action(async () => {
     if (!draftDecoded.final) throw new Error('Carga primero una imagen final coloreada.');
     if (!draftDecoded.initial) draft.baseMode = 'derived';
+    if (draft.baseMode === 'derived' && !basePreviewGenerated) { fillImageDialog(); generateBasePreview(); $('basePreviewStatus').textContent += ' Pulsa Aplicar y volver al lienzo cuando esté lista.'; return; }
+    clearTimeout(basePreviewTimer);
     if (!Array.from($('imagesDialog').querySelectorAll('input[type=number]')).every(i => i.checkValidity())) throw new Error('Revisa los valores de alineación: hay un campo fuera de rango.');
     const selectedIndices = project.stages.flatMap((stage, index) => stageSelection.has(stage) ? [index] : []);
     project = draft; stageSelection = new Set(selectedIndices.map(index => project.stages[index])); decoded = draftDecoded; await prepareProject(); $('imagesDialog').close(); status('Imágenes preparadas. En modo Editar se muestra la referencia coloreada.');
@@ -495,7 +549,7 @@
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
-    project = { format: 'tinta-y-color', version: 6, presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
+    project = { format: 'tinta-y-color', version: 7, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
       engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17, startMode: 'delay', delay: .7 }, { x: .16, y: .17, startMode: 'delay', delay: .7 }], radius: .22, maxRadius: .4, speed: .13, hueResistance: 8, paintDelay: 1.2, cameraDuration: .8, pauseAfter: true, frame: { x: .53, y: .03, width: .44, height: .27 } }),
       engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5, startMode: 'after' }], radius: .35, maxRadius: .5, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true, frame: { x: .06, y: .29, width: .91, height: .38 } }),
       engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 }),

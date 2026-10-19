@@ -2,6 +2,18 @@
 
 [Volver al proyecto](../README.md)
 
+## v0.8.0 · Base de tinta configurable
+
+Fecha: 18 de octubre de 2026.
+
+- 80 pruebas sin DOM y 88 correctas en Chrome. Los casos nuevos comprueban pigmentos claros/oscuros hacia papel, conservación de negro y gris neutro, mezcla hacia gris, acuarela tenue, umbrales, suavidad hasta 100%, tono de papel y compatibilidad con la desaturación anterior.
+- 24 pruebas de automatización correctas: contrato de base, umbrales ordenados, persistencia, preparación sin HTML ni cálculo y llamadas CLI/MCP. Se ejecutaron como procesos con el Node.js 24.21.0 incluido en VS Code, mediante ELECTRON_RUN_AS_NODE; no se instaló software.
+- Diálogo comprobado con la imagen real: generación explícita, comparación, presets, controles deshabilitados en desaturación, ampliación al 200% y suavidad al 100%. Cerrar y volver a abrir conserva uploaded y los valores originales; Aplicar sin vista previa la genera primero y mantiene el diálogo abierto para revisión.
+- Aplicación posterior guarda base derived a 720 px. Proyecto descargado revisado: formato 7, método ink y smoothness 1. El PNG descargado por el editor coincide byte por byte con base.png de la preparación API, para los mismos valores.
+- Prepare real ejecutado en Chrome con un emisor fuera de su zona: genera base, referencia, comparación, proyecto e informe sin calcular propagación. imageDecodingChecked es true y calculationChecked false. El informe conserva los ajustes de generación.
+- Proyecto de ejemplo anterior exportado nuevamente con el renderer compartido: 16,891 s y HTML idéntico al ejemplo existente. No fue necesario regenerar los grandes archivos del ejemplo.
+- Comparación y controles capturados en images/vista-base.png; sin errores ni advertencias de consola. Se mantiene la limitación de las herramientas para navegar a file:// y no se cambió ningún permiso del navegador. No se probó una conexión a un cliente MCP externo ni el arranque headless real; se usó el mismo trabajo y runner abriendo su URL desde el navegador de pruebas.
+
 ## v0.7.0 · API, comandos y MCP
 
 Fecha: 18 de octubre de 2026.
