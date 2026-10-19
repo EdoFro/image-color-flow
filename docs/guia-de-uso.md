@@ -143,7 +143,7 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 9 y se pueden abrir también los de formatos 1 a 8. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 10 y se pueden abrir también los de formatos 1 a 9. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 
@@ -175,3 +175,16 @@ La luz junto a Vista previa está apagada antes de generar. Amarillo pulsante in
 El cálculo se ejecuta en un Worker local. Se priorizan bloques de 192 px que intersectan el encuadre, seguidos por los vecinos más próximos. Al desplazarse, la prioridad cambia. Cada bloque utiliza 12 px de margen para los filtros y otro margen para reducir la imagen; el soporte conectado de L y el tono del papel se calculan globalmente. Los resultados viejos se descartan si cambian los parámetros; al cerrar se termina el trabajador. Aplicar y Descargar PNG sólo se habilitan para la última imagen completa. Aplicar reutiliza esa misma preparación.
 
 El detalle exacto de L puede conservar pigmentos muy oscuros que se parezcan a tinta; revisa la base. No modifica los originales. Chrome/Edge actuales proporcionan Worker Blob y OffscreenCanvas; la vista previa no usa redes ni servicios externos.
+
+### Varios rectángulos de destacado
+
+En una etapa o en Inicio, habilita Destacado y desmarca «Usar el mismo rectángulo para enfoque y destacado». Pulsa Definir destacado por separado:
+
+- Arrastra en un área libre para reemplazar la lista por un rectángulo.
+- Mantén Ctrl mientras arrastras para agregar, incluso dentro de otro rectángulo.
+- Haz clic sobre uno o en la lista Destacado 1, 2… para seleccionarlo; arrastra el interior para moverlo o las ocho asas para cambiar su tamaño.
+- Suprimir elimina el seleccionado cuando el lienzo tiene el foco; también puedes usar × en la lista. Al eliminar el último, Destacado se deshabilita. Escape o una cancelación de puntero descartan el gesto.
+
+Dentro de cualquiera de los rectángulos se conserva el original. El exterior común recibe Mostrar, Desenfocar, Negro, Blanco, Color o Transparente; las zonas solapadas se dibujan una sola vez. Todos los rectángulos comparten los ajustes de la etapa. Vincular nuevamente con el enfoque conserva la lista separada para recuperarla al desvincular. Los cambios de destacado no modifican el enfoque. El Ctrl de selección de etapas en la columna izquierda sigue funcionando igual.
+
+La lista admite hasta 64 rectángulos. Si una configuración separada no tiene ninguno, muestra la página completa. Durante una transición, listas con igual cantidad interpolan sus rectángulos por número; si cambia la cantidad, se funden las dos máscaras completas. La cámara continúa su transición independientemente.

@@ -136,6 +136,15 @@
           "minimum": 0,
           "maximum": 40,
           "default": 12
+        },
+        "highlightFrames": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/frame"
+          },
+          "default": [],
+          "description": "Rectángulos separados de destacado. Se usa su unión cuando highlightLinked=false. Cada rectángulo debe estar dentro de la imagen. Con lista vacía se muestra la página completa. Tiene prioridad sobre highlightFrame; éste se conserva como alias del primero para compatibilidad."
         }
       }
     },
@@ -477,6 +486,15 @@
           "maximum": 60,
           "default": 0,
           "description": "Segundos."
+        },
+        "highlightFrames": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/frame"
+          },
+          "default": [],
+          "description": "Rectángulos separados de destacado. Se usa su unión cuando highlightLinked=false. Cada rectángulo debe estar dentro de la imagen. Con lista vacía se muestra la página completa. Tiene prioridad sobre highlightFrame; éste se conserva como alias del primero para compatibilidad."
         }
       }
     },

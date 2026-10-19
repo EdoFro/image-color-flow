@@ -34,7 +34,7 @@ try {
   await test('Create incorpora la imagen exacta y devuelve un plan sin base64', async () => {
     const result = await api.create({ image: 'imagen.png', plan, output: 'animacion.colorflow.json' });
     assert.equal(result.plan.baseMode, 'derived'); assert.equal(result.images.final.bytes, png.length); assert.equal(result.images.final.data, undefined);
-    const saved = JSON.parse(await readFile(resolve(workspace, result.path), 'utf8')); assert.equal(saved.images.final.data.split(',')[1], png.toString('base64')); assert.equal(saved.version, 9); assert.equal(saved.baseGeneration.method,'protected');
+    const saved = JSON.parse(await readFile(resolve(workspace, result.path), 'utf8')); assert.equal(saved.images.final.data.split(',')[1], png.toString('base64')); assert.equal(saved.version, 10); assert.equal(saved.baseGeneration.method,'protected');
   });
   await test('Crear con inicial conserva uploaded y los valores omitidos reciben valores del motor', async () => {
     const result = await api.create({ image: 'imagen.png', initialImage: 'imagen.png', output: 'dos.json' }); assert.equal(result.plan.baseMode, 'uploaded'); assert.equal(result.plan.stages[0].paintDelay, 0);
@@ -62,6 +62,27 @@ try {
     const result=await handler.handle({jsonrpc:'2.0',id:2,method:'tools/call',params:{name:'colorflow_inspect',arguments:{project:'igualada.json'}}});
     assert(JSON.stringify(result).includes('base-to-final'));
   });
+  await test('Contrato admite listas de destacados y rechaza rectángulos inválidos', () => {
+    const rect={x:.1,y:.1,width:.2,height:.2};assertPlan({stages:[{highlightFrames:[rect,rect],highlightLinked:false}],initialView:{highlightFrames:[rect]}});
+    for(const highlightFrames of [[{x:.9,y:.1,width:.2,height:.2}],Array(65).fill(rect),[null]])assert.throws(()=>assertPlan({stages:[{highlightFrames}]}));
+  });
+  await test('API actualiza listas y acepta un parche antiguo del rectángulo único', async () => {
+    const a={x:.1,y:.1,width:.2,height:.2},b={x:.6,y:.6,width:.2,height:.2};
+    await api.update({project:'animacion.colorflow.json',output:'destacados.json',stageIndex:0,patch:{highlightEnabled:true,highlightLinked:false,highlightFrames:[a,b]}});
+    assert.equal((await api.inspect({project:'destacados.json'})).plan.stages[0].highlightFrames.length,2);
+    await api.update({project:'destacados.json',stageIndex:0,patch:{highlightFrame:b}});
+    const stage=(await api.inspect({project:'destacados.json'})).plan.stages[0];assert.equal(stage.highlightFrames.length,1);assert.equal(stage.highlightFrames[0].x,.6);
+  });
+  await test('CLI y MCP crean varios destacados en Inicio y en etapas', async () => {
+    const highlightFrames=[{x:.1,y:.1,width:.2,height:.2},{x:.6,y:.6,width:.2,height:.2}],multi={initialView:{highlightEnabled:true,highlightLinked:false,highlightFrames},stages:[{points:[],highlightEnabled:true,highlightLinked:false,highlightFrames}]};
+    await writeFile(resolve(workspace,'multi-plan.json'),JSON.stringify(multi));
+    const logs=[],io={stdout:{write:t=>logs.push(t)},stderr:{write:t=>logs.push(t)}};
+    assert.equal(await cli(['create','--root',workspace,'--image','imagen.png','--plan','multi-plan.json','--out','multi-cli.json'],io),0);
+    assert.equal((await api.inspect({project:'multi-cli.json'})).plan.initialView.highlightFrames.length,2);
+    const handler=createHandler(api);await handler.handle({jsonrpc:'2.0',id:1,method:'initialize'});await handler.handle({jsonrpc:'2.0',method:'notifications/initialized'});
+    const response=await handler.handle({jsonrpc:'2.0',id:2,method:'tools/call',params:{name:'colorflow_create',arguments:{image:'imagen.png',output:'multi-mcp.json',plan:multi}}});assert(!response.result.isError,JSON.stringify(response));
+    assert.equal((await api.inspect({project:'multi-mcp.json'})).plan.stages[0].highlightFrames.length,2);
+  });
   await test('Create no sobrescribe archivos existentes y uploaded exige inicial', async () => {
     await assert.rejects(api.create({ image: 'imagen.png', output: 'dos.json' }), e => e.code === 'EEXIST');
     await assert.rejects(api.create({ image: 'imagen.png', plan: { baseMode: 'uploaded' }, output: 'invalido.json' }), e => e.code === 'INITIAL_IMAGE_REQUIRED');
@@ -79,7 +100,7 @@ try {
   await test('Un proyecto anterior mantiene sus datos y recibe desfase cero', async () => {
     const raw = JSON.parse(await readFile(resolve(workspace, 'dos.json'), 'utf8')); raw.version = 5; delete raw.stages[0].paintDelay;
     await writeFile(resolve(workspace, 'anterior.json'), JSON.stringify(raw)); const result = await api.inspect({project:'anterior.json'});
-    assert.equal(result.formatVersion,9); assert.equal(result.plan.stages[0].paintDelay,0); assert.equal(result.plan.stages[0].points[0].x,.5);
+    assert.equal(result.formatVersion,10); assert.equal(result.plan.stages[0].paintDelay,0); assert.equal(result.plan.stages[0].points[0].x,.5);
   });
   await test('Validación detecta errores antes de que la normalización pueda ocultarlos', async () => {
     const raw = JSON.parse(await readFile(resolve(workspace, 'animacion.colorflow.json'), 'utf8')); raw.stages[0].points[0].x = 9;

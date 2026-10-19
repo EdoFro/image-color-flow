@@ -55,3 +55,5 @@ node scripts/ejecutar-pruebas.mjs
 La licencia del código está pendiente de elección. Las imágenes de ejemplo tienen su procedencia documentada por separado en [licencia y recursos](docs/licencia-y-recursos.md).
 
 La preparación de imágenes ofrece Oscurecer (M) y Multiplicar (N), comparación con zoom/posición compartidos, miniatura navegable y recálculo por bloques que prioriza el detalle visible. Una luz con texto indica cuándo el detalle o toda la imagen están actualizados. Los proyectos anteriores conservan su método.
+
+El destacado separado permite varios rectángulos por etapa o en Inicio: Ctrl + arrastrar agrega otro; la lista y las asas permiten editarlo. El exterior de su unión recibe el tratamiento elegido. El enfoque permanece independiente y el HTML autónomo conserva todos los rectángulos.

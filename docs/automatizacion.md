@@ -60,7 +60,7 @@ node automation/cli.mjs prepare --project output/proyecto-base.colorflow.json --
 
 Para probar otra transformación, utiliza `update` con un parche que incluya el objeto `baseGeneration` y vuelve a preparar en un directorio nuevo. El objeto del parche reemplaza la configuración completa; los campos omitidos de ese objeto reciben sus valores predeterminados. En proyectos antiguos, `method: "grayscale"` mantiene la desaturación anterior. Usa `baseGeneration: { "method": "protected" }` para seleccionar L; el ejemplo [base-lineas.json](../examples/plans/base-lineas.json) incluye sus valores recomendados. Los nuevos proyectos ya utilizan L; formato 7 conserva ink al abrirse.
 
-La API ofrece la misma operación: `await api.prepare({ project, outputDir })`. En MCP se utiliza `colorflow_prepare`, seguido de `colorflow_read_image` sobre `base.png`. Los proyectos de salida son de formato 9, con todos los parámetros de generación guardados. El renderizado completo también incluye `base.png`.
+La API ofrece la misma operación: `await api.prepare({ project, outputDir })`. En MCP se utiliza `colorflow_prepare`, seguido de `colorflow_read_image` sobre `base.png`. Los proyectos de salida son de formato 10, con todos los parámetros de generación guardados. El renderizado completo también incluye `base.png`.
 
 ## Comandos y errores
 
@@ -163,3 +163,9 @@ Se aplica después de escalar a la resolución de animación y de los controles 
 Ejemplo de plan: `"baseGeneration": { "method": "protected", "inkMatch": "source-to-base" }`. Se puede crear o actualizar desde la API, la CLI o MCP; no se necesita una operación nueva.
 
 L es `method: "protected"`; K sigue siendo `"coherent"`. Los proyectos de formato 8 conservan K y su igualación anterior. La preparación API/CLI/MCP entrega imágenes completas mediante el motor común; la prioridad por encuadre es exclusiva de la vista previa del editor.
+
+### Destacados múltiples
+
+En una etapa o en `initialView` usa `highlightEnabled: true`, `highlightLinked: false` y `highlightFrames: [{"x":0.1,"y":0.15,"width":0.25,"height":0.3},{"x":0.6,"y":0.5,"width":0.25,"height":0.3}]`. El exterior común depende de `outside`, `outsideColor` y `blur`. La lista reemplaza completa la anterior en un parche; no se modifica con índices de rectángulo. Los rectángulos deben estar dentro de la imagen y hay un máximo de 64.
+
+`frame` sigue siendo el enfoque. `highlightFrame` se acepta como campo antiguo; un parche de etapa que sólo incluya ese campo reemplaza la lista por un elemento (o la vacía si es null). Al aportar ambos campos, tiene prioridad `highlightFrames`. Editor, API, CLI y MCP comparten estas reglas. Ejemplo: [destacados-multiples.json](../examples/plans/destacados-multiples.json). El archivo editable actual es formato 10.

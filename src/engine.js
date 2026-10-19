@@ -29,8 +29,9 @@
     }
     function normalizeView(v = {}) {
       if (!v || typeof v !== 'object') v = {};
+      const highlightFrames = (Array.isArray(v.highlightFrames) ? v.highlightFrames : v.highlightFrame ? [v.highlightFrame] : []).slice(0, 64).map(normalizeFrame).filter(Boolean);
       return { frame: normalizeFrame(v.frame), zoom: number(v.zoom, 1, 0, 1), highlightEnabled: v.highlightEnabled === true,
-        highlightLinked: v.highlightLinked !== false, highlightFrame: normalizeFrame(v.highlightFrame),
+        highlightLinked: v.highlightLinked !== false, highlightFrame: highlightFrames[0] || null, highlightFrames,
         outside: ['show', 'blur', 'black', 'white', 'color', 'transparent'].includes(v.outside) ? v.outside : 'blur',
         outsideColor: /^#[0-9a-f]{6}$/i.test(v.outsideColor || '') ? v.outsideColor : '#202c29', blur: number(v.blur, 12, 0, 40) };
     }

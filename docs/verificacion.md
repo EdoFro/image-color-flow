@@ -2,6 +2,15 @@
 
 [Volver al proyecto](../README.md)
 
+## v0.11.0 · Destacados múltiples
+
+- 106/106 pruebas sin DOM y 28/29 de automatización: migración del rectángulo único, precedencia de la lista, persistencia en Inicio/etapas y codec, selección, asas, límites, tamaño mínimo, vínculo general, validación de listas y parche antiguo de API.
+- Chrome real con Canvas: seis tratamientos exteriores, dos interiores intactos y espacio entre rectángulos tratado; solapamiento con alfa de fuente 0.5 sin acumulación; transiciones de cantidad/exterior con extremos correctos.
+- Editor completo: dibujo normal, Ctrl para agregar incluso en otro rectángulo, selección desde lista, movimiento, tamaño, cancelación, reemplazo, enfoque intacto y lista conservada al alternar el vínculo. Suprimir y ×; último borrado deshabilita. También se comprobaron varios destacados en Inicio. Se corrigió el desplazamiento causado por focus() en lienzos pequeños.
+- HTML autónomo generado y ejecutado en otro trabajo de Chrome: unión transparente de Inicio, unión de etapa con exterior negro y reinicio que recupera Inicio. El fixture permite sus scripts/estilos inline propios; los permisos del servidor de automatización de producción permanecen sin cambios.
+- Exportación real por API con el samurái a 490 × 720: listas de Inicio/etapa conservadas en formato 10, dos interiores opacos y espacio intermedio transparente en inicio.png, exterior negro en final.png y HTML autocontenido. CLI y MCP también crean listas completas, verificadas al inspeccionar sus proyectos.
+- Repetición: `npm test` y `npm run test:highlights` (requiere Chrome/Edge local). Las pruebas de navegador ejecutan los controles y verifican píxeles; no se hizo una revisión estética manual de cada tamaño de pantalla ni se repitió la apertura directa file://.
+
 ## v0.10.0 · L, composición y editor progresivo
 
 - 100/100 pruebas sin DOM y 26/26 de automatización. Cobertura nueva: L con masas pardas, exclusión de pigmento rojo, M/N sin aclarado, papel cálido, copia literal antigua, formato 9 y conservación de K al abrir formato 8.

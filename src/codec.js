@@ -16,7 +16,7 @@
       }
       return { data: base64(bytes), accentData: base64(extra), scale, duration: field.duration, fade: field.fade, name: field.name,
         pauseAfter: field.pauseAfter, enabled: field.enabled, skipped: field.skipped, visualOnly: field.visualOnly, hold: field.hold, paintDelay: field.paintDelay, frame: field.frame, cameraDuration: field.cameraDuration, stageIndex: field.stageIndex,
-        zoom: field.zoom, highlightEnabled: field.highlightEnabled, highlightLinked: field.highlightLinked, highlightFrame: field.highlightFrame,
+        zoom: field.zoom, highlightEnabled: field.highlightEnabled, highlightLinked: field.highlightLinked, highlightFrame: field.highlightFrame, highlightFrames: field.highlightFrames,
         outside: field.outside, outsideColor: field.outsideColor, blur: field.blur };
     }
     function unpack(field, count) {

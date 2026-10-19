@@ -51,7 +51,7 @@
     test('Los proyectos de formato 6 conservan desaturación y los nuevos usan tinta sobre papel', () => {
       const data={format:'tinta-y-color',version:6,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
       const old=root.PaintProject.normalize(data), fresh=root.PaintProject.normalize({...data,version:7});
-      assert(old.version===9 && old.baseGeneration.method==='grayscale', 'No se preservó la compatibilidad.');
+      assert(old.version===10 && old.baseGeneration.method==='grayscale', 'No se preservó la compatibilidad.');
       assert(fresh.baseGeneration.method==='ink' && fresh.baseGeneration.colorToGray===0, 'No se configuró tinta sobre papel.');
     });
     test('Formato 8 usa K y formato 7 conserva tinta anterior, incluso sin configuración', () => {
@@ -179,6 +179,42 @@
     });
     test('L regional exige el soporte global para no perder conexiones al recortar', () => {
       let failed=false;try{root.PaintBase.region(sourceK(),fixture.paper,{method:'protected'},fixture.width,fixture.height,{x:20,y:20,width:20,height:20});}catch(e){failed=/global/.test(e.message);}assert(failed,'Se calculó L desde un recorte independiente.');
+    });
+    test('La lista de destacados tiene prioridad y conserva el rectángulo único anterior', () => {
+      const a={x:.1,y:.1,width:.2,height:.2},b={x:.6,y:.6,width:.2,height:.2};
+      const legacy=engine.normalizeView({highlightLinked:false,highlightFrame:a});
+      assert(legacy.highlightFrames.length===1&&legacy.highlightFrames[0].x===a.x,'No se migró el único.');
+      const multi=engine.normalizeView({highlightLinked:false,highlightFrame:a,highlightFrames:[b,a]});
+      assert(multi.highlightFrame.x===b.x&&root.PaintView.highlights(multi).length===2,'No tiene prioridad la lista.');
+      assert(root.PaintView.highlights({...multi,highlightLinked:true,frame:a}).length===1,'El vínculo no usa un único enfoque.');
+      assert(root.PaintView.highlights({...multi,highlightFrames:[]})[0].width===1,'La lista vacía oculta la página.');
+    });
+    test('El proyecto conserva varios destacados, Inicio y el alias del primero', () => {
+      const rects=[{x:.1,y:.1,width:.2,height:.2},{x:.6,y:.6,width:.2,height:.2}],data={format:'tinta-y-color',version:10,images:{final:{data:'data:image/png;base64,AA'}},stages:[{highlightLinked:false,highlightFrames:rects}],initialView:{highlightLinked:false,highlightFrames:rects}};
+      const saved=root.PaintProject.normalize(data),again=root.PaintProject.normalize(JSON.parse(JSON.stringify(saved)));
+      assert(again.version===10&&again.stages[0].highlightFrames.length===2&&again.initialView.highlightFrames.length===2,'Se perdieron rectángulos.');
+      assert(again.stages[0].highlightFrame.x===.1,'Se perdió el alias.');
+      const old=root.PaintProject.normalize({...data,version:9,stages:[{highlightLinked:false,highlightFrame:rects[1]}]});assert(old.stages[0].highlightFrames[0].x===.6,'Cambió un destacado antiguo.');
+    });
+    test('El mapa temporal exportado conserva toda la lista de destacados', () => {
+      const rects=[{x:.1,y:.1,width:.2,height:.2},{x:.6,y:.6,width:.2,height:.2}],f=calc(3,3,image(3,3),{points:[],hold:.2,highlightEnabled:true,highlightLinked:false,highlightFrames:rects});
+      const decoded=root.PaintCodec.unpack(root.PaintCodec.pack(f),9);assert(decoded.highlightFrames.length===2&&decoded.highlightFrames[1].x===.6,'Se perdió la lista al exportar.');
+    });
+    test('La selección de destacados distingue interior, asas y áreas libres', () => {
+      const r={x:.2,y:.2,width:.3,height:.3},api=root.PaintHighlightEditor;
+      assert(api.hit([r],0,{x:.35,y:.35},1000,1000).edge==='move','No se seleccionó el interior.');
+      assert(api.hit([r],0,{x:.5,y:.5},1000,1000).edge==='se','No se detectó el asa.');
+      assert(api.hit([r],0,{x:.8,y:.8},1000,1000)===null,'Se seleccionó un área libre.');
+    });
+    test('Mover y redimensionar destacados respeta límites y tamaño mínimo', () => {
+      const api=root.PaintHighlightEditor,r={x:.2,y:.3,width:.3,height:.2},start={x:.3,y:.4};
+      const moved=api.transform(r,start,{x:1,y:1},'move');assert(moved.x===.7&&moved.y===.8&&moved.width===.3,'Movimiento fuera de límites.');
+      const resized=api.transform(r,start,{x:0,y:0},'se');assert(Math.abs(resized.width-.02)<1e-10&&Math.abs(resized.height-.02)<1e-10,'No se conserva tamaño mínimo.');
+      const expanded=api.transform(r,start,{x:0,y:0},'nw');assert(expanded.x===0&&expanded.y===0&&expanded.width===.5,'No se expandió desde la esquina.');
+    });
+    test('General y selección conservan las listas al alternar el vínculo', () => {
+      const p=bulkProject();p.stages[0].highlightFrames=[{x:.1,y:.1,width:.2,height:.2},{x:.6,y:.6,width:.2,height:.2}];const before=JSON.stringify(p.stages[0].highlightFrames);
+      root.PaintGeneral.apply(p,{highlightLinked:true});root.PaintGeneral.apply(p,{highlightLinked:false});assert(JSON.stringify(p.stages[0].highlightFrames)===before,'El vínculo general borró la lista.');
     });
     test('La expansión sin viento es simétrica y aumenta con la distancia', () => {
       const f = calc(41, 41, image(41, 41));

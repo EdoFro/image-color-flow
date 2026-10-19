@@ -1,0 +1,22 @@
+{
+  "resolution": 720,
+  "baseGeneration": { "method": "protected" },
+  "stages": [
+    {
+      "name": "Dos detalles simultáneos",
+      "points": [],
+      "hold": 1,
+      "cameraDuration": 0.7,
+      "zoom": 0,
+      "highlightEnabled": true,
+      "highlightLinked": false,
+      "highlightFrames": [
+        { "x": 0.1, "y": 0.15, "width": 0.25, "height": 0.3 },
+        { "x": 0.6, "y": 0.5, "width": 0.25, "height": 0.3 }
+      ],
+      "outside": "blur",
+      "blur": 18,
+      "pauseAfter": true
+    }
+  ]
+}

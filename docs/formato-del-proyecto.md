@@ -4,7 +4,7 @@
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
-El formato actual es **9**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
+El formato actual es **10**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
 
 ## Estructura principal
 
@@ -56,7 +56,8 @@ El primer punto activo empieza en `paintDelay` segundos desde el inicio de su et
 | `zoom` | Acercamiento de 0 a 1; predeterminado 1. Con 0 se ve toda la página. |
 | `highlightEnabled` | Habilita el destacado; predeterminado `false`. |
 | `highlightLinked` | Usa `frame` como destacado; predeterminado `true`. |
-| `highlightFrame` | Rectángulo independiente cuando no están vinculados; predeterminado `null`. |
+| `highlightFrames` | Lista canónica de 0 a 64 rectángulos separados; se destaca su unión cuando `highlightLinked` es falso. |
+| `highlightFrame` | Campo antiguo: al abrir se convierte en una lista de un elemento. Al guardar refleja el primer rectángulo o `null`. |
 | `outside` | `show`, `blur`, `black`, `white`, `color` o `transparent`; predeterminado `blur`. |
 | `outsideColor` | Color hexadecimal `#RRGGBB`; predeterminado `#202c29`. |
 | `blur` | Desenfoque de 0 a 40, escalado a la resolución de trabajo; predeterminado 12. |
@@ -104,7 +105,7 @@ El HTML autónomo es un producto distinto. Incorpora imágenes preparadas, mapas
 
 ## Planes para automatización
 
-Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 9, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
+Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 10, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
 
 ### Igualación opcional (formatos 8 y 9)
 
@@ -120,6 +121,14 @@ Se aplica después de escalar a la resolución de animación y de los controles 
 
 ### Formato 9 y compatibilidad
 
-Los nuevos proyectos reciben `method: "protected"` (L). El formato 8 recibe `coherent` si omitía el método; los campos explícitos, incluido `base-to-final`, se conservan. Formato 7 recibe ink; 1–6 reciben grayscale. Guardar actualiza el contenedor a 9 sin cambiar el algoritmo de los proyectos anteriores. `darken` y `multiply` componen después de reducir a la resolución de animación. El fondo cálido se excluye comparando contra el tono de papel generado; ninguno de los modos altera el original incrustado.
+Los nuevos proyectos reciben `method: "protected"` (L). El formato 8 recibe `coherent` si omitía el método; los campos explícitos, incluido `base-to-final`, se conservan. Formato 7 recibe ink; 1–6 reciben grayscale. Guardar actualiza el contenedor a 10 sin cambiar el algoritmo de los proyectos anteriores. `darken` y `multiply` componen después de reducir a la resolución de animación. El fondo cálido se excluye comparando contra el tono de papel generado; ninguno de los modos altera el original incrustado.
 
 El encuadre de comparación, el progreso parcial y el trabajador son estados transitorios del editor: no se guardan en el plan ni en el proyecto.
+
+### Formato 10: destacados múltiples
+
+`highlightFrames` puede aparecer en cada etapa y en `initialView`. Cada elemento tiene `x`, `y`, `width`, `height` normalizados, con el mismo mínimo de 0.02 y límites que `frame`. La lista tiene prioridad sobre el campo antiguo `highlightFrame`; al guardar, éste refleja el primero. Una lista vacía con destacado separado no oculta toda la imagen: usa la página completa. El editor desactiva el destacado al borrar su último elemento.
+
+`highlightLinked: true` utiliza únicamente el enfoque, sin borrar la lista separada. `highlightEnabled: false` deja los ajustes y la lista guardados pero no aplica el efecto. No se guarda selección de rectángulo ni gesto transitorio. Los archivos de formatos 1–9 conservan su único rectángulo y los algoritmos de imagen anteriores.
+
+Listas de igual cantidad interpolan los rectángulos por índice durante `cameraDuration`; cantidades distintas funden las dos máscaras. La unión se recorta en un único dibujo para no acumular alfa en solapamientos. El codec, reproductor y HTML autónomo conservan la lista completa.

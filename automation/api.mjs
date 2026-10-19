@@ -9,7 +9,7 @@ const context = createContext({});
 for (const name of ['engine', 'ink-lines', 'base-generation', 'project']) runInContext(await readFile(new URL(`../src/${name}.js`, import.meta.url), 'utf8'), context);
 const normalize = input => JSON.parse(JSON.stringify(context.PaintProject.normalize(input)));
 const mimeTypes = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.bmp': 'image/bmp', '.avif': 'image/avif' };
-export const version = '0.10.0';
+export const version = '0.11.0';
 export { planSchema };
 
 export async function createAutomation({ root = process.cwd(), browser, renderer = renderInBrowser } = {}) {
@@ -94,13 +94,15 @@ export async function createAutomation({ root = process.cwd(), browser, renderer
       assertPlan(plan);
       const images = { final: await image(finalPath) }; if (initialImage) images.initial = await image(initialImage);
       if (plan.baseMode === 'uploaded' && !initialImage) throw new AutomationError('INITIAL_IMAGE_REQUIRED', 'baseMode uploaded necesita una imagen inicial.');
-      const project = normalize({ format: 'tinta-y-color', version: 9, ...plan, baseMode: plan.baseMode || (initialImage ? 'uploaded' : 'derived'), images, stages: plan.stages || [{ maxRadius: .4 }] });
+      const project = normalize({ format: 'tinta-y-color', version: 10, ...plan, baseMode: plan.baseMode || (initialImage ? 'uploaded' : 'derived'), images, stages: plan.stages || [{ maxRadius: .4 }] });
       const path = await save(output, JSON.stringify(project), overwrite);
       return summary(project, path);
     },
     async inspect({ project }) { return summary(await load(project), project); },
     async update({ project: path, patch, stageIndex, output = path, overwrite = output === path }) {
       assertPlan(patch, stageIndex !== undefined);
+      // Un parche antiguo del rectángulo único debe actualizar también la lista canónica.
+      if (stageIndex !== undefined && Object.hasOwn(patch, 'highlightFrame') && !Object.hasOwn(patch, 'highlightFrames')) patch = { ...patch, highlightFrames: patch.highlightFrame ? [patch.highlightFrame] : [] };
       const project = await load(path);
       if (stageIndex !== undefined) {
         if (!Number.isInteger(stageIndex) || stageIndex < 0 || stageIndex >= project.stages.length) throw new AutomationError('INVALID_STAGE', 'stageIndex debe ser un índice existente, comenzando en cero.');

@@ -5,9 +5,9 @@
   const zeroAlignment = () => ({ x: 0, y: 0, sx: 1, sy: 1, angle: 0 });
   const presentationDefaults = () => ({ background: 'hatch', color: '#e5e7e3' });
   const normalizePresentation = value => window.PaintProject.normalizePresentation(value);
-  let project = { format: 'tinta-y-color', version: 9, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage({ maxRadius: .4 })] };
+  let project = { format: 'tinta-y-color', version: 10, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage({ maxRadius: .4 })] };
   let decoded = {}, prepared = null, selected = 0, tool = 'point', draft = null, draftDecoded = null;
-  let selectedPoint = 0, radiusHandles = [];
+  let selectedPoint = 0, radiusHandles = [], selectedHighlight = 0;
   let generalDraft = {}, generalReview = null;
   let selectionDraft = {}, stageSelection = new Set([project.stages[0]]);
   const generalInvalid = new Set();
@@ -109,7 +109,20 @@
     function guide(rect, color, label) { if (!rect) return; octx.save(); octx.beginPath(); octx.rect(rect.x * w, rect.y * h, rect.width * w, rect.height * h); contrast(color, [9, 5], 1.5); octx.fillStyle = color; octx.font = 'bold ' + 11 * scale + 'px sans-serif'; octx.textAlign = 'left'; octx.textBaseline = 'top'; octx.fillText(label, rect.x * w + 6 * scale, rect.y * h + 6 * scale); octx.restore(); }
     const framing = gesture?.kind === 'camera' ? frameFromRect(gesture.start, gesture.end) : config.frame;
     guide(framing, '#5db8ff', config.highlightEnabled && config.highlightLinked ? 'Enfoque + destacado' : 'Enfoque');
-    if (config.highlightEnabled && !config.highlightLinked) guide(gesture?.kind === 'highlight' ? frameFromRect(gesture.start, gesture.end) : config.highlightFrame, '#db76f3', 'Destacado');
+    if (config.highlightEnabled && !config.highlightLinked) {
+      let rects = config.highlightFrames || [];
+      if (gesture?.kind === 'highlight') {
+        if (gesture.original) rects = rects.map((r, i) => i === gesture.index ? gesture.candidate : r);
+        else rects = gesture.append ? [...rects, gesture.candidate] : [gesture.candidate];
+      }
+      rects.forEach((rect, index) => {
+        const active = index === selectedHighlight; guide(rect, active ? '#b829df' : '#db76f3', `Destacado ${index + 1}`);
+        if (tool === 'highlight' && active) for (const handle of PaintHighlightEditor.handles(rect)) {
+          octx.fillStyle = '#fff'; octx.fillRect(handle.x * w - 5 * scale, handle.y * h - 5 * scale, 10 * scale, 10 * scale);
+          octx.strokeStyle = '#8d21ab'; octx.lineWidth = 2 * scale; octx.strokeRect(handle.x * w - 5 * scale, handle.y * h - 5 * scale, 10 * scale, 10 * scale);
+        }
+      });
+    }
     if (polygon.length) { trace(polygon); contrast('#bd592e', [], 2); for (const p of polygon) { octx.fillStyle = '#bd592e'; octx.fillRect(p.x * w - 3 * scale, p.y * h - 3 * scale, 6 * scale, 6 * scale); } }
     if (stage?.windStrength) {
       octx.save(); octx.translate(w - 36 * scale, 36 * scale); octx.rotate(stage.windAngle * Math.PI / 180); octx.beginPath(); octx.moveTo(-15 * scale, 0); octx.lineTo(15 * scale, 0); octx.lineTo(7 * scale, -6 * scale); octx.moveTo(15 * scale, 0); octx.lineTo(7 * scale, 6 * scale); contrast('#bd592e', [], 2.5); octx.restore();
@@ -153,7 +166,7 @@
       if (Object.keys(selectionDraft).length) status('Cambió la selección; se descartaron sus cambios pendientes.');
       selectionDraft = {};
     }
-    selected = project.stages.indexOf(stageSelection.has(stage) ? stage : [...stageSelection].at(-1)); selectedPoint = 0; polygon = []; gesture = null;
+    selected = project.stages.indexOf(stageSelection.has(stage) ? stage : [...stageSelection].at(-1)); selectedPoint = 0; selectedHighlight = 0; polygon = []; gesture = null;
     enterEdit(); updateStageSelection(); updateInspector();
     if (isMultiple()) $('toolHint').textContent = 'Edición de parámetros de las etapas seleccionadas · geometrías individuales desactivadas.';
     else setTool(tool === 'highlight' && (!current().highlightEnabled || current().highlightLinked) ? 'camera' : tool);
@@ -189,7 +202,26 @@
     $('highlightEnabled').checked = stage.highlightEnabled; $('highlightSettings').hidden = !stage.highlightEnabled; $('highlightLinked').checked = stage.highlightLinked;
     $('setHighlight').disabled = stage.highlightLinked; $('outside').value = stage.outside; $('outsideColor').value = stage.outsideColor;
     $('outsideColorField').hidden = stage.outside !== 'color'; $('blurField').hidden = stage.outside !== 'blur'; $('blur').value = stage.blur; $('blurOut').textContent = stage.blur + ' px';
-    $('highlightInfo').textContent = stage.highlightLinked ? 'El destacado usa el rectángulo de enfoque.' : stage.highlightFrame ? 'Destacado independiente definido.' : 'Sin rectángulo: se destaca la página completa.';
+    $('highlightInfo').textContent = stage.highlightLinked ? 'El destacado usa el rectángulo de enfoque. Los separados se conservan.' : stage.highlightFrames.length ? `${stage.highlightFrames.length} destacado${stage.highlightFrames.length === 1 ? '' : 's'} separado${stage.highlightFrames.length === 1 ? '' : 's'}. Ctrl + arrastrar agrega otro. Sin Ctrl, arrastrar en un área libre reemplaza la lista.` : 'Sin rectángulos: se muestra la página completa. Dibuja un destacado en el lienzo.';
+    renderHighlights();
+  }
+  function setHighlightFrames(frames) { const normalized = engine.normalizeView({ highlightFrames: frames }); current().highlightFrames = normalized.highlightFrames; current().highlightFrame = normalized.highlightFrame; }
+  function renderHighlights() {
+    const config = current(), list = $('highlightList'); list.replaceChildren(); list.hidden = config.highlightLinked;
+    if (!(gesture?.kind === 'highlight' && !gesture.original)) selectedHighlight = Math.max(0, Math.min(selectedHighlight, config.highlightFrames.length - 1));
+    config.highlightFrames.forEach((rect, i) => {
+      const row = document.createElement('div'); row.className = 'highlight-row' + (i === selectedHighlight ? ' selected' : '');
+      const choose = document.createElement('button'); choose.type = 'button'; choose.textContent = `Destacado ${i + 1}`; choose.setAttribute('aria-pressed', String(i === selectedHighlight));
+      choose.onclick = () => { selectedHighlight = i; setTool('highlight'); renderHighlights(); overlay.focus({ preventScroll: true }); };
+      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', `Eliminar destacado ${i + 1}`); remove.onclick = () => removeHighlight(i);
+      row.append(choose, remove); list.append(row);
+    });
+  }
+  function removeHighlight(index) {
+    if (busy || isBulk() || index < 0 || index >= current().highlightFrames.length) return;
+    gesture = null; const rects = current().highlightFrames.slice(); rects.splice(index, 1); setHighlightFrames(rects); selectedHighlight = Math.max(0, Math.min(index, rects.length - 1));
+    if (!rects.length) { current().highlightEnabled = false; if (tool === 'highlight') setTool('camera'); }
+    invalidate(); updateInspector(); status(rects.length ? 'Destacado eliminado.' : 'Último rectángulo eliminado; destacado deshabilitado.');
   }
   function updateGeneralPending() {
     const count = Object.keys(bulkDraft()).length;
@@ -289,9 +321,9 @@
     if (isBulk()) return;
     if (isInitial() && !['camera', 'highlight'].includes(next)) return;
     if (next === 'highlight' && (!current().highlightEnabled || current().highlightLinked)) { status('Habilita el destacado y desmarca el vínculo para dibujarlo por separado.'); return; }
-    tool = next; polygon = []; gesture = null; enterEdit();
+    tool = next; polygon = []; gesture = null; overlay.style.cursor = 'crosshair'; if (next === 'highlight') $('viewMode').value = 'edit'; enterEdit();
     document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
-    const hints = { point: 'Clic: añadir o seleccionar · Centro: mover · Asas T/M: radios · Doble clic: eliminar.', rect: 'Arrastra para delimitar la zona de esta etapa.', polygon: 'Clic para añadir vértices · Enter o doble clic para cerrar · Escape para cancelar.', path: 'Arrastra para dibujar el recorrido. Sustituye el recorrido anterior.', camera: 'Arrastra el rectángulo de enfoque. El acercamiento se ajusta aparte.', highlight: 'Arrastra el rectángulo de destacado, independiente del enfoque.' }; $('toolHint').textContent = hints[tool]; drawOverlay();
+    const hints = { point: 'Clic: añadir o seleccionar · Centro: mover · Asas T/M: radios · Doble clic: eliminar.', rect: 'Arrastra para delimitar la zona de esta etapa.', polygon: 'Clic para añadir vértices · Enter o doble clic para cerrar · Escape para cancelar.', path: 'Arrastra para dibujar el recorrido. Sustituye el recorrido anterior.', camera: 'Arrastra el rectángulo de enfoque. El acercamiento se ajusta aparte.', highlight: 'Ctrl + arrastrar: agregar · Clic: seleccionar · Arrastra interior o asas: mover / tamaño · Área libre sin Ctrl: reemplazar · Suprimir: eliminar.' }; $('toolHint').textContent = hints[tool]; drawOverlay();
   }
   function position(event) { const r = overlay.getBoundingClientRect(); return { x: Math.max(0, Math.min(1, (event.clientX - r.left) / r.width)), y: Math.max(0, Math.min(1, (event.clientY - r.top) / r.height)) }; }
   function finishPolygon() {
@@ -301,13 +333,22 @@
   }
   overlay.addEventListener('pointerdown', e => {
     if (busy || isBulk() || !prepared || !editing || $('viewMode').value !== 'edit' || e.button !== 0) return;
-    e.preventDefault(); overlay.focus(); const p = position(e); overlay.setPointerCapture(e.pointerId);
+    e.preventDefault(); overlay.focus({ preventScroll: true }); const p = position(e); overlay.setPointerCapture(e.pointerId);
     if (isInitial() && !['camera', 'highlight'].includes(tool)) return;
     if (tool === 'highlight' && (!current().highlightEnabled || current().highlightLinked)) return;
     if (tool === 'polygon') { polygon.push(p); drawOverlay(); return; }
     if (tool === 'rect') gesture = { kind: 'rect', start: p, end: p };
     if (tool === 'camera') gesture = { kind: 'camera', start: p, end: p };
-    if (tool === 'highlight') gesture = { kind: 'highlight', start: p, end: p };
+    if (tool === 'highlight') {
+      const rects = current().highlightFrames, bounds = overlay.getBoundingClientRect(), hit = e.ctrlKey ? null : PaintHighlightEditor.hit(rects, selectedHighlight, p, bounds.width, bounds.height);
+      if (hit) {
+        selectedHighlight = hit.index; const original = { ...rects[hit.index] }; gesture = { kind: 'highlight', start: p, end: p, index: hit.index, edge: hit.edge, original, candidate: original };
+      } else {
+        if (e.ctrlKey && rects.length >= 64) { status('Máximo de 64 destacados por etapa.', true); return; }
+        gesture = { kind: 'highlight', start: p, end: p, append: e.ctrlKey, candidate: frameFromRect(p, p) }; selectedHighlight = e.ctrlKey ? rects.length : 0;
+      }
+      renderHighlights();
+    }
     if (tool === 'path') gesture = { kind: 'path', path: [p] };
     if (tool === 'point') {
       const scale = overlay.width / overlay.getBoundingClientRect().width;
@@ -325,8 +366,13 @@
     drawOverlay();
   });
   overlay.addEventListener('pointermove', e => {
+    if (!gesture && tool === 'highlight' && editing && !isBulk()) {
+      const r = overlay.getBoundingClientRect(), hit = e.ctrlKey ? null : PaintHighlightEditor.hit(current().highlightFrames, selectedHighlight, position(e), r.width, r.height);
+      overlay.style.cursor = hit ? hit.edge === 'move' ? 'move' : hit.edge + '-resize' : 'crosshair';
+    }
     if (!gesture) { if (tool === 'point' && editing) { const p = position(e), scale = overlay.width / overlay.clientWidth; overlay.style.cursor = radiusHandles.some(q => Math.hypot(q.x - p.x * overlay.width, q.y - p.y * overlay.height) < 13 * scale) ? 'ew-resize' : 'crosshair'; } return; } const p = position(e);
-    if (['rect', 'camera', 'highlight'].includes(gesture.kind)) gesture.end = p;
+    if (['rect', 'camera'].includes(gesture.kind)) gesture.end = p;
+    if (gesture.kind === 'highlight') { gesture.end = p; gesture.candidate = gesture.original ? PaintHighlightEditor.transform(gesture.original, gesture.start, p, gesture.edge) : frameFromRect(gesture.start, p); }
     if (gesture.kind === 'point') Object.assign(current().points[gesture.index], p);
     if (gesture.kind === 'radius') {
       const point = current().points[gesture.index], distance = engine.radiusDistance(current(), point, p, overlay.height / overlay.width);
@@ -338,11 +384,20 @@
   });
   function finishGesture(cancel = false) {
     if (!gesture) return;
+    if (gesture.kind === 'highlight') {
+      const g = gesture; gesture = null; let changed = false;
+      if (!cancel && g.candidate.width >= .02 - 1e-10 && g.candidate.height >= .02 - 1e-10) {
+        if (g.original) {
+          changed = Object.keys(g.original).some(key => g.original[key] !== g.candidate[key]);
+          if (changed) setHighlightFrames(current().highlightFrames.map((r, i) => i === g.index ? g.candidate : r));
+        } else { const rects = g.append ? [...current().highlightFrames, g.candidate] : [g.candidate]; setHighlightFrames(rects); selectedHighlight = rects.length - 1; changed = true; }
+      }
+      if (changed) invalidate(); updateInspector(); drawOverlay(); return;
+    }
     if (!cancel) {
       if (gesture.kind === 'rect') { const a = gesture.start, b = gesture.end; if (Math.abs(a.x - b.x) > .005 && Math.abs(a.y - b.y) > .005) current().zone = rectPoints(a, b); }
       if (gesture.kind === 'path') current().path = gesture.path;
       if (gesture.kind === 'camera') { const frame = frameFromRect(gesture.start, gesture.end); if (frame.width >= .02 && frame.height >= .02) current().frame = frame; }
-      if (gesture.kind === 'highlight') { const frame = frameFromRect(gesture.start, gesture.end); if (frame.width >= .02 && frame.height >= .02) current().highlightFrame = frame; }
     } else if (gesture.kind === 'point' || gesture.kind === 'radius') current().points[gesture.index] = gesture.original;
     gesture = null; invalidate(); updateInspector(); renderStages();
   }
@@ -353,7 +408,7 @@
     if (tool === 'polygon') { finishPolygon(); return; }
     if (tool === 'point') { const p = position(e), r = overlay.getBoundingClientRect(); const i = current().points.findIndex(q => Math.hypot((q.x - p.x) * r.width, (q.y - p.y) * r.height) < 16); if (i >= 0) { removePoint(i); status('Punto eliminado.'); } }
   });
-  overlay.addEventListener('keydown', e => { if (e.key === 'Enter' && polygon.length) { e.preventDefault(); finishPolygon(); } if (e.key === 'Escape') { polygon = []; finishGesture(true); drawOverlay(); } });
+  overlay.addEventListener('keydown', e => { if (e.key === 'Delete' && tool === 'highlight' && editing && !isBulk() && $('viewMode').value === 'edit') { e.preventDefault(); removeHighlight(selectedHighlight); return; } if (e.key === 'Enter' && polygon.length) { e.preventDefault(); finishPolygon(); } if (e.key === 'Escape') { polygon = []; finishGesture(true); drawOverlay(); } });
   document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
   $('initialCard').onclick = () => { selected = -1; stageSelection.clear(); selectionDraft = {}; polygon = []; setTool('camera'); $('viewMode').value = 'frame'; renderStages(); updateInspector(); drawEditor(); };
   $('showAllRadii').onchange = drawOverlay;
@@ -372,7 +427,7 @@
   $('previewFrame').onclick = () => { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); $('viewMode').value = 'frame'; drawEditor(); };
   $('setHighlight').onclick = () => setTool('highlight');
   $('highlightEnabled').onchange = () => { current().highlightEnabled = $('highlightEnabled').checked; if (!current().highlightEnabled && tool === 'highlight') setTool('camera'); invalidate(); updateInspector(); };
-  $('highlightLinked').onchange = () => { const config = current(); if (!$('highlightLinked').checked && !config.highlightFrame) config.highlightFrame = structuredClone(config.frame || { x: .2, y: .2, width: .6, height: .6 }); config.highlightLinked = $('highlightLinked').checked; if (config.highlightLinked && tool === 'highlight') setTool('camera'); invalidate(); updateInspector(); };
+  $('highlightLinked').onchange = () => { const config = current(); if (!$('highlightLinked').checked && !config.highlightFrames.length) setHighlightFrames([structuredClone(config.frame || { x: .2, y: .2, width: .6, height: .6 })]); config.highlightLinked = $('highlightLinked').checked; if (config.highlightLinked && tool === 'highlight') setTool('camera'); invalidate(); updateInspector(); };
   $('outside').onchange = () => { current().outside = $('outside').value; invalidate(); updateInspector(); };
   $('outsideColor').oninput = () => { current().outsideColor = $('outsideColor').value; invalidate(); };
   $('zoom').oninput = () => { current().zoom = +$('zoom').value / 100; invalidate(); $('viewMode').value = 'frame'; drawEditor(); $('zoomOut').textContent = $('zoom').value + '%'; };
@@ -607,7 +662,7 @@
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
-    project = { format: 'tinta-y-color', version: 9, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
+    project = { format: 'tinta-y-color', version: 10, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
       engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17, startMode: 'delay', delay: .7 }, { x: .16, y: .17, startMode: 'delay', delay: .7 }], radius: .22, maxRadius: .4, speed: .13, hueResistance: 8, paintDelay: 1.2, cameraDuration: .8, pauseAfter: true, frame: { x: .53, y: .03, width: .44, height: .27 } }),
       engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5, startMode: 'after' }], radius: .35, maxRadius: .5, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true, frame: { x: .06, y: .29, width: .91, height: .38 } }),
       engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 }),

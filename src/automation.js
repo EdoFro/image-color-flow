@@ -75,6 +75,10 @@
       const color = `hsl(${i * 137.5 % 360} 85% 35%)`;
       trace(stage.zone, true, color); trace(stage.path, false, color);
       if (stage.frame) { const f = stage.frame; trace([{ x:f.x,y:f.y },{ x:f.x+f.width,y:f.y },{ x:f.x+f.width,y:f.y+f.height },{ x:f.x,y:f.y+f.height }], true, '#7828b0'); }
+      if (stage.highlightEnabled && !stage.highlightLinked) root.PaintView.highlights(stage).forEach((f, j) => {
+        trace([{ x:f.x,y:f.y },{ x:f.x+f.width,y:f.y },{ x:f.x+f.width,y:f.y+f.height },{ x:f.x,y:f.y+f.height }], true, '#a21caf');
+        ctx.fillStyle = '#61177e'; ctx.font = `bold ${12 * scale}px system-ui`; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(`D${j + 1}`, f.x * p.width + 4 * scale, f.y * p.height + 4 * scale);
+      });
       stage.points.forEach((v, j) => {
         if (!v.enabled) return;
         const x = v.x * p.width, y = v.y * p.height;

@@ -1,5 +1,12 @@
 # Cambios
 
+## v0.11.0
+
+- Varios rectángulos de destacado separado por etapa y en Inicio. Ctrl + arrastrar agrega; dibujo en área libre reemplaza; selección, movimiento, ocho asas y lista con eliminación. Borrar el último deshabilita el destacado.
+- Exterior aplicado a la unión, sin acumular alfa en solapamientos. El enfoque y la lista separada se conservan al vincular/desvincular; transiciones y HTML autónomo admiten todos los rectángulos.
+- Formato 10 con lectura de 1–9; alias highlightFrame antiguo conservado. Schema, API, CLI, MCP y plan.png actualizados.
+- 106 pruebas sin DOM, 29 de automatización y pruebas de Canvas/editor/HTML exportado en Chrome. Se evita el salto de página al enfocar el lienzo.
+
 ## v0.10.0
 
 - L como método recomendado (`protected`), conservando K y los métodos anteriores. Formato 9: formatos 1–8 mantienen su apariencia al abrirse.
