@@ -1,7 +1,7 @@
 /* Extracción K: fondo robusto, grises graduales y líneas coherentes.
  * JavaScript puro; no necesita servicios, bibliotecas ni generación de imágenes.
  */
-(function (root) {
+(function installPaintInkLines(root) {
   'use strict';
   const f = Math.fround, clamp = n => Math.max(0, Math.min(1, n));
   const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
@@ -105,5 +105,38 @@
     for (let i = 0; i < n; i++) base[i] = Math.min(base[i], gray(addition[i]));
     return base;
   }
-  root.PaintInkLines = { compute, medianRGB };
+  // Soporte global de L: núcleos 5×5 y crecimiento por ocho vecinos oscuros.
+  function protection(rgba, paper, width, height) {
+    const n = width * height, core = new Uint8Array(n), candidate = new Uint8Array(n), keep = new Uint8Array(n), queue = new Int32Array(n);
+    const pp = paper.map(v => f(Math.max(1, v)));
+    for (let i = 0; i < n; i++) {
+      const r = f(clamp(rgba[i * 4] / pp[0])), g = f(clamp(rgba[i * 4 + 1] / pp[1])), b = f(clamp(rgba[i * 4 + 2] / pp[2]));
+      const lum = f(r * .2126 + g * .7152 + b * .0722), high = Math.max(r, g, b), chroma = high - Math.min(r, g, b);
+      core[i] = lum < .25 && high < .34 && chroma < .22;
+      candidate[i] = lum < .31 && high < .45 && chroma < .26;
+    }
+    let head = 0, tail = 0;
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+      let seed = true;
+      for (let dy = -2; seed && dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (!core[Math.max(0, Math.min(height - 1, y + dy)) * width + Math.max(0, Math.min(width - 1, x + dx))]) { seed = false; break; }
+      const i = y * width + x; if (seed) { keep[i] = 1; queue[tail++] = i; }
+    }
+    while (head < tail) {
+      const i = queue[head++], x = i % width, y = Math.floor(i / width);
+      for (let yy = Math.max(0, y - 1); yy <= Math.min(height - 1, y + 1); yy++) for (let xx = Math.max(0, x - 1); xx <= Math.min(width - 1, x + 1); xx++) {
+        const j = yy * width + xx; if (candidate[j] && !keep[j]) { keep[j] = 1; queue[tail++] = j; }
+      }
+    }
+    return keep;
+  }
+  function protect(values, rgba, paper, width, height, keep) {
+    const pp = paper.map(v => f(Math.max(1, v)));
+    for (let i = 0; i < width * height; i++) if (keep[i]) {
+      const r = f(clamp(rgba[i * 4] / pp[0])), g = f(clamp(rgba[i * 4 + 1] / pp[1])), b = f(clamp(rgba[i * 4 + 2] / pp[2]));
+      values[i] = Math.min(values[i], Math.round(255 * f(r * .2126 + g * .7152 + b * .0722)));
+    }
+    return values;
+  }
+  root.installPaintInkLines = installPaintInkLines;
+  root.PaintInkLines = { compute, medianRGB, protection, protect };
 })(typeof window === 'undefined' ? globalThis : window);

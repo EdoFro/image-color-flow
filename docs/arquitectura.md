@@ -12,7 +12,7 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 | `assets/styles.css` | Presentación del editor y adaptación al tamaño de pantalla. |
 | `src/app.js` | Estado del proyecto, eventos del editor, herramientas del lienzo, archivos y coordinación con las APIs compartidas de cálculo y exportación. |
 | `src/project.js` | Normalización compartida del formato editable y opciones de presentación. |
-| `src/ink-lines.js` | Extracción K sin DOM: mediana local, recuperación gradual, protección fina y líneas coherentes en ocho direcciones. |
+| `src/ink-lines.js` | Extracción K/L sin DOM: mediana local, recuperación gradual, protección fina y líneas coherentes en ocho direcciones. |
 | `src/base-generation.js` | Transformación pura de píxeles, presets y normalización de la generación de base, sin DOM. |
 | `src/presentation.js` | Constructor único del HTML autónomo, incluido el reinicio final. |
 | `src/automation.js` | Preparación completa, cálculo en Web Worker, informe, fotogramas y hoja de secuencia sin montar el editor. |
@@ -83,3 +83,5 @@ La API de Node.js usa el mismo normalizador que el editor, junto con un contrato
 Canvas, decodificación, alineación, Web Worker y fotogramas se ejecutan en Chrome/Edge/Chromium sin ventana con un perfil temporal aislado. El proceso de Node sirve exclusivamente recursos enumerados y el trabajo actual en loopback, mediante una ruta aleatoria. El resultado regresa por HTTP local; el servidor, navegador y perfil se cierran al finalizar, cancelar o fallar. El renderizador admite una sesión de navegador externa para las pruebas visuales del mismo trabajo.
 
 MCP utiliza JSON-RPC por stdio, sin dependencias, con descubrimiento de siete herramientas, esquema y guía como recursos, resultados estructurados y cancelación. `prepare` ejecuta decodificación y preparación sin instanciar el trabajador de propagación. Produce la base completa y una comparación; `render` añade cálculo y presentación. La raíz de archivos se limita tanto léxicamente como al resolver enlaces. La validación de estructura no pretende garantizar la interpretación visual del pedido. La IA debe revisar base, plan y fotogramas; consulta la [guía de integración](automatizacion.md).
+
+`src/base-preview.js` construye un Worker Blob con las fábricas del motor, sin importaciones externas. Mantiene soporte global de L, revisiones y cola de bloques de 192 px; espera confirmación entre bloques para atender cancelaciones/encuadres. `PaintBase.region` conserva 12 px de margen; el Worker agrega margen de remuestreo y conserva la geometría completa al reducir con OffscreenCanvas. `src/image-comparison.js` gestiona un único encuadre para ambas vistas y la miniatura. El formato 9 añade L/M/N; los estados parciales nunca se exportan ni se guardan.

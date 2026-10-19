@@ -38,7 +38,7 @@
     if (options.baseMode === 'derived' || !initialImage) {
       const base = ctx.createImageData(width, height);
       const config = root.PaintBase.normalize(options.baseGeneration);
-      if (config.method === 'coherent') {
+      if (['coherent', 'protected'].includes(config.method)) {
         // Mantener la densidad de análisis al cambiar la resolución de animación.
         // Calvin y la acuarela se ensayaron a su tamaño nativo, hasta 1600 px.
         const scale = Math.min(1, 1600 / Math.max(finalImage.width, finalImage.height));
@@ -71,6 +71,16 @@
       if (inkMatchPixels) { ctx.putImageData(base, 0, 0); finalCanvas.getContext('2d').putImageData(final, 0, 0); }
     }
     return { width, height, baseSourceSize, inkMatchPixels, base, final, baseCanvas, finalCanvas };
+  }
+  function previewSource(finalImage, options) {
+    const ratio = Math.min(1, (options.resolution || 1080) / Math.max(finalImage.width, finalImage.height));
+    const outputWidth = Math.max(2, Math.round(finalImage.width * ratio)), outputHeight = Math.max(2, Math.round(finalImage.height * ratio));
+    const finalCanvas = draw(finalImage, outputWidth, outputHeight), final = finalCanvas.getContext('2d').getImageData(0, 0, outputWidth, outputHeight).data;
+    const lines = ['coherent', 'protected'].includes(root.PaintBase.normalize(options.baseGeneration).method);
+    const scale = lines ? Math.min(1, 1600 / Math.max(finalImage.width, finalImage.height)) : ratio;
+    const width = Math.max(2, Math.round(finalImage.width * scale)), height = Math.max(2, Math.round(finalImage.height * scale));
+    const source = draw(finalImage, width, height), rgba = source.getContext('2d').getImageData(0, 0, width, height).data;
+    return { width, height, rgba, paper: paperColor(rgba), outputWidth, outputHeight, final, finalCanvas, baseSourceSize: lines ? { width, height } : null };
   }
   function autoAlign(finalImage, initialImage) {
     if (!initialImage) return { x: 0, y: 0, sx: 1, sy: 1, angle: 0 };
@@ -116,5 +126,5 @@
     }
     return best;
   }
-  root.PaintPreparation = { loadImage, prepare, autoAlign };
+  root.PaintPreparation = { loadImage, prepare, previewSource, autoAlign };
 })(window);

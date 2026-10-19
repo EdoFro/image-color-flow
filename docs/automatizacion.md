@@ -58,9 +58,9 @@ node automation/cli.mjs prepare --project output/proyecto-base.colorflow.json --
 
 `prepare` decodifica las imágenes, aplica opcionalmente `--auto-align` a una inicial cargada y genera `base.png`, `referencia.png`, `comparacion.png`, `proyecto.colorflow.json` e `informe.json`. No calcula propagación ni produce un HTML. El informe indica `imageDecodingChecked: true` y `calculationChecked: false`.
 
-Para probar otra transformación, utiliza `update` con un parche que incluya el objeto `baseGeneration` y vuelve a preparar en un directorio nuevo. El objeto del parche reemplaza la configuración completa; los campos omitidos de ese objeto reciben sus valores predeterminados. En proyectos antiguos, `method: "grayscale"` mantiene la desaturación anterior. Usa `baseGeneration: { "method": "coherent" }` para seleccionar K; el ejemplo [base-lineas.json](../examples/plans/base-lineas.json) incluye sus valores recomendados. Los nuevos proyectos ya utilizan K; formato 7 conserva ink al abrirse.
+Para probar otra transformación, utiliza `update` con un parche que incluya el objeto `baseGeneration` y vuelve a preparar en un directorio nuevo. El objeto del parche reemplaza la configuración completa; los campos omitidos de ese objeto reciben sus valores predeterminados. En proyectos antiguos, `method: "grayscale"` mantiene la desaturación anterior. Usa `baseGeneration: { "method": "protected" }` para seleccionar L; el ejemplo [base-lineas.json](../examples/plans/base-lineas.json) incluye sus valores recomendados. Los nuevos proyectos ya utilizan L; formato 7 conserva ink al abrirse.
 
-La API ofrece la misma operación: `await api.prepare({ project, outputDir })`. En MCP se utiliza `colorflow_prepare`, seguido de `colorflow_read_image` sobre `base.png`. Los proyectos de salida son de formato 8, con todos los parámetros de generación guardados. El renderizado completo también incluye `base.png`.
+La API ofrece la misma operación: `await api.prepare({ project, outputDir })`. En MCP se utiliza `colorflow_prepare`, seguido de `colorflow_read_image` sobre `base.png`. Los proyectos de salida son de formato 9, con todos los parámetros de generación guardados. El renderizado completo también incluye `base.png`.
 
 ## Comandos y errores
 
@@ -83,7 +83,7 @@ El tiempo máximo de renderizado es 120 segundos; puede ajustarse de 1000 a 6000
 
 ## Conectar un asistente por MCP
 
-Para nuevas bases se recomienda `baseGeneration.method: "coherent"` (K). La preparación analiza el original hasta 1600 px de lado mayor antes de reducir el resultado a la resolución de animación; el informe incluye `baseSourceSize`. No se necesitan bibliotecas adicionales ni un servicio de imágenes.
+Para nuevas bases se recomienda `baseGeneration.method: "coherent"` (L). La preparación analiza el original hasta 1600 px de lado mayor antes de reducir el resultado a la resolución de animación; el informe incluye `baseSourceSize`. No se necesitan bibliotecas adicionales ni un servicio de imágenes.
 
 El servidor usa [MCP stdio](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports). Necesitas un cliente que pueda iniciar procesos locales y leer imágenes; no todos los asistentes web ofrecen esa conexión.
 
@@ -150,12 +150,16 @@ Las pruebas específicas se ejecutan con `node tests/automation.test.mjs`; `npm 
 
 ### Igualación de trazos
 
-Igualar trazos después de K (`baseGeneration.inkMatch`, inicialmente `none`):
+Igualar trazos después de L/K (`baseGeneration.inkMatch`, inicialmente `none`):
 
 - `source-to-base`: cada píxel no blanco de la base recupera el RGBA de la imagen original en esa posición. Puede recuperar también color donde K había detectado tinta.
 - `base-to-final`: esos píxeles de la base se copian a la imagen coloreada preparada para la animación. Puede cambiar ligeramente el aspecto final de los trazos.
-- `none`: conserva la base K y la imagen coloreada sin igualarlas.
+- `darken` (M): mínimo por canal con la base, sin aclarar el original.
+- `multiply` (N): producto por canal con la base / 255; suele oscurecer más.
+- `none`: conserva la base generada y la imagen coloreada sin igualarlas.
 
-Se aplica después de escalar a la resolución de animación y de los controles de K, incluidos los bordes suaves. «No blanco» significa un píxel más oscuro que el papel generado (también un gris 254 con papel blanco); con papel cálido se compara contra ese tono. No se mezclan los píxeles copiados: quedan idénticos en ambas imágenes. Si eliges conservar pigmento en gris, esas áreas también entran en la igualación. La opción sólo actúa en K y base derivada. Los originales incrustados permanecen intactos: cada preparación vuelve a partir de ellos, por lo que cambiar o desactivar la opción no acumula cambios. El informe incluye `inkMatchPixels`; `referencia.png` muestra la copia coloreada que se usará al animar.
+Se aplica después de escalar a la resolución de animación y de los controles de K, incluidos los bordes suaves. «No blanco» significa un píxel más oscuro que el papel generado (también un gris 254 con papel blanco); con papel cálido se compara contra ese tono. La copia literal y source-to-base igualan píxeles; M/N componen colores y no garantizan inmovilidad de la tinta. Si eliges conservar pigmento en gris, esas áreas también entran en la igualación. La opción sólo actúa en L/K y base derivada. Los originales incrustados permanecen intactos: cada preparación vuelve a partir de ellos, por lo que cambiar o desactivar la opción no acumula cambios. El informe incluye `inkMatchPixels`; `referencia.png` muestra la copia coloreada que se usará al animar.
 
-Ejemplo de plan: `"baseGeneration": { "method": "coherent", "inkMatch": "source-to-base" }`. Se puede crear o actualizar desde la API, la CLI o MCP; no se necesita una operación nueva.
+Ejemplo de plan: `"baseGeneration": { "method": "protected", "inkMatch": "source-to-base" }`. Se puede crear o actualizar desde la API, la CLI o MCP; no se necesita una operación nueva.
+
+L es `method: "protected"`; K sigue siendo `"coherent"`. Los proyectos de formato 8 conservan K y su igualación anterior. La preparación API/CLI/MCP entrega imágenes completas mediante el motor común; la prioridad por encuadre es exclusiva de la vista previa del editor.

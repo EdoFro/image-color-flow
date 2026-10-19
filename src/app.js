@@ -5,7 +5,7 @@
   const zeroAlignment = () => ({ x: 0, y: 0, sx: 1, sy: 1, angle: 0 });
   const presentationDefaults = () => ({ background: 'hatch', color: '#e5e7e3' });
   const normalizePresentation = value => window.PaintProject.normalizePresentation(value);
-  let project = { format: 'tinta-y-color', version: 8, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage({ maxRadius: .4 })] };
+  let project = { format: 'tinta-y-color', version: 9, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage({ maxRadius: .4 })] };
   let decoded = {}, prepared = null, selected = 0, tool = 'point', draft = null, draftDecoded = null;
   let selectedPoint = 0, radiusHandles = [];
   let generalDraft = {}, generalReview = null;
@@ -378,9 +378,9 @@
   $('zoom').oninput = () => { current().zoom = +$('zoom').value / 100; invalidate(); $('viewMode').value = 'frame'; drawEditor(); $('zoomOut').textContent = $('zoom').value + '%'; };
   $('blur').oninput = () => { current().blur = +$('blur').value; invalidate(); $('blurOut').textContent = $('blur').value + ' px'; };
 
-  async function prepareProject() {
+  async function prepareProject(ready) {
     if (!decoded.final) throw new Error('Carga primero una imagen final coloreada.');
-    await waitFrame(); prepared = PaintPreparation.prepare(decoded.final, decoded.initial, project);
+    await waitFrame(); prepared = ready || PaintPreparation.prepare(decoded.final, decoded.initial, project);
     canvas.width = overlay.width = prepared.width; canvas.height = overlay.height = prepared.height;
     $('dimensions').textContent = `${prepared.width} × ${prepared.height} px`; $('emptyState').hidden = true;
     invalidate(); fitCanvas(); renderStages(); updateInspector(); drawEditor();
@@ -425,44 +425,95 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden && player?.getState().playing) player.pause(); });
 
   let basePreviewGenerated = false, generatedBase = null, basePreviewTimer;
+  let previewStarted = false, previewRevision = 0, previewWorker = null, previewSource = null, previewImage = null, previewKey = '', previewResult = null, previewError = false;
+  const completedTiles = new Set();
+  const comparison = PaintImageComparison.create({ panels: [$('comparisonFinal'), $('comparisonBase')], mini: $('baseMini'), zoomOutput: $('baseZoomValue'), onView: () => {
+    $('basePreviewZoom').value = comparison.fitted ? 'fit' : [1, 2, 4].includes(comparison.view.scale) ? String(comparison.view.scale) : 'custom';
+    if (previewStarted && !basePreviewGenerated) { previewWorker?.post({ type: 'view', revision: previewRevision, view: comparison.rect() }); updatePreviewPhase(); }
+  } });
   const baseControls = { baseColorToGray: 'colorToGray', baseSensitivity: 'sensitivity', baseBlackPoint: 'blackPoint', baseWhitePoint: 'whitePoint', baseSmoothness: 'smoothness' };
   function syncBaseControls() {
     const config = draft.baseGeneration = window.PaintBase.normalize(draft.baseGeneration);
     $('basePreset').value = window.PaintBase.presetName(config); $('basePaper').value = config.paper;
-    $('baseInkMatch').value = config.inkMatch; $('baseInkMatch').disabled = config.method !== 'coherent';
+    $('baseInkMatch').value = config.inkMatch; $('baseInkMatch').disabled = !['coherent', 'protected'].includes(config.method);
+    $('baseInkMatch').querySelector('[value=base-to-final]').hidden = config.inkMatch !== 'base-to-final';
+    $('applyImages').disabled = draft.baseMode === 'derived' && !basePreviewGenerated;
     for (const [id, key] of Object.entries(baseControls)) {
       $(id).value = Math.round(config[key] * 100); $(id).disabled = config.method === 'grayscale';
       $(id + 'Out').textContent = `${Math.round(config[key] * 100)}%`;
     }
-    $('baseSensitivityHelp').textContent = config.method === 'coherent' ? 'Auméntala para descartar contrastes débiles de pigmento o textura; puede debilitar trazos.' : 'Auméntala para retirar colores tenues.';
-    $('baseSmoothnessHelp').textContent = config.method === 'coherent' ? '0% conserva el acabado de K. Auméntala para suavizar bordes; puede perder nitidez.' : 'Transiciones más amplias entre tinta, grises y papel. Rango completo de 0 a 100%.';
-    $('baseMethodNote').textContent = config.method === 'coherent' ? 'K conserva tinta, recupera líneas y reduce la trama del color. Sensibilidad mayor descarta contrastes débiles; suavidad añade un acabado opcional. Compara letras, rayas y pigmentos oscuros antes de aplicar.' : config.method === 'grayscale' ? 'Compatibilidad: desatura y conserva las sombras. Elige Tinta sobre papel para retirar el pigmento.' : 'Los valores iniciales conservan negros sólidos y grises intermedios. Los pigmentos muy oscuros o poco saturados pueden requerir ajustes.';
+    $('baseSensitivityHelp').textContent = ['coherent', 'protected'].includes(config.method) ? 'Auméntala para descartar contrastes débiles de pigmento o textura; puede debilitar trazos.' : 'Auméntala para retirar colores tenues.';
+    $('baseSmoothnessHelp').textContent = ['coherent', 'protected'].includes(config.method) ? '0% conserva el acabado de L/K. Auméntala para suavizar bordes; puede perder nitidez.' : 'Transiciones más amplias entre tinta, grises y papel. Rango completo de 0 a 100%.';
+    $('baseMethodNote').textContent = ['coherent', 'protected'].includes(config.method) ? `${config.method === 'protected' ? 'L añade protección de superficies oscuras a K.' : 'K conserva el método anterior.'} Recupera líneas y reduce la trama del color. Sensibilidad mayor descarta contrastes débiles; suavidad añade un acabado opcional. Compara letras, rayas y pigmentos oscuros antes de aplicar.` : config.method === 'grayscale' ? 'Compatibilidad: desatura y conserva las sombras. Elige Tinta sobre papel para retirar el pigmento.' : 'Los valores iniciales conservan negros sólidos y grises intermedios. Los pigmentos muy oscuros o poco saturados pueden requerir ajustes.';
   }
-  function setBaseZoom() {
-    const zoom = $('basePreviewZoom').value;
-    $('basePreviews').classList.toggle('native-size', zoom !== 'fit');
-    for (const id of ['comparisonFinal', 'comparisonBase']) $(id).style.setProperty('--preview-width', `${$(id).width * (+zoom || 1)}px`);
+  function previewState(state, text, title = text) {
+    $('basePreviewIndicator').dataset.state = state; $('basePreviewState').textContent = text; $('basePreviewIndicator').title = title;
+  }
+  function updatePreviewPhase() {
+    if (!previewStarted || basePreviewGenerated || previewError) return;
+    const r = comparison.rect(); let pending = false;
+    for (let y = 0; previewResult && y < previewResult.height; y += 192) for (let x = 0; x < previewResult.width; x += 192) {
+      if (x < r.x + r.width && r.x < x + 192 && y < r.y + r.height && r.y < y + 192 && !completedTiles.has(`${x},${y}`)) pending = true;
+    }
+    previewState(pending || !previewResult ? 'pending' : 'detail', pending || !previewResult ? 'Actualizando detalle…' : 'Completando imagen…', pending ? 'La vista puede contener zonas con los ajustes anteriores. Se prioriza el encuadre visible.' : 'El detalle visible está actualizado; continúa el resto de la imagen.');
+  }
+  function previewFailed(error) {
+    previewWorker?.destroy(); previewWorker = null; previewImage = null; previewKey = '';
+    previewError = true; basePreviewGenerated = false; previewState('error', 'Error al actualizar', error.message); $('basePreviewStatus').textContent = error.message; syncBaseControls();
+  }
+  function receivePreview(message) {
+    if (message.revision !== previewRevision || !previewStarted) return;
+    if (message.type === 'error') { previewFailed(new Error(message.message)); return; }
+    if (message.type === 'tile') {
+      const t = message.tile;
+      previewResult.baseCanvas.getContext('2d').putImageData(new ImageData(message.base, t.width, t.height), t.x, t.y);
+      previewResult.finalCanvas.getContext('2d').putImageData(new ImageData(message.final, t.width, t.height), t.x, t.y);
+      completedTiles.add(`${t.x},${t.y}`); comparison.render(); updatePreviewPhase();
+    }
+    if (message.type === 'complete') {
+      const p = previewResult; p.base = p.baseCanvas.getContext('2d').getImageData(0, 0, p.width, p.height); p.final = p.finalCanvas.getContext('2d').getImageData(0, 0, p.width, p.height); p.inkMatchPixels = message.matched;
+      generatedBase = p; basePreviewGenerated = true; previewState('ready', 'Actualizada', 'Toda la imagen corresponde a los últimos parámetros.');
+      $('basePreviewStatus').textContent = `${p.width} × ${p.height} px · ${message.matched} píxeles igualados. Compara antes de aplicar; los originales permanecen intactos.`;
+      $('downloadBase').disabled = false; syncBaseControls();
+    }
   }
   function generateBasePreview() {
     clearTimeout(basePreviewTimer);
     if (!draftDecoded?.final || draft.baseMode !== 'derived') return;
-    generatedBase = PaintPreparation.prepare(draftDecoded.final, draftDecoded.initial, draft);
-    for (const [id, source] of [['comparisonFinal', generatedBase.finalCanvas], ['comparisonBase', generatedBase.baseCanvas]]) {
-      const c = $(id); c.width = source.width; c.height = source.height; c.getContext('2d').drawImage(source, 0, 0);
-    }
-    basePreviewGenerated = true; $('basePreviews').hidden = false; $('downloadBase').disabled = false;
-    $('generateBase').textContent = 'Actualizar vista previa'; setBaseZoom();
-    const analysis = generatedBase.baseSourceSize;
-    $('basePreviewStatus').textContent = `${generatedBase.width} × ${generatedBase.height} px${analysis ? ` · Tinta analizada a ${analysis.width} × ${analysis.height} px` : ''} · ${generatedBase.inkMatchPixels} píxeles igualados · Compara la base antes de aplicar. Los ajustes todavía no modifican el proyecto.`;
+    basePreviewGenerated = false; previewError = false; generatedBase = null; previewRevision++; completedTiles.clear();
+    $('downloadBase').disabled = true; previewState('pending', 'Actualizando detalle…', 'Se muestran zonas anteriores hasta recibir el nuevo cálculo.'); syncBaseControls();
+    try {
+      const lineMethod = ['coherent', 'protected'].includes(draft.baseGeneration.method), key = `${draft.resolution}:${lineMethod}`;
+      if (!previewWorker) previewWorker = PaintBasePreview.create(receivePreview, previewFailed);
+      if (previewImage !== draftDecoded.final || previewKey !== key) {
+        previewSource = PaintPreparation.previewSource(draftDecoded.final, draft); previewImage = draftDecoded.final; previewKey = key;
+        const { finalCanvas, baseSourceSize, ...source } = previewSource; previewWorker.post({ type: 'init', source });
+      }
+      const { outputWidth: width, outputHeight: height } = previewSource;
+      const makeCanvas = () => { const c = document.createElement('canvas'); c.width = width; c.height = height; return c; };
+      const baseCanvas = makeCanvas(), finalCanvas = makeCanvas();
+      if (previewResult) baseCanvas.getContext('2d').drawImage(previewResult.baseCanvas, 0, 0, width, height);
+      else { baseCanvas.getContext('2d').fillStyle = '#fff'; baseCanvas.getContext('2d').fillRect(0, 0, width, height); }
+      finalCanvas.getContext('2d').drawImage(previewResult?.finalCanvas || previewSource.finalCanvas, 0, 0, width, height);
+      previewResult = { width, height, baseSourceSize: previewSource.baseSourceSize, baseCanvas, finalCanvas };
+      $('basePreviews').hidden = false; comparison.setSources([finalCanvas, baseCanvas], !previewStarted); previewStarted = true;
+      $('generateBase').textContent = 'Actualizar vista previa';
+      $('basePreviewStatus').textContent = `${width} × ${height} px · Se actualiza primero el detalle visible.`;
+      previewWorker.post({ type: 'start', revision: previewRevision, config: draft.baseGeneration, view: comparison.rect() });
+    } catch (error) { previewFailed(error); }
   }
   function resetBasePreview() {
-    clearTimeout(basePreviewTimer); basePreviewGenerated = false; generatedBase = null;
-    $('basePreviews').hidden = true; $('downloadBase').disabled = true; $('generateBase').textContent = 'Generar vista previa';
-    $('basePreviewStatus').textContent = 'Pulsa Generar vista previa para ver la base propuesta.';
+    clearTimeout(basePreviewTimer); previewRevision++; previewWorker?.destroy(); previewWorker = null; previewSource = previewImage = previewResult = null; previewKey = ''; previewStarted = false; previewError = false;
+    basePreviewGenerated = false; generatedBase = null; $('basePreviews').hidden = true; $('downloadBase').disabled = true; $('generateBase').textContent = 'Generar vista previa';
+    previewState('off', 'Sin vista previa'); $('basePreviewStatus').textContent = 'Pulsa Generar vista previa para ver la base propuesta.';
   }
   function scheduleBasePreview() {
     clearTimeout(basePreviewTimer);
-    if (basePreviewGenerated && draft.baseMode === 'derived') basePreviewTimer = setTimeout(generateBasePreview, 120);
+    if (previewStarted && draft.baseMode === 'derived') {
+      previewRevision++; previewWorker?.post({ type: 'cancel' }); basePreviewGenerated = false; generatedBase = null; previewError = false; completedTiles.clear();
+      $('downloadBase').disabled = true; syncBaseControls(); previewState('pending', 'Actualizando detalle…', 'La imagen todavía no corresponde a los últimos parámetros.');
+      basePreviewTimer = setTimeout(generateBasePreview, 150);
+    }
   }
   function fillImageDialog() {
     $('finalName').textContent = draft.images.final?.name || 'Sin imagen'; $('initialName').textContent = draft.images.initial?.name || 'No se necesita si generas la base desde la final';
@@ -478,8 +529,10 @@
     c.width = p.width; c.height = p.height; const context = c.getContext('2d'); context.drawImage(p.baseCanvas, 0, 0); context.globalAlpha = .5; context.drawImage(p.finalCanvas, 0, 0); context.globalAlpha = 1;
   }
   $('imagesButton').onclick = () => { player?.pause(); draft = structuredClone(project); draftDecoded = { ...decoded }; resetBasePreview(); $('basePreviewZoom').value = 'fit'; $('finalFile').value = $('initialFile').value = ''; fillImageDialog(); $('imagesDialog').showModal(); };
-  $('imagesDialog').addEventListener('close', () => { clearTimeout(basePreviewTimer); generatedBase = null; });
-  $('generateBase').onclick = generateBasePreview; $('basePreviewZoom').onchange = setBaseZoom;
+  $('imagesDialog').addEventListener('close', resetBasePreview);
+  $('generateBase').onclick = generateBasePreview; $('baseFit').onclick = () => comparison.fit();
+  $('baseZoomOut').onclick = () => comparison.zoom(comparison.view.scale / 1.4); $('baseZoomIn').onclick = () => comparison.zoom(comparison.view.scale * 1.4);
+  $('basePreviewZoom').onchange = () => { const value = $('basePreviewZoom').value; if (value === 'fit') comparison.fit(); else comparison.zoom(+value); };
   $('basePreset').onchange = () => { draft.baseGeneration = { ...window.PaintBase.preset($('basePreset').value), inkMatch: draft.baseGeneration.inkMatch }; syncBaseControls(); scheduleBasePreview(); };
   $('baseInkMatch').onchange = () => { draft.baseGeneration.inkMatch = $('baseInkMatch').value; syncBaseControls(); scheduleBasePreview(); };
   $('basePaper').onchange = () => { draft.baseGeneration.paper = $('basePaper').value; syncBaseControls(); scheduleBasePreview(); };
@@ -489,7 +542,7 @@
     syncBaseControls(); scheduleBasePreview();
   };
   $('downloadBase').onclick = () => action(async () => {
-    generateBasePreview(); if (!generatedBase) return;
+    if (!basePreviewGenerated || !generatedBase) return;
     const blob = await new Promise(resolve => generatedBase.baseCanvas.toBlob(resolve, 'image/png'));
     if (!blob) throw new Error('No se pudo generar el PNG.'); download('imagen-inicial.png', blob, 'image/png');
   });
@@ -505,7 +558,7 @@
     if (kind === 'final' && !draftDecoded.initial) draft.baseMode = 'derived';
     draft.alignment = zeroAlignment(); resetBasePreview(); fillImageDialog(); status(`Imagen cargada: ${file.name}. Aplica para actualizar el lienzo.`);
   });
-  $('baseMode').onchange = () => { draft.baseMode = $('baseMode').value; clearTimeout(basePreviewTimer); fillImageDialog(); scheduleBasePreview(); };
+  $('baseMode').onchange = () => { draft.baseMode = $('baseMode').value; if (draft.baseMode === 'uploaded') resetBasePreview(); fillImageDialog(); scheduleBasePreview(); };
   $('resolution').onchange = () => { draft.resolution = +$('resolution').value; scheduleBasePreview(); };
   for (const [id, key, scale] of [['alignX', 'x', 100], ['alignY', 'y', 100], ['alignSX', 'sx', 100], ['alignSY', 'sy', 100], ['alignAngle', 'angle', 1]]) $(id).oninput = () => {
     const value = +$(id).value; if (!Number.isFinite(value) || value < +$(id).min || value > +$(id).max) return; draft.alignment[key] = value / scale; previewAlignment();
@@ -517,11 +570,11 @@
   $('applyImages').onclick = () => action(async () => {
     if (!draftDecoded.final) throw new Error('Carga primero una imagen final coloreada.');
     if (!draftDecoded.initial) draft.baseMode = 'derived';
-    if (draft.baseMode === 'derived' && !basePreviewGenerated) { fillImageDialog(); generateBasePreview(); $('basePreviewStatus').textContent += ' Pulsa Aplicar y volver al lienzo cuando esté lista.'; return; }
+    if (draft.baseMode === 'derived' && !basePreviewGenerated) return;
     clearTimeout(basePreviewTimer);
     if (!Array.from($('imagesDialog').querySelectorAll('input[type=number]')).every(i => i.checkValidity())) throw new Error('Revisa los valores de alineación: hay un campo fuera de rango.');
     const selectedIndices = project.stages.flatMap((stage, index) => stageSelection.has(stage) ? [index] : []);
-    project = draft; stageSelection = new Set(selectedIndices.map(index => project.stages[index])); decoded = draftDecoded; await prepareProject(); $('imagesDialog').close(); status('Imágenes preparadas. En modo Editar se muestra la referencia coloreada.');
+    project = draft; stageSelection = new Set(selectedIndices.map(index => project.stages[index])); decoded = draftDecoded; await prepareProject(draft.baseMode === 'derived' ? generatedBase : null); $('imagesDialog').close(); status('Imágenes preparadas. En modo Editar se muestra la referencia coloreada.');
   });
   function download(name, content, type) {
     const url = URL.createObjectURL(new Blob([content], { type })), a = document.createElement('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
@@ -554,7 +607,7 @@
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
-    project = { format: 'tinta-y-color', version: 8, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
+    project = { format: 'tinta-y-color', version: 9, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
       engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17, startMode: 'delay', delay: .7 }, { x: .16, y: .17, startMode: 'delay', delay: .7 }], radius: .22, maxRadius: .4, speed: .13, hueResistance: 8, paintDelay: 1.2, cameraDuration: .8, pauseAfter: true, frame: { x: .53, y: .03, width: .44, height: .27 } }),
       engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5, startMode: 'after' }], radius: .35, maxRadius: .5, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true, frame: { x: .06, y: .29, width: .91, height: .38 } }),
       engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 }),
@@ -567,6 +620,6 @@
   window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
   new ResizeObserver(fitCanvas).observe($('canvasArea'));
   // Interfaz de diagnóstico local, útil para comprobar exportaciones sin dependencias.
-  window.TintaColor = { getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision };
+  window.TintaColor = { getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision, getBasePreviewState: () => ({ complete: basePreviewGenerated, revision: previewRevision, view: { ...comparison.view }, state: $('basePreviewIndicator').dataset.state }) };
   renderStages(); updateInspector(); action(loadDemo);
 })();

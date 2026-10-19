@@ -1,6 +1,6 @@
 {
   "baseGeneration": {
-    "method": "coherent",
+    "method": "protected",
     "colorToGray": 0,
     "sensitivity": 0.7,
     "blackPoint": 0,

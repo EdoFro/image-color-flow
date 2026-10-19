@@ -21,9 +21,9 @@ En **Editar**, el lienzo muestra la imagen final como referencia con las guías 
 
 ## Generar la imagen inicial
 
-En **Imágenes**, elige **Generar imagen inicial desde la imagen final** y pulsa **Generar vista previa**. El panel muestra la referencia y la base propuesta una junto a otra, sin superponerlas. Una vez generada, los controles actualizan la comparación automáticamente. **Ampliación** permite ajustar las imágenes al panel o verlas al 100%, 200% y 400%, con desplazamiento dentro de cada imagen.
+En **Imágenes**, elige **Generar imagen inicial desde la imagen final** y pulsa **Generar vista previa**. El panel muestra la referencia y la base propuesta una junto a otra, sin superponerlas. Una vez generada, los controles actualizan la comparación automáticamente. **Ampliación** y los botones Ajustar/−/+ afectan ambas vistas. Arrastrar cualquiera o usar su rueda mueve o amplía las dos; la miniatura permite centrar con clic o arrastrar el rectángulo. El encuadre se conserva al regenerar.
 
-Hay cuatro puntos de partida: **Tinta y líneas (K)** es la opción recomendada, con fondo robusto, protección de detalles finos y recuperación de líneas.  **Tinta sobre papel** retira pigmentos detectables, **Tinta y grises suaves** conserva parte de su gris y **Desaturación anterior** reproduce el método antiguo, que conserva sombras. Al modificar los controles aparece **Personalizado**. Los nuevos proyectos usan K. Los archivos de formato 7 mantienen su filtro de tinta; formatos 1–6 mantienen la desaturación. Para usar K en un proyecto existente, selecciónalo en Punto de partida y revisa la nueva base antes de aplicar.
+Hay cinco puntos de partida: **Tinta y líneas (L)** es la opción recomendada (añade protección de superficies oscuras conectadas); **Tinta y líneas (K)** conserva el método anterior, con fondo robusto, protección de detalles finos y recuperación de líneas.  **Tinta sobre papel** retira pigmentos detectables, **Tinta y grises suaves** conserva parte de su gris y **Desaturación anterior** reproduce el método antiguo, que conserva sombras. Al modificar los controles aparece **Personalizado**. Los nuevos proyectos usan L; formato 8 conserva K incluso sin método explícito. Los archivos de formato 7 mantienen su filtro de tinta; formatos 1–6 mantienen la desaturación. Para usar L en un proyecto existente, selecciónalo en Punto de partida y revisa la nueva base antes de aplicar.
 
 | Control | Funcionamiento |
 | --- | --- |
@@ -143,7 +143,7 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 8 y se pueden abrir también los de formatos 1 a 7. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 9 y se pueden abrir también los de formatos 1 a 8. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 
@@ -158,10 +158,20 @@ Se guardan proyectos de formato 8 y se pueden abrir también los de formatos 1 a
 
 ### Igualar los trazos de la base y la imagen coloreada
 
-Igualar trazos después de K (`baseGeneration.inkMatch`, inicialmente `none`):
+Igualar trazos después de L / K (`baseGeneration.inkMatch`, inicialmente `none`):
 
 - `source-to-base`: cada píxel no blanco de la base recupera el RGBA de la imagen original en esa posición. Puede recuperar también color donde K había detectado tinta.
-- `base-to-final`: esos píxeles de la base se copian a la imagen coloreada preparada para la animación. Puede cambiar ligeramente el aspecto final de los trazos.
-- `none`: conserva la base K y la imagen coloreada sin igualarlas.
+- `darken` (M): combina los trazos con el mínimo por canal; evita aclarar el original.
+- `multiply` (N): multiplica los canales RGB/255; suele oscurecer más.
+- `base-to-final`: copia literal antigua; aparece sólo si el proyecto la usa, para conservar compatibilidad.
+- `none`: conserva la base generada y la imagen coloreada sin igualarlas.
 
-Se aplica después de escalar a la resolución de animación y de los controles de K, incluidos los bordes suaves. «No blanco» significa un píxel más oscuro que el papel generado (también un gris 254 con papel blanco); con papel cálido se compara contra ese tono. No se mezclan los píxeles copiados: quedan idénticos en ambas imágenes. Si eliges conservar pigmento en gris, esas áreas también entran en la igualación. La opción sólo actúa en K y base derivada. Los originales incrustados permanecen intactos: cada preparación vuelve a partir de ellos, por lo que cambiar o desactivar la opción no acumula cambios. El informe incluye `inkMatchPixels`; `referencia.png` muestra la copia coloreada que se usará al animar.
+Se aplica después de escalar a la resolución de animación y de los controles de L/K, incluidos los bordes suaves. «No blanco» significa un píxel más oscuro que el papel generado (también un gris 254 con papel blanco); con papel cálido se compara contra ese tono. La recuperación del original y la copia literal igualan píxeles exactamente. M/N componen colores y pueden cambiar la intensidad durante la transición; no garantizan tinta inmóvil. Si eliges conservar pigmento en gris, esas áreas también entran en la igualación. La opción sólo actúa en L/K y base derivada. Los originales incrustados permanecen intactos: cada preparación vuelve a partir de ellos, por lo que cambiar o desactivar la opción no acumula cambios. El informe incluye `inkMatchPixels`; `referencia.png` muestra la copia coloreada que se usará al animar.
+
+### Estado y recálculo de la comparación
+
+La luz junto a Vista previa está apagada antes de generar. Amarillo pulsante indica un detalle pendiente (puede haber zonas con ajustes anteriores); verde pulsante indica que el encuadre visible está actualizado y continúa el resto; verde fijo confirma toda la imagen. Rojo indica un error, con explicación y posibilidad de reintentar. Los estados también tienen texto, descripción al pasar el mouse y respetan la preferencia de movimiento reducido.
+
+El cálculo se ejecuta en un Worker local. Se priorizan bloques de 192 px que intersectan el encuadre, seguidos por los vecinos más próximos. Al desplazarse, la prioridad cambia. Cada bloque utiliza 12 px de margen para los filtros y otro margen para reducir la imagen; el soporte conectado de L y el tono del papel se calculan globalmente. Los resultados viejos se descartan si cambian los parámetros; al cerrar se termina el trabajador. Aplicar y Descargar PNG sólo se habilitan para la última imagen completa. Aplicar reutiliza esa misma preparación.
+
+El detalle exacto de L puede conservar pigmentos muy oscuros que se parezcan a tinta; revisa la base. No modifica los originales. Chrome/Edge actuales proporcionan Worker Blob y OffscreenCanvas; la vista previa no usa redes ni servicios externos.

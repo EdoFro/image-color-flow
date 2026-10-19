@@ -12,7 +12,7 @@ Editor local para animar la aparición del color en dibujos con tinta, acuarela 
 4. Define etapas, zonas, puntos y recorridos; ajusta la propagación y reproduce.
 5. Usa **Guardar proyecto** para seguir editando y **Exportar HTML** para presentar.
 
-El editor prepara y alinea las imágenes. También puede generar una base desde la versión coloreada con **Tinta y líneas (K)**, que combina fondo robusto, protección de trazos finos y recuperación de líneas, con controles para retirar pigmentos, ajustar grises y comparar el resultado antes de aplicarlo. Los puntos admiten orden, activación, demoras y radios propios. Las etapas pueden pintar o cambiar únicamente el enfoque y el destacado, con transiciones graduales, desfase inicial de pintura y permanencia. **General** permite revisar y unificar parámetros de toda la presentación antes de aplicarlos. Puedes deshabilitar etapas y usar Ctrl + clic para editar un grupo de ellas. La exportación ofrece fondo achurado, liso o transparente, sin marco ni sombra alrededor del dibujo. Sus controles comienzan ocultos y se muestran con el logo o la tecla H. Un clic en el dibujo inicia o avanza la presentación; Espacio permite pausar y continuar. Al terminar, un botón de reinicio con alto contraste permite regresar a Inicio.
+El editor prepara y alinea las imágenes. También puede generar una base desde la versión coloreada con **Tinta y líneas (L)**, que combina fondo robusto, protección de trazos finos y recuperación de líneas, con controles para retirar pigmentos, ajustar grises y comparar el resultado antes de aplicarlo. Los puntos admiten orden, activación, demoras y radios propios. Las etapas pueden pintar o cambiar únicamente el enfoque y el destacado, con transiciones graduales, desfase inicial de pintura y permanencia. **General** permite revisar y unificar parámetros de toda la presentación antes de aplicarlos. Puedes deshabilitar etapas y usar Ctrl + clic para editar un grupo de ellas. La exportación ofrece fondo achurado, liso o transparente, sin marco ni sombra alrededor del dibujo. Sus controles comienzan ocultos y se muestran con el logo o la tecla H. Un clic en el dibujo inicia o avanza la presentación; Espacio permite pausar y continuar. Al terminar, un botón de reinicio con alto contraste permite regresar a Inicio.
 
 ## Uso desde una IA
 
@@ -53,3 +53,5 @@ node scripts/ejecutar-pruebas.mjs
 ## Licencia y recursos
 
 La licencia del código está pendiente de elección. Las imágenes de ejemplo tienen su procedencia documentada por separado en [licencia y recursos](docs/licencia-y-recursos.md).
+
+La preparación de imágenes ofrece Oscurecer (M) y Multiplicar (N), comparación con zoom/posición compartidos, miniatura navegable y recálculo por bloques que prioriza el detalle visible. Una luz con texto indica cuándo el detalle o toda la imagen están actualizados. Los proyectos anteriores conservan su método.

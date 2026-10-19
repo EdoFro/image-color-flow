@@ -487,12 +487,13 @@
       "properties": {
         "method": {
           "enum": [
+            "protected",
             "coherent",
             "ink",
             "grayscale"
           ],
-          "default": "coherent",
-          "description": "coherent es Tinta y líneas (K), recomendado para nuevas bases. ink conserva el filtro anterior; grayscale desatura."
+          "default": "protected",
+          "description": "protected usa L (recomendado); coherent conserva K; ink y grayscale mantienen métodos anteriores."
         },
         "colorToGray": {
           "type": "number",
@@ -541,10 +542,12 @@
           "enum": [
             "none",
             "source-to-base",
-            "base-to-final"
+            "base-to-final",
+            "darken",
+            "multiply"
           ],
           "default": "none",
-          "description": "Sólo en coherent (K), después de escalar a resolución de animación. source-to-base restaura en la base el RGBA original de cada píxel más oscuro que el papel; base-to-final copia esos píxeles de la base a la copia coloreada usada para animar. none conserva ambas. Incluye bordes suaves. No modifica los originales guardados."
+          "description": "En L/K: none conserva ambas; source-to-base recupera color original en base; darken (M) aplica mínimo RGB; multiply (N) multiplica RGB/255. base-to-final conserva la copia literal antigua. Actúan en píxeles más oscuros que el papel, después de reducir a resolución de animación; originales intactos."
         }
       }
     }

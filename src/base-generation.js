@@ -1,7 +1,8 @@
 /* Transformación de píxeles pura: compartida por editor, API y pruebas sin DOM. */
-(function (root) {
+(function installPaintBase(root) {
   'use strict';
   const presets = {
+    protected: { method: 'protected', colorToGray: 0, sensitivity: .7, blackPoint: 0, whitePoint: 1, smoothness: 0, paper: 'white' },
     coherent: { method: 'coherent', colorToGray: 0, sensitivity: .7, blackPoint: 0, whitePoint: 1, smoothness: 0, paper: 'white' },
     ink: { method: 'ink', colorToGray: 0, sensitivity: .7, blackPoint: .14, whitePoint: .94, smoothness: .08, paper: 'matched' },
     soft: { method: 'ink', colorToGray: .35, sensitivity: .7, blackPoint: .08, whitePoint: .98, smoothness: .1, paper: 'matched' },
@@ -11,10 +12,10 @@
   const number = (value, fallback, a, b) => typeof value === 'number' && Number.isFinite(value) ? limit(value, a, b) : fallback;
   function normalize(value = {}) {
     if (!value || typeof value !== 'object') value = {};
-    const defaults = value.method === 'grayscale' ? presets.grayscale : value.method === 'ink' ? presets.ink : presets.coherent;
+    const defaults = value.method === 'grayscale' ? presets.grayscale : value.method === 'ink' ? presets.ink : value.method === 'coherent' ? presets.coherent : presets.protected;
     const blackPoint = number(value.blackPoint, defaults.blackPoint, 0, .9);
     return {
-      inkMatch: ['source-to-base', 'base-to-final'].includes(value.inkMatch) ? value.inkMatch : 'none',
+      inkMatch: ['source-to-base', 'base-to-final', 'darken', 'multiply'].includes(value.inkMatch) ? value.inkMatch : 'none',
       method: defaults.method, colorToGray: number(value.colorToGray, defaults.colorToGray, 0, 1),
       sensitivity: number(value.sensitivity, defaults.sensitivity, 0, 1), blackPoint,
       whitePoint: Math.max(blackPoint + .01, number(value.whitePoint, defaults.whitePoint, .1, 1)),
@@ -22,13 +23,14 @@
     };
   }
   const smooth = (a, b, value) => { const t = b > a ? limit((value - a) / (b - a)) : value >= b ? 1 : 0; return t * t * (3 - 2 * t); };
-  function derive(rgba, estimatedPaper, settings, width, height) {
+  function derive(rgba, estimatedPaper, settings, width, height, context = {}) {
     const config = normalize(settings), out = new Uint8ClampedArray(rgba.length);
     const paper = config.paper === 'white' ? [255, 255, 255] : estimatedPaper;
     const paperLight = Math.max(1, .2126 * paper[0] + .7152 * paper[1] + .0722 * paper[2]);
-    if (config.method === 'coherent') {
+    if (config.method === 'coherent' || config.method === 'protected') {
       if (!root.PaintInkLines) throw new Error('No se cargó el motor de extracción de líneas.');
       let values = root.PaintInkLines.compute(rgba, estimatedPaper, width, height, config.sensitivity);
+      if (config.method === 'protected') root.PaintInkLines.protect(values, rgba, estimatedPaper, width, height, context.protection || root.PaintInkLines.protection(rgba, estimatedPaper, width, height));
       // Suavizado opcional de acabado; cero conserva exactamente el ensayo K.
       if (config.smoothness > 0) {
         const radius = Math.ceil(config.smoothness * 3), sigma = Math.max(.15, config.smoothness), kernel = [];
@@ -78,7 +80,7 @@
   // Recibe buffers preparados; nunca modifica los originales guardados del proyecto.
   function matchInk(base, final, settings, generatedPaper = [255, 255, 255]) {
     const config = normalize(settings);
-    if (config.method !== 'coherent' || config.inkMatch === 'none') return 0;
+    if (!['coherent', 'protected'].includes(config.method) || config.inkMatch === 'none') return 0;
     if (base.length !== final.length || base.length % 4) throw new Error('Las imágenes deben tener las mismas dimensiones para igualar trazos.');
     const blank = new Uint8ClampedArray(config.paper === 'white' ? [255, 255, 255] : generatedPaper);
     let count = 0;
@@ -88,13 +90,31 @@
       count++;
       const from = config.inkMatch === 'source-to-base' ? final : base;
       const to = config.inkMatch === 'source-to-base' ? base : final;
-      for (let c = 0; c < 4; c++) to[i + c] = from[i + c];
+      if (config.inkMatch === 'darken' || config.inkMatch === 'multiply') {
+        for (let c = 0; c < 3; c++) final[i + c] = config.inkMatch === 'darken' ? Math.min(final[i + c], base[i + c]) : Math.round(final[i + c] * base[i + c] / 255);
+      } else for (let c = 0; c < 4; c++) to[i + c] = from[i + c];
     }
     return count;
+  }
+  // K depende de hasta 9 píxeles; el acabado gaussiano añade hasta 3.
+  // Los bordes artificiales se descartan; el soporte conectado de L es global.
+  function region(rgba, paper, settings, width, height, rect, context = {}) {
+    const config = normalize(settings), halo = 12;
+    if (config.method === 'protected' && !context.protection) throw new Error('El cálculo regional de L necesita el soporte global.');
+    const x = Math.max(0, rect.x - halo), y = Math.max(0, rect.y - halo), right = Math.min(width, rect.x + rect.width + halo), bottom = Math.min(height, rect.y + rect.height + halo);
+    const w = right - x, h = bottom - y, pixels = new Uint8ClampedArray(w * h * 4), keep = context.protection ? new Uint8Array(w * h) : null;
+    for (let row = 0; row < h; row++) {
+      pixels.set(rgba.subarray(((y + row) * width + x) * 4, ((y + row) * width + right) * 4), row * w * 4);
+      if (keep) keep.set(context.protection.subarray((y + row) * width + x, (y + row) * width + right), row * w);
+    }
+    const derived = derive(pixels, paper, config, w, h, { protection: keep }), out = new Uint8ClampedArray(rect.width * rect.height * 4);
+    for (let row = 0; row < rect.height; row++) { const i = ((rect.y - y + row) * w + rect.x - x) * 4; out.set(derived.subarray(i, i + rect.width * 4), row * rect.width * 4); }
+    return out;
   }
   function presetName(settings) {
     const config = normalize(settings);
     return Object.keys(presets).find(name => Object.keys(presets[name]).every(key => config[key] === presets[name][key])) || 'custom';
   }
-  root.PaintBase = { normalize, derive, matchInk, presetName, preset: name => ({ ...(presets[name] || presets.coherent), inkMatch: 'none' }) };
+  root.installPaintBase = installPaintBase;
+  root.PaintBase = { normalize, derive, region, matchInk, presetName, preset: name => ({ ...(presets[name] || presets.protected), inkMatch: 'none' }) };
 })(typeof window === 'undefined' ? globalThis : window);

@@ -51,14 +51,14 @@
     test('Los proyectos de formato 6 conservan desaturación y los nuevos usan tinta sobre papel', () => {
       const data={format:'tinta-y-color',version:6,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
       const old=root.PaintProject.normalize(data), fresh=root.PaintProject.normalize({...data,version:7});
-      assert(old.version===8 && old.baseGeneration.method==='grayscale', 'No se preservó la compatibilidad.');
+      assert(old.version===9 && old.baseGeneration.method==='grayscale', 'No se preservó la compatibilidad.');
       assert(fresh.baseGeneration.method==='ink' && fresh.baseGeneration.colorToGray===0, 'No se configuró tinta sobre papel.');
     });
     test('Formato 8 usa K y formato 7 conserva tinta anterior, incluso sin configuración', () => {
       const data={format:'tinta-y-color',version:8,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
       assert(root.PaintProject.normalize(data).baseGeneration.method==='coherent','No se seleccionó K.');
       assert(root.PaintProject.normalize({...data,version:7,baseGeneration:{}}).baseGeneration.method==='ink','Cambió el método de formato 7.');
-      assert(root.PaintBase.presetName(root.PaintBase.normalize())==='coherent','No es el preset recomendado.');
+      assert(root.PaintBase.presetName(root.PaintBase.normalize())==='protected','No es el preset recomendado.');
     });
     const fixture = root.INK_FIXTURE;
     const sourceK = () => new Uint8ClampedArray([...atob(fixture.rgba)].map(c=>c.charCodeAt(0)));
@@ -123,18 +123,62 @@
       }
     });
     test('Los proyectos guardan la igualación y los anteriores reciben none', () => {
-      const data={format:'tinta-y-color',version:8,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
+      const data={format:'tinta-y-color',version:9,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
       assert(root.PaintProject.normalize(data).baseGeneration.inkMatch==='none','Cambió un proyecto anterior.');
       for(const inkMatch of ['source-to-base','base-to-final']) {
         const saved=root.PaintProject.normalize({...data,baseGeneration:{inkMatch}});
         assert(root.PaintProject.normalize(JSON.parse(JSON.stringify(saved))).baseGeneration.inkMatch===inkMatch,'No se guardó la opción.');
-        assert(root.PaintBase.presetName(saved.baseGeneration)==='coherent','La igualación cambió el preset K.');
+        assert(root.PaintBase.presetName(saved.baseGeneration)==='protected','La igualación cambió el preset K.');
       }
     });
     test('La igualación rechaza buffers incompatibles y normaliza opciones desconocidas', () => {
       let failed=false;try { root.PaintBase.matchInk(new Uint8ClampedArray(4),new Uint8ClampedArray(8),{inkMatch:'source-to-base'}); }catch(e){failed=true;}
       assert(failed,'Se aceptaron dimensiones distintas.');
       assert(root.PaintBase.normalize({inkMatch:'desconocido'}).inkMatch==='none','No se normalizó una opción desconocida.');
+    });
+    test('Formato 9 recomienda L sin cambiar los formatos 7 y 8', () => {
+      const data={format:'tinta-y-color',version:9,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
+      assert(root.PaintProject.normalize(data).baseGeneration.method==='protected','L no es predeterminado.');
+      assert(root.PaintProject.normalize({...data,version:8}).baseGeneration.method==='coherent','Cambió K al abrir un formato 8.');
+      assert(root.PaintProject.normalize({...data,version:7}).baseGeneration.method==='ink','Cambió formato 7.');
+    });
+    test('L conserva masas oscuras pardas sin expandirse al pigmento rojo', () => {
+      const w=50,h=42,input=image(w,h,255);
+      for(let y=8;y<34;y++)for(let x=5;x<28;x++){const i=(y*w+x)*4;input[i]=91;input[i+1]=35;input[i+2]=46;}
+      for(let y=15;y<22;y++)for(let x=10;x<19;x++){const i=(y*w+x)*4;input[i]=65;input[i+1]=30;input[i+2]=40;}
+      for(let y=8;y<34;y++)for(let x=28;x<40;x++){const i=(y*w+x)*4;input[i]=220;input[i+1]=25;input[i+2]=45;}
+      const paper=[255,255,255],k=root.PaintBase.derive(input,paper,{method:'coherent'},w,h),l=root.PaintBase.derive(input,paper,{method:'protected'},w,h);
+      assert(l[(27*w+22)*4]<80 && k[(27*w+22)*4]>l[(27*w+22)*4],'No se recuperó el relleno pardo.');
+      assert(l[(27*w+34)*4]===255,'Se conservó el relleno rojo.');
+      assert(l.every((v,i)=>v<=k[i]),'L aclara K.');
+    });
+    test('M y N nunca aclaran el original y el blanco no interviene', () => {
+      for(const inkMatch of ['darken','multiply']) {
+        const base=new Uint8ClampedArray([230,230,230,255,80,80,80,255,255,255,255,255]),copy=base.slice(),final=new Uint8ClampedArray([220,30,50,255,30,20,25,255,100,40,60,255]),before=final.slice();
+        assert(root.PaintBase.matchInk(base,final,{inkMatch})===2,'Cantidad incorrecta.');
+        assert(final.every((v,i)=>v<=before[i]),'Se aclaró el original.');assert(base.every((v,i)=>v===copy[i]),'Se alteró la base.');
+        assert(final.slice(8).every((v,i)=>v===before[i+8]),'El blanco cambió el pigmento.');
+        assert(final[0]===(inkMatch==='darken'?220:198),'La composición no corresponde al modo elegido.');
+      }
+    });
+    test('M/N conservan el fondo cálido y la copia literal antigua mantiene sus píxeles', () => {
+      const paper=[250,245,230];
+      for(const inkMatch of ['darken','multiply']){
+        const base=new Uint8ClampedArray([...paper,255,100,98,92,255]),final=new Uint8ClampedArray([200,50,40,255,70,30,20,255]);
+        root.PaintBase.matchInk(base,final,{paper:'matched',inkMatch},paper);assert(final[0]===200&&final[1]===50,'Se compuso el papel cálido.');
+      }
+      const base=new Uint8ClampedArray([254,254,254,255]),final=new Uint8ClampedArray([200,30,50,255]);root.PaintBase.matchInk(base,final,{method:'coherent',inkMatch:'base-to-final'});assert(final[0]===254&&final[1]===254,'Cambió la copia literal antigua.');
+    });
+    test('Los bloques L/K con margen son idénticos al cálculo completo, incluso con suavizado', () => {
+      const rgba=sourceK(),w=fixture.width,h=fixture.height,paper=fixture.paper,protection=root.PaintInkLines.protection(rgba,paper,w,h);
+      for(const config of [{method:'protected'},{method:'protected',smoothness:1,colorToGray:.3,paper:'matched',blackPoint:.12,whitePoint:.9},{method:'coherent',sensitivity:0,smoothness:.7},{method:'ink'}]){
+        const full=root.PaintBase.derive(rgba,paper,config,w,h),tiled=new Uint8ClampedArray(full.length);
+        for(let y=0;y<h;y+=23)for(let x=0;x<w;x+=29){const rect={x,y,width:Math.min(29,w-x),height:Math.min(23,h-y)},tile=root.PaintBase.region(rgba,paper,config,w,h,rect,{protection});for(let row=0;row<rect.height;row++)tiled.set(tile.subarray(row*rect.width*4,(row+1)*rect.width*4),((y+row)*w+x)*4);}
+        assert(tiled.every((v,i)=>v===full[i]),'Hay costuras o cambios en '+config.method);
+      }
+    });
+    test('L regional exige el soporte global para no perder conexiones al recortar', () => {
+      let failed=false;try{root.PaintBase.region(sourceK(),fixture.paper,{method:'protected'},fixture.width,fixture.height,{x:20,y:20,width:20,height:20});}catch(e){failed=/global/.test(e.message);}assert(failed,'Se calculó L desde un recorte independiente.');
     });
     test('La expansión sin viento es simétrica y aumenta con la distancia', () => {
       const f = calc(41, 41, image(41, 41));

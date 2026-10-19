@@ -1,6 +1,6 @@
 {
   "name": "image-color-flow",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "private": true,
   "description": "Editor offline y automatizaciÃ³n local para animar la apariciÃ³n del color",
   "engines": {
@@ -9,6 +9,8 @@
   "scripts": {
     "colorflow": "node automation/cli.mjs",
     "mcp": "node automation/mcp.mjs",
-    "test": "node scripts/ejecutar-pruebas.mjs && node tests/automation.test.mjs"
+    "test": "node scripts/ejecutar-pruebas.mjs && node tests/automation.test.mjs",
+    "test:preview": "node scripts/ejecutar-pruebas-vista.mjs",
+    "test:editor": "node scripts/ejecutar-pruebas-vista.mjs --editor"
   }
 }

@@ -1,5 +1,13 @@
 # Cambios
 
+## v0.10.0
+
+- L como método recomendado (`protected`), conservando K y los métodos anteriores. Formato 9: formatos 1–8 mantienen su apariencia al abrirse.
+- Oscurecer (M) y Multiplicar (N) en la preparación de la copia coloreada; copia literal anterior conservada para proyectos existentes. Mismos parámetros en API, CLI y MCP.
+- Comparación sincronizada, miniatura con rectángulo arrastrable, zoom compartido y conservación del encuadre al regenerar.
+- Worker local y bloques con margen que priorizan el área visible, soporte global de L y descarte de revisiones obsoletas. Luz apagada/amarilla/verde con texto, rojo para errores; Aplicar/Descargar sólo con el último resultado completo.
+- 100 pruebas sin DOM y 26 de automatización; Worker/Canvas y diálogo real comprobados en Chrome, con igualdad exacta frente al cálculo completo.
+
 ## v0.9.1
 
 - Igualación opcional tras K: recuperar color original en cada píxel no blanco de la base, copiar esos píxeles a la imagen coloreada de animación o no hacer nada (predeterminado).

@@ -2,6 +2,18 @@
 
 [Volver al proyecto](../README.md)
 
+## v0.10.0 · L, composición y editor progresivo
+
+- 100/100 pruebas sin DOM y 26/26 de automatización. Cobertura nueva: L con masas pardas, exclusión de pigmento rojo, M/N sin aclarado, papel cálido, copia literal antigua, formato 9 y conservación de K al abrir formato 8.
+- El motor por regiones es idéntico byte por byte al motor completo en las pruebas de bloques pequeños que cruzan trazos y bordes, con controles de suavidad, pigmento, umbrales y papel. El soporte conectado de L se calcula globalmente; margen local 12 px más margen de remuestreo.
+- Worker Blob, OffscreenCanvas y Canvas reales en Chrome: igualdad exacta de base, final y recuento de igualación para samurái (1035 × 1520), Calvin anterior (1600 × 1153) y Calvin del pantalón (1229 × 1600). Se comprobaron L/M a 720 px, L/N con suavidad al máximo y papel cálido a 1080 px, K/copia literal y filtro ink. El cambio de encuadre reprioriza el siguiente bloque; cancelación y revisiones obsoletas comprobadas.
+- Primer bloque en aproximadamente 0.07–0.33 s y cálculo completo de líneas en 3.6–4.4 s en esta sesión. Son mediciones locales con el renderizador de pruebas, no garantías de tiempo.
+- L reproduce exactamente el PNG experimental del pantalón. En Calvin anterior difieren 41 píxeles y en samurái 71; diferencia máxima de un nivel de gris. No se afirma equivalencia con una referencia de tinta original inexistente.
+- Diálogo real ejecutado en Chrome headless: carga de imagen, L/M/N, cambios rápidos de parámetros, encuadre conservado, Aplicar/Descargar bloqueados hasta el último resultado, aplicación idéntica al motor completo y originales intactos. Se probaron estados apagado/amarillo/verde pulsante/verde fijo/rojo, error simulado y reintento, cierre con trabajador pendiente. Navegación comprobada con Canvas y geometría reales: rueda, arrastre, miniatura y rectángulo.
+- Preparación real de L/M: base.png y referencia.png idénticos entre API, CLI y MCP. Exportación real de L/N autocontenida, proyecto formato 9 y original incrustado intacto.
+- No hubo una revisión manual de toda la interfaz ni una captura visual nueva del diálogo. Las pruebas ejecutan sus controles y verifican geometría/píxeles; no sustituyen una revisión estética de cada tamaño de pantalla. La apertura directa file:// no se repitió; se conservan scripts clásicos y Worker Blob sin peticiones externas.
+- Repetición: `npm test`, `npm run test:preview`, `npm run test:editor`. Las dos últimas necesitan Chrome/Edge local; puede pasarse una imagen como argumento al script. No se incorporaron imágenes de Calvin ni dependencias de experimentación.
+
 ## v0.9.1 · Igualación de trazos
 
 - 94/94 pruebas sin DOM y 26/26 de automatización. Casos nuevos: RGBA idéntico, píxel gris 254, fondo cálido y fraccionario, pigmento fuera de los trazos, opciones inactivas, buffers incompatibles, persistencia y contrato API/CLI/MCP.

@@ -34,19 +34,20 @@ try {
   await test('Create incorpora la imagen exacta y devuelve un plan sin base64', async () => {
     const result = await api.create({ image: 'imagen.png', plan, output: 'animacion.colorflow.json' });
     assert.equal(result.plan.baseMode, 'derived'); assert.equal(result.images.final.bytes, png.length); assert.equal(result.images.final.data, undefined);
-    const saved = JSON.parse(await readFile(resolve(workspace, result.path), 'utf8')); assert.equal(saved.images.final.data.split(',')[1], png.toString('base64')); assert.equal(saved.version, 8); assert.equal(saved.baseGeneration.method,'coherent');
+    const saved = JSON.parse(await readFile(resolve(workspace, result.path), 'utf8')); assert.equal(saved.images.final.data.split(',')[1], png.toString('base64')); assert.equal(saved.version, 9); assert.equal(saved.baseGeneration.method,'protected');
   });
   await test('Crear con inicial conserva uploaded y los valores omitidos reciben valores del motor', async () => {
     const result = await api.create({ image: 'imagen.png', initialImage: 'imagen.png', output: 'dos.json' }); assert.equal(result.plan.baseMode, 'uploaded'); assert.equal(result.plan.stages[0].paintDelay, 0);
   });
   await test('La generación de base se valida por campo y rechaza umbrales invertidos', () => {
     assertPlan({baseGeneration:{method:'ink',colorToGray:0,sensitivity:.8,blackPoint:.1,whitePoint:.9,paper:'matched'}});
-    assertPlan({baseGeneration:{method:'coherent',paper:'white',smoothness:0}});
+    assertPlan({baseGeneration:{method:'protected',paper:'white',smoothness:0}});
+    assertPlan({baseGeneration:{method:'coherent'}});
     assertPlan({baseGeneration:{method:'coherent',whitePoint:.1}});
     for (const baseGeneration of [{colorToGray:2},{method:'inventado'},{blackPoint:.8,whitePoint:.5},{method:'ink',whitePoint:.1}]) assert.throws(()=>assertPlan({baseGeneration}),e=>e.details[0].path.startsWith('$.baseGeneration'));
   });
   await test('El contrato acepta las tres opciones de igualación y rechaza valores desconocidos', () => {
-    for(const inkMatch of ['none','source-to-base','base-to-final']) assertPlan({baseGeneration:{method:'coherent',inkMatch}});
+    for(const inkMatch of ['none','source-to-base','base-to-final','darken','multiply']) assertPlan({baseGeneration:{method:'coherent',inkMatch}});
     assert.throws(()=>assertPlan({baseGeneration:{inkMatch:'otro'}}), e=>e.details[0].path==='$.baseGeneration.inkMatch');
   });
   await test('API, CLI y MCP conservan la igualación sin sobrescribir la imagen original', async () => {
@@ -78,7 +79,7 @@ try {
   await test('Un proyecto anterior mantiene sus datos y recibe desfase cero', async () => {
     const raw = JSON.parse(await readFile(resolve(workspace, 'dos.json'), 'utf8')); raw.version = 5; delete raw.stages[0].paintDelay;
     await writeFile(resolve(workspace, 'anterior.json'), JSON.stringify(raw)); const result = await api.inspect({project:'anterior.json'});
-    assert.equal(result.formatVersion,8); assert.equal(result.plan.stages[0].paintDelay,0); assert.equal(result.plan.stages[0].points[0].x,.5);
+    assert.equal(result.formatVersion,9); assert.equal(result.plan.stages[0].paintDelay,0); assert.equal(result.plan.stages[0].points[0].x,.5);
   });
   await test('Validación detecta errores antes de que la normalización pueda ocultarlos', async () => {
     const raw = JSON.parse(await readFile(resolve(workspace, 'animacion.colorflow.json'), 'utf8')); raw.stages[0].points[0].x = 9;
@@ -106,7 +107,7 @@ try {
   await test('Prepare entrega la base sin generar HTML ni calcular la animación', async () => {
     const result = await api.prepare({project:'animacion.colorflow.json',outputDir:'preparacion'});
     assert.ok(result.artifacts['base.png']); assert.equal(result.artifacts['presentacion.html'],undefined); assert.equal(result.report.calculationChecked,false);
-    const saved=JSON.parse(await readFile(resolve(workspace,result.artifacts['proyecto.colorflow.json']),'utf8')); assert.equal(saved.baseGeneration.method,'coherent');
+    const saved=JSON.parse(await readFile(resolve(workspace,result.artifacts['proyecto.colorflow.json']),'utf8')); assert.equal(saved.baseGeneration.method,'protected');
     await api.update({project:'animacion.colorflow.json',patch:{baseGeneration:{method:'ink',colorToGray:.4,blackPoint:.1,whitePoint:.9}}});
     assert.equal((await api.inspect({project:'animacion.colorflow.json'})).plan.baseGeneration.colorToGray,.4);
   });
