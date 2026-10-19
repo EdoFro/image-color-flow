@@ -45,6 +45,22 @@ try {
     assertPlan({baseGeneration:{method:'coherent',whitePoint:.1}});
     for (const baseGeneration of [{colorToGray:2},{method:'inventado'},{blackPoint:.8,whitePoint:.5},{method:'ink',whitePoint:.1}]) assert.throws(()=>assertPlan({baseGeneration}),e=>e.details[0].path.startsWith('$.baseGeneration'));
   });
+  await test('El contrato acepta las tres opciones de igualación y rechaza valores desconocidos', () => {
+    for(const inkMatch of ['none','source-to-base','base-to-final']) assertPlan({baseGeneration:{method:'coherent',inkMatch}});
+    assert.throws(()=>assertPlan({baseGeneration:{inkMatch:'otro'}}), e=>e.details[0].path==='$.baseGeneration.inkMatch');
+  });
+  await test('API, CLI y MCP conservan la igualación sin sobrescribir la imagen original', async () => {
+    const before=(await api.readJson('animacion.colorflow.json')).images.final.data;
+    await api.update({project:'animacion.colorflow.json',output:'igualada.json',patch:{baseGeneration:{method:'coherent',inkMatch:'base-to-final'}}});
+    assert.equal((await api.inspect({project:'igualada.json'})).plan.baseGeneration.inkMatch,'base-to-final');
+    assert.equal((await api.readJson('igualada.json')).images.final.data,before);
+    const logs=[],io={stdout:{write:t=>logs.push(t)},stderr:{write:t=>logs.push(t)}};
+    assert.equal(await cli(['inspect','--root',workspace,'--project','igualada.json'],io),0);
+    assert(logs.join('').includes('base-to-final'));
+    const handler=createHandler(api);await handler.handle({jsonrpc:'2.0',id:1,method:'initialize'});await handler.handle({jsonrpc:'2.0',method:'notifications/initialized'});
+    const result=await handler.handle({jsonrpc:'2.0',id:2,method:'tools/call',params:{name:'colorflow_inspect',arguments:{project:'igualada.json'}}});
+    assert(JSON.stringify(result).includes('base-to-final'));
+  });
   await test('Create no sobrescribe archivos existentes y uploaded exige inicial', async () => {
     await assert.rejects(api.create({ image: 'imagen.png', output: 'dos.json' }), e => e.code === 'EEXIST');
     await assert.rejects(api.create({ image: 'imagen.png', plan: { baseMode: 'uploaded' }, output: 'invalido.json' }), e => e.code === 'INITIAL_IMAGE_REQUIRED');

@@ -14,6 +14,7 @@
     const defaults = value.method === 'grayscale' ? presets.grayscale : value.method === 'ink' ? presets.ink : presets.coherent;
     const blackPoint = number(value.blackPoint, defaults.blackPoint, 0, .9);
     return {
+      inkMatch: ['source-to-base', 'base-to-final'].includes(value.inkMatch) ? value.inkMatch : 'none',
       method: defaults.method, colorToGray: number(value.colorToGray, defaults.colorToGray, 0, 1),
       sensitivity: number(value.sensitivity, defaults.sensitivity, 0, 1), blackPoint,
       whitePoint: Math.max(blackPoint + .01, number(value.whitePoint, defaults.whitePoint, .1, 1)),
@@ -73,9 +74,27 @@
     }
     return out;
   }
+  // Igualar después del escalado: los bordes también deben coincidir píxel a píxel.
+  // Recibe buffers preparados; nunca modifica los originales guardados del proyecto.
+  function matchInk(base, final, settings, generatedPaper = [255, 255, 255]) {
+    const config = normalize(settings);
+    if (config.method !== 'coherent' || config.inkMatch === 'none') return 0;
+    if (base.length !== final.length || base.length % 4) throw new Error('Las imágenes deben tener las mismas dimensiones para igualar trazos.');
+    const blank = new Uint8ClampedArray(config.paper === 'white' ? [255, 255, 255] : generatedPaper);
+    let count = 0;
+    for (let i = 0; i < base.length; i += 4) {
+      // «No blanco» significa más oscuro que el papel generado, incluido un gris 254.
+      if (base[i] >= blank[0] && base[i + 1] >= blank[1] && base[i + 2] >= blank[2]) continue;
+      count++;
+      const from = config.inkMatch === 'source-to-base' ? final : base;
+      const to = config.inkMatch === 'source-to-base' ? base : final;
+      for (let c = 0; c < 4; c++) to[i + c] = from[i + c];
+    }
+    return count;
+  }
   function presetName(settings) {
     const config = normalize(settings);
-    return Object.keys(presets).find(name => Object.keys(config).every(key => config[key] === presets[name][key])) || 'custom';
+    return Object.keys(presets).find(name => Object.keys(presets[name]).every(key => config[key] === presets[name][key])) || 'custom';
   }
-  root.PaintBase = { normalize, derive, presetName, preset: name => ({ ...(presets[name] || presets.coherent) }) };
+  root.PaintBase = { normalize, derive, matchInk, presetName, preset: name => ({ ...(presets[name] || presets.coherent), inkMatch: 'none' }) };
 })(typeof window === 'undefined' ? globalThis : window);

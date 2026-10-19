@@ -155,3 +155,13 @@ Se guardan proyectos de formato 8 y se pueden abrir también los de formatos 1 a
 - El estilo es una revelación guiada por el dibujo, no una simulación física de acuarela. El tono genera demora; no se incluye una barrera rígida por tono ni seguimiento automático de cámara al pincel.
 - El trazo se muestrea por longitud de arco. Muchos emisores, trazos largos y resoluciones altas requieren más cálculo y pueden producir exportaciones mayores.
 - No se incluyen audio, exportación de video ni procesamiento por lotes.
+
+### Igualar los trazos de la base y la imagen coloreada
+
+Igualar trazos después de K (`baseGeneration.inkMatch`, inicialmente `none`):
+
+- `source-to-base`: cada píxel no blanco de la base recupera el RGBA de la imagen original en esa posición. Puede recuperar también color donde K había detectado tinta.
+- `base-to-final`: esos píxeles de la base se copian a la imagen coloreada preparada para la animación. Puede cambiar ligeramente el aspecto final de los trazos.
+- `none`: conserva la base K y la imagen coloreada sin igualarlas.
+
+Se aplica después de escalar a la resolución de animación y de los controles de K, incluidos los bordes suaves. «No blanco» significa un píxel más oscuro que el papel generado (también un gris 254 con papel blanco); con papel cálido se compara contra ese tono. No se mezclan los píxeles copiados: quedan idénticos en ambas imágenes. Si eliges conservar pigmento en gris, esas áreas también entran en la igualación. La opción sólo actúa en K y base derivada. Los originales incrustados permanecen intactos: cada preparación vuelve a partir de ellos, por lo que cambiar o desactivar la opción no acumula cambios. El informe incluye `inkMatchPixels`; `referencia.png` muestra la copia coloreada que se usará al animar.

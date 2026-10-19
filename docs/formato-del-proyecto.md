@@ -91,6 +91,7 @@ El formato 7 añade `baseGeneration`. Al abrir formatos 1 a 6 se asigna `method:
 | `blackPoint` | 0 a 0.9; 0 en K y 0.14 en ink. Refuerzo posterior de grises oscuros. |
 | `whitePoint` | 0.1 a 1; 1 en K y 0.94 en ink. Refuerzo posterior de grises claros. Debe ser mayor que `blackPoint`. |
 | `smoothness` | 0 a 1; 0 en K (acabado sin suavizado extra), 0.08 en ink; el editor muestra de 0 a 100%. |
+| `inkMatch` | `none` (predeterminado), `source-to-base` o `base-to-final`; igualación posterior sólo en K. |
 | `paper` | `white` (inicial en K) para blanco puro o `matched` (inicial en ink) para el tono estimado del papel final. |
 
 En `grayscale` sólo actúa la selección de papel; los demás controles se conservan pero no intervienen. Los puntos de partida del editor son configuraciones de estos campos, sin un nombre de preset adicional en el archivo. Los PNG se regeneran a partir de los originales y estos parámetros.
@@ -104,3 +105,13 @@ El HTML autónomo es un producto distinto. Incorpora imágenes preparadas, mapas
 ## Planes para automatización
 
 Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 8, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
+
+### Igualación opcional (formato 8)
+
+Igualar trazos después de K (`baseGeneration.inkMatch`, inicialmente `none`):
+
+- `source-to-base`: cada píxel no blanco de la base recupera el RGBA de la imagen original en esa posición. Puede recuperar también color donde K había detectado tinta.
+- `base-to-final`: esos píxeles de la base se copian a la imagen coloreada preparada para la animación. Puede cambiar ligeramente el aspecto final de los trazos.
+- `none`: conserva la base K y la imagen coloreada sin igualarlas.
+
+Se aplica después de escalar a la resolución de animación y de los controles de K, incluidos los bordes suaves. «No blanco» significa un píxel más oscuro que el papel generado (también un gris 254 con papel blanco); con papel cálido se compara contra ese tono. No se mezclan los píxeles copiados: quedan idénticos en ambas imágenes. Si eliges conservar pigmento en gris, esas áreas también entran en la igualación. La opción sólo actúa en K y base derivada. Los originales incrustados permanecen intactos: cada preparación vuelve a partir de ellos, por lo que cambiar o desactivar la opción no acumula cambios. El informe incluye `inkMatchPixels`; `referencia.png` muestra la copia coloreada que se usará al animar.

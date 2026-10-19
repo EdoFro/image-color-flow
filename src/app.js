@@ -429,6 +429,7 @@
   function syncBaseControls() {
     const config = draft.baseGeneration = window.PaintBase.normalize(draft.baseGeneration);
     $('basePreset').value = window.PaintBase.presetName(config); $('basePaper').value = config.paper;
+    $('baseInkMatch').value = config.inkMatch; $('baseInkMatch').disabled = config.method !== 'coherent';
     for (const [id, key] of Object.entries(baseControls)) {
       $(id).value = Math.round(config[key] * 100); $(id).disabled = config.method === 'grayscale';
       $(id + 'Out').textContent = `${Math.round(config[key] * 100)}%`;
@@ -452,7 +453,7 @@
     basePreviewGenerated = true; $('basePreviews').hidden = false; $('downloadBase').disabled = false;
     $('generateBase').textContent = 'Actualizar vista previa'; setBaseZoom();
     const analysis = generatedBase.baseSourceSize;
-    $('basePreviewStatus').textContent = `${generatedBase.width} × ${generatedBase.height} px${analysis ? ` · Tinta analizada a ${analysis.width} × ${analysis.height} px` : ''} · Compara la base antes de aplicar. Los ajustes todavía no modifican el proyecto.`;
+    $('basePreviewStatus').textContent = `${generatedBase.width} × ${generatedBase.height} px${analysis ? ` · Tinta analizada a ${analysis.width} × ${analysis.height} px` : ''} · ${generatedBase.inkMatchPixels} píxeles igualados · Compara la base antes de aplicar. Los ajustes todavía no modifican el proyecto.`;
   }
   function resetBasePreview() {
     clearTimeout(basePreviewTimer); basePreviewGenerated = false; generatedBase = null;
@@ -479,7 +480,8 @@
   $('imagesButton').onclick = () => { player?.pause(); draft = structuredClone(project); draftDecoded = { ...decoded }; resetBasePreview(); $('basePreviewZoom').value = 'fit'; $('finalFile').value = $('initialFile').value = ''; fillImageDialog(); $('imagesDialog').showModal(); };
   $('imagesDialog').addEventListener('close', () => { clearTimeout(basePreviewTimer); generatedBase = null; });
   $('generateBase').onclick = generateBasePreview; $('basePreviewZoom').onchange = setBaseZoom;
-  $('basePreset').onchange = () => { draft.baseGeneration = window.PaintBase.preset($('basePreset').value); syncBaseControls(); scheduleBasePreview(); };
+  $('basePreset').onchange = () => { draft.baseGeneration = { ...window.PaintBase.preset($('basePreset').value), inkMatch: draft.baseGeneration.inkMatch }; syncBaseControls(); scheduleBasePreview(); };
+  $('baseInkMatch').onchange = () => { draft.baseGeneration.inkMatch = $('baseInkMatch').value; syncBaseControls(); scheduleBasePreview(); };
   $('basePaper').onchange = () => { draft.baseGeneration.paper = $('basePaper').value; syncBaseControls(); scheduleBasePreview(); };
   for (const [id, key] of Object.entries(baseControls)) $(id).oninput = () => {
     draft.baseGeneration[key] = +$(id).value / 100;

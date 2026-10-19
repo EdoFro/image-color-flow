@@ -1,6 +1,6 @@
 {
   "name": "image-color-flow",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
   "description": "Editor offline y automatizaciÃ³n local para animar la apariciÃ³n del color",
   "engines": {

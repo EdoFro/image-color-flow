@@ -1,5 +1,11 @@
 # Cambios
 
+## v0.9.1
+
+- Igualación opcional tras K: recuperar color original en cada píxel no blanco de la base, copiar esos píxeles a la imagen coloreada de animación o no hacer nada (predeterminado).
+- Corrección después del escalado, incluidos bordes suaves y papel cálido. Originales guardados intactos y cambio reversible; vista previa y exportación comparten las mismas imágenes preparadas.
+- Opción inkMatch compartida por editor, API, CLI y MCP, sin alterar proyectos anteriores. 94 pruebas sin DOM y 26 de automatización.
+
 ## v0.9.0
 
 - Tinta y líneas (K) como método recomendado para nuevas bases: fondo mediano, grises graduales, protección de trazos finos y recuperación direccional. JavaScript local sin dependencias.

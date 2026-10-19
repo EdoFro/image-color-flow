@@ -29,7 +29,7 @@
     ]);
     if (autoAlign && initialImage && project.baseMode === 'uploaded') project.alignment = root.PaintPreparation.autoAlign(finalImage, initialImage);
     const prepared = root.PaintPreparation.prepare(finalImage, initialImage, project);
-    const report = { width: prepared.width, height: prepared.height, baseSourceSize: prepared.baseSourceSize, baseMode: project.baseMode, baseGeneration: project.baseGeneration, imageDecodingChecked: true, calculationChecked: false, warnings: [] };
+    const report = { width: prepared.width, height: prepared.height, baseSourceSize: prepared.baseSourceSize, inkMatchPixels: prepared.inkMatchPixels, baseMode: project.baseMode, baseGeneration: project.baseGeneration, imageDecodingChecked: true, calculationChecked: false, warnings: [] };
     return { project, prepared, report };
   }
   async function compile(input, options = {}) {

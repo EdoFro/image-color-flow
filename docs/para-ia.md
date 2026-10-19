@@ -25,3 +25,5 @@ Objetivo: transformar una imagen coloreada y el pedido del usuario en un proyect
 Consulta el esquema del plan para todos los límites. Los campos desconocidos o fuera de rango se rechazan. Un punto fuera de una zona no pinta; si todos los emisores quedan fuera, el cálculo puede fallar. No ignores los avisos del informe.
 
 Todas las rutas pertenecen a la raíz configurada. El usuario debe facilitar los archivos allí; un adjunto remoto no implica que exista como archivo local. Evita sobrescribir fuentes y usa directorios nuevos para las revisiones. La conexión MCP es local por stdio; el HTML final no necesita Node.js ni MCP para presentarse.
+
+Para evitar cambios de tono de la tinta al animar, elige `baseGeneration.inkMatch: "source-to-base"` (recuperar el color original en la base) o `"base-to-final"` (copiar la tinta generada a la copia coloreada). El valor inicial `"none"` conserva ambas. Sólo actúa tras K. Revisa siempre base.png y referencia.png: los píxeles copiados son exactos, incluidos bordes suaves y áreas de pigmento conservado como gris. El original incrustado no se sobrescribe; volver a none restituye el comportamiento anterior.

@@ -2,6 +2,13 @@
 
 [Volver al proyecto](../README.md)
 
+## v0.9.1 · Igualación de trazos
+
+- 94/94 pruebas sin DOM y 26/26 de automatización. Casos nuevos: RGBA idéntico, píxel gris 254, fondo cálido y fraccionario, pigmento fuera de los trazos, opciones inactivas, buffers incompatibles, persistencia y contrato API/CLI/MCP.
+- Preparación real de la acuarela del samurái a 490 × 720 con Chrome. Ambas igualaciones seleccionan 146659 píxeles y dejan libres 206141; comparación de todos los canales: sólo cambia el lado elegido y los píxeles seleccionados quedan idénticos entre ambas imágenes. Papel cálido selecciona la misma cantidad, sin convertir el fondo en tinta.
+- Cambiar de opción y volver a none reproduce byte por byte los buffers anteriores; cada proyecto preparado mantiene intactos los bytes de la imagen original incrustada. La exportación HTML autónoma contiene exactamente los PNG igualados que se comprobaron en preparación.
+- Sin revisión interactiva nueva del diálogo: las comprobaciones anteriores verifican preparación, contratos y exportación real, no cada interacción visual.
+
 ## v0.9.0 · Integración de K
 
 - 88/88 pruebas sin DOM: referencia sintética independiente del prototipo Python, rayas sobre rojo, textura débil, negros sólidos, dimensiones, controles y compatibilidad de formatos. 24/24 pruebas API/CLI/MCP.

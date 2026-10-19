@@ -147,3 +147,15 @@ Los métodos son asíncronos. `render` acepta `signal` de un `AbortController`. 
 En un navegador que cargue `engine`, `ink-lines`, `base-generation`, `project`, `preparation`, `view`, `player`, `codec`, `presentation` y `automation`, `PaintAutomation.prepare(project)` devuelve proyecto normalizado, imágenes preparadas e informe sin propagación; `PaintAutomation.compile(project)` añade campos calculados y HTML. `previews(compiled)` genera fotogramas y `contactSheet(checkpoints)` la hoja de secuencia. No necesitan montar el editor ni simular clics. Preparar requiere Canvas; compilar también necesita Web Workers.
 
 Las pruebas específicas se ejecutan con `node tests/automation.test.mjs`; `npm test` ejecuta además las pruebas del motor sin DOM. Las comprobaciones reales y sus límites se registran en [verificación](verificacion.md).
+
+### Igualación de trazos
+
+Igualar trazos después de K (`baseGeneration.inkMatch`, inicialmente `none`):
+
+- `source-to-base`: cada píxel no blanco de la base recupera el RGBA de la imagen original en esa posición. Puede recuperar también color donde K había detectado tinta.
+- `base-to-final`: esos píxeles de la base se copian a la imagen coloreada preparada para la animación. Puede cambiar ligeramente el aspecto final de los trazos.
+- `none`: conserva la base K y la imagen coloreada sin igualarlas.
+
+Se aplica después de escalar a la resolución de animación y de los controles de K, incluidos los bordes suaves. «No blanco» significa un píxel más oscuro que el papel generado (también un gris 254 con papel blanco); con papel cálido se compara contra ese tono. No se mezclan los píxeles copiados: quedan idénticos en ambas imágenes. Si eliges conservar pigmento en gris, esas áreas también entran en la igualación. La opción sólo actúa en K y base derivada. Los originales incrustados permanecen intactos: cada preparación vuelve a partir de ellos, por lo que cambiar o desactivar la opción no acumula cambios. El informe incluye `inkMatchPixels`; `referencia.png` muestra la copia coloreada que se usará al animar.
+
+Ejemplo de plan: `"baseGeneration": { "method": "coherent", "inkMatch": "source-to-base" }`. Se puede crear o actualizar desde la API, la CLI o MCP; no se necesita una operación nueva.

@@ -536,6 +536,15 @@
           ],
           "default": "white",
           "description": "Tono estimado del papel final o blanco puro."
+        },
+        "inkMatch": {
+          "enum": [
+            "none",
+            "source-to-base",
+            "base-to-final"
+          ],
+          "default": "none",
+          "description": "Sólo en coherent (K), después de escalar a resolución de animación. source-to-base restaura en la base el RGBA original de cada píxel más oscuro que el papel; base-to-final copia esos píxeles de la base a la copia coloreada usada para animar. none conserva ambas. Incluye bordes suaves. No modifica los originales guardados."
         }
       }
     }

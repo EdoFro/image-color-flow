@@ -92,6 +92,50 @@
       const normal=baseK(),dark=baseK({blackPoint:.4}),white=baseK({whitePoint:.6});
       assert(normal.some((v,i)=>i%4!==3 && dark[i]<v),'Umbral de negro ignorado.');assert(normal.some((v,i)=>i%4!==3 && white[i]>v),'Umbral de blanco ignorado.');
     });
+    test('Igualar desde original conserva RGBA exacto y deja libre el papel', () => {
+      const base=new Uint8ClampedArray([0,0,0,255,254,254,254,255,255,255,255,255]);
+      const original=new Uint8ClampedArray([34,29,38,255,180,90,70,255,220,30,60,255]), before=original.slice();
+      const count=root.PaintBase.matchInk(base,original,{inkMatch:'source-to-base'});
+      assert(count===2,'Se omitió el borde gris 254 o se seleccionó el papel.');
+      assert(base.slice(0,8).every((v,i)=>v===original[i]),'No hay igualdad exacta de RGBA.');
+      assert(base.slice(8,11).every(v=>v===255),'Se copió pigmento en el fondo blanco.');
+      assert(original.every((v,i)=>v===before[i]),'Se modificó la imagen coloreada.');
+    });
+    test('Igualar hacia coloreada copia trazos exactos sin modificar la base ni el pigmento libre', () => {
+      const base=new Uint8ClampedArray([40,40,40,255,255,255,255,255]), before=base.slice();
+      const final=new Uint8ClampedArray([22,18,30,255,200,30,60,255]);
+      assert(root.PaintBase.matchInk(base,final,{inkMatch:'base-to-final'})===1,'Cantidad incorrecta.');
+      assert(final.slice(0,4).every((v,i)=>v===base[i]),'Los trazos siguen siendo distintos.');
+      assert(final[4]===200 && final[5]===30 && final[6]===60,'Se modificó el pigmento libre.');
+      assert(base.every((v,i)=>v===before[i]),'Se modificó la base.');
+    });
+    test('Igualar con papel cálido excluye el fondo incluso con canales fraccionarios', () => {
+      const paper=[250.4,244.7,230.2], blank=new Uint8ClampedArray(paper);
+      const base=new Uint8ClampedArray([...blank,255,blank[0]-1,blank[1],blank[2],255]);
+      const final=new Uint8ClampedArray([200,50,40,255,50,45,40,255]);
+      assert(root.PaintBase.matchInk(base,final,{inkMatch:'source-to-base',paper:'matched'},paper)===1,'El papel se confundió con tinta.');
+      assert(base.slice(0,3).every((v,i)=>v===blank[i]) && base[4]===50,'No se respetó el papel o se perdió un trazo tenue.');
+    });
+    test('No hacer nada conserva K y los métodos anteriores ignoran la igualación', () => {
+      for(const config of [{},{inkMatch:'none'},{method:'ink',inkMatch:'source-to-base'},{method:'grayscale',inkMatch:'base-to-final'}]) {
+        const base=new Uint8ClampedArray([0,0,0,255]), final=new Uint8ClampedArray([45,35,40,255]);
+        assert(root.PaintBase.matchInk(base,final,config)===0 && base[0]===0 && final[0]===45,'Se alteró un modo inactivo.');
+      }
+    });
+    test('Los proyectos guardan la igualación y los anteriores reciben none', () => {
+      const data={format:'tinta-y-color',version:8,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
+      assert(root.PaintProject.normalize(data).baseGeneration.inkMatch==='none','Cambió un proyecto anterior.');
+      for(const inkMatch of ['source-to-base','base-to-final']) {
+        const saved=root.PaintProject.normalize({...data,baseGeneration:{inkMatch}});
+        assert(root.PaintProject.normalize(JSON.parse(JSON.stringify(saved))).baseGeneration.inkMatch===inkMatch,'No se guardó la opción.');
+        assert(root.PaintBase.presetName(saved.baseGeneration)==='coherent','La igualación cambió el preset K.');
+      }
+    });
+    test('La igualación rechaza buffers incompatibles y normaliza opciones desconocidas', () => {
+      let failed=false;try { root.PaintBase.matchInk(new Uint8ClampedArray(4),new Uint8ClampedArray(8),{inkMatch:'source-to-base'}); }catch(e){failed=true;}
+      assert(failed,'Se aceptaron dimensiones distintas.');
+      assert(root.PaintBase.normalize({inkMatch:'desconocido'}).inkMatch==='none','No se normalizó una opción desconocida.');
+    });
     test('La expansión sin viento es simétrica y aumenta con la distancia', () => {
       const f = calc(41, 41, image(41, 41));
       assert(Math.abs(f.times[20 * 41 + 10] - f.times[20 * 41 + 30]) < 1e-6, 'La simetría horizontal no se conserva.');
