@@ -4,7 +4,7 @@
 
 Grabaciones de animaciones creadas con Tinta y color. La [demostración principal, ejemplo 6](../README.md#ver-una-animación), está destacada en la portada del proyecto.
 
-Selecciona un enlace para abrir el vídeo MP4 correspondiente.
+> **Sobre la calidad de las grabaciones:** estos vídeos se capturaron en ventanas pequeñas para reducir el tamaño de los archivos. Por ello, su resolución y nivel de detalle no representan toda la calidad de las animaciones generadas por la aplicación. La presentación HTML permite apreciar el resultado a mayor tamaño, según la resolución de las imágenes y la configuración del proyecto.
 
 <!-- Al publicar en GitHub, arrastrar cada MP4 al editor web de este documento y sustituir su enlace por la URL del adjunto, sola en un párrafo, para mostrar el reproductor bajo cada título. Conservar los títulos y los enlaces de navegación. -->
 
