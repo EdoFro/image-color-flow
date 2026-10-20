@@ -13,6 +13,12 @@
     assert(expected && $('restart').textContent===expected.restart,'Export language missing');
     assert($('controls').hidden && $('controlsToggle').getAttribute('aria-label')===expected.show,'Initial exported UI');
     $('controlsToggle').click();assert($('controlsToggle').title===expected.hide,'Controls toggle translation');
+    const imageBounds=$('painting').getBoundingClientRect();$('controlsToggle').click();
+    assert($('painting').getBoundingClientRect().width===imageBounds.width&&$('painting').getBoundingClientRect().height===imageBounds.height,'Controls resized artwork');
+    $('controlsToggle').click();
+    $('caption').textContent='A'.repeat(180);
+    assert(document.documentElement.scrollWidth<=innerWidth+1,'Long caption overflows viewport');
+    $('caption').textContent=expected.initial;
     assert($('caption').textContent===expected.initial,'Initial caption');
     $('painting').click();await wait(()=>$('play').textContent===expected.pause||!$('finishRestart').hidden);
     $('progress').value=1000;$('progress').dispatchEvent(new Event('input'));await wait(()=>!$('finishRestart').hidden);

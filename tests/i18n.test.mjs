@@ -17,6 +17,8 @@ for (const language of i.languages) {
   }
 }
 const html = await readFile(new URL('index.html',root),'utf8');
+const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(match=>match[1]);
+assert.equal(new Set(scripts).size,scripts.length,'Editor scripts must load once');
 for (const [,key] of html.matchAll(/data-i18n(?:-title|-aria-label|-placeholder)?="([^"]+)"/g)) assert.ok(Object.hasOwn(es,key),key);
 assert.equal(i.choose(null,['en-GB','es']), 'en'); assert.equal(i.choose('es',['en-US']), 'es'); assert.equal(i.choose(null,['zz-ZZ']), 'es');
 assert.equal(i.choose(null,['fr-CA','en']), 'fr'); assert.equal(i.choose('de_CH',['fr']), 'de'); assert.equal(i.choose(null,['it-IT','de-AT','fr']), 'de');

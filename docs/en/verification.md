@@ -6,6 +6,14 @@
 
 This is a translated record of checks performed during the versions below, including their limitations. Translating this record does not mean those tests were rerun. Where old results differ from current behavior, use the newest relevant version's entry.
 
+## v0.13.1 · Long text and layout
+
+- Additional headless Chrome review, direct `file://` opening and offline context: 384 cases, four languages (es/en/fr/de), eight screens per size: stage, initial view, General, change review, alignment, generated comparison, export dialog and standalone HTML.
+- Twelve viewports: 1920 × 1080, 1440 × 900, 1280 × 720, 1024 × 768, 920 × 700, 901 × 650, 768 × 1024, 600 × 800, 390 × 844, 320 × 568, 1024 × 390 and 844 × 390. Long stage/file names and a continuous 180-character presentation caption. No horizontal overflow, clipped controls, overlapping selection help or page errors. Both comparison canvases retain matching vertical positions and heights.
+- Screenshots reviewed for German canvas, comparison and exported controls. Restart stays inside the viewport at every size. Showing/hiding exported controls retains canvas dimensions and position.
+- Repository regressions pass: `node tests/i18n.test.mjs`, `node scripts/ejecutar-pruebas-vista.mjs --i18n`, `--editor` and `--highlights`; 106/106 tests without a DOM and 29/29 automation tests. Language tests include visible tool labels, a narrow selector's full value, no duplicate scripts and a long presentation caption without changing artwork size.
+- The additional viewport matrix used a local review harness and is not part of the language-test command. Other browser engines and physical devices were not reviewed.
+
 ## v0.13.0 · French and German
 
 - Four complete catalogs with 429 keys each. Tests compare raw catalogs without automatic fallback and check placeholders, HTML attributes, exported code and regional language detection.

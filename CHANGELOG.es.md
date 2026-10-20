@@ -9,6 +9,13 @@
 - Código y documentación bajo licencia MIT, con archivo LICENSE y metadato en package.json. Las imágenes de ejemplo conservan sus condiciones por separado.
 - Siete grabaciones MP4 de demostración: ejemplo 6 destacado en el README y galería de vídeos adicionales con navegación de ida y vuelta.
 
+## v0.13.1
+
+- Revisión de diseño en español, inglés, francés y alemán: títulos, controles y diálogos adaptables, herramientas con texto en ventanas estrechas, lienzos de comparación alineados y valor completo debajo del selector cuando no cabe.
+- Los paneles de escritorio se ajustan a la altura real de la cabecera; las ventanas pequeñas o bajas permiten desplazamiento. Los controles exportados admiten textos largos y desplazamiento sin cambiar el tamaño de la imagen.
+- Eliminada la carga duplicada de scripts/catálogos y estilos de idioma. Pruebas de regresión para etiquetas, valores seleccionados, textos largos y tamaño estable del lienzo exportado.
+- Revisión en Chrome sin conexión: 384 casos entre cuatro idiomas y doce tamaños de ventana, además de regresiones del editor, destacados, exportación y motor/automatización. Manual y registro de verificación actualizados en ambos idiomas.
+
 ## v0.13.0
 
 - Francés y alemán en el editor y el HTML autónomo, con 429 mensajes completos por idioma: controles, ayudas, errores, accesibilidad, progreso y reproducción.

@@ -12,6 +12,8 @@ The header and Images selectors offer English, Español, Français and Deutsch. 
 
 Export lets you independently choose the presentation language, initially the editor language. It is embedded in the HTML without external resources, rather than saved as an animation parameter. See [languages](languages.md).
 
+Headings, tools and dialogs wrap when space is limited. If a selected value does not fit inside its selector, the full text appears below it and in its hover tooltip. Tools keep their labels in narrow windows. Small or short windows allow scrolling to reach the remaining controls. The exported HTML toolbar also scrolls if it exceeds the available height; showing or hiding it preserves the artwork size.
+
 ## Open the editor
 
 Open [index.html](../../index.html) in Chrome or Edge. Keep the full folder structure when copying or extracting the editor. The example is embedded in `examples/demo-data.js` so loading it does not require web requests for local images.

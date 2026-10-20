@@ -6,6 +6,14 @@
 
 Este documento registra comprobaciones históricas y sus limitaciones. Su traducción no significa que se hayan repetido esas pruebas. Si un resultado antiguo difiere del comportamiento actual, consulta la versión más reciente correspondiente.
 
+## v0.13.1 · Textos largos y distribución
+
+- Revisión adicional en Chrome headless, apertura directa `file://` y contexto sin conexión: 384 casos, cuatro idiomas (es/en/fr/de), ocho pantallas por tamaño: etapa, Inicio, General, revisión de cambios, alineación, comparación generada, diálogo de exportación y HTML autónomo.
+- Doce ventanas: 1920 × 1080, 1440 × 900, 1280 × 720, 1024 × 768, 920 × 700, 901 × 650, 768 × 1024, 600 × 800, 390 × 844, 320 × 568, 1024 × 390 y 844 × 390. Nombres extensos de etapa/archivo y texto continuo de 180 caracteres en la presentación. Sin desbordamiento horizontal, controles cortados, solapamiento de la ayuda de selección ni errores de página. Los dos lienzos de comparación mantienen posición vertical y altura coincidentes.
+- Capturas revisadas de lienzo, comparación y controles exportados en alemán. Reinicio dentro de la ventana en todos los tamaños. Mostrar/ocultar los controles exportados mantiene las dimensiones y posición del lienzo.
+- Regresiones del repositorio: `node tests/i18n.test.mjs`, `node scripts/ejecutar-pruebas-vista.mjs --i18n`, `--editor` y `--highlights` correctas; 106/106 pruebas sin DOM y 29/29 de automatización. Las pruebas de idioma incluyen etiquetas de herramientas visibles, texto completo de selector estrecho, ausencia de scripts duplicados y presentación con texto largo sin cambiar el tamaño de la imagen.
+- La matriz adicional se ejecutó con un arnés local de revisión; no forma parte del comando de pruebas de idioma. No se revisaron otros motores de navegador ni dispositivos físicos.
+
 ## v0.13.0 · Francés y alemán
 
 - Cuatro catálogos completos con 429 claves cada uno. Las pruebas comparan los catálogos sin alternativa automática y verifican variables, atributos HTML, código exportado y detección de variantes regionales.

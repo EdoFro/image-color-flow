@@ -21,7 +21,65 @@
 /* Language preference is local to this browser. */
 .language-picker{display:flex;gap:7px;align-items:center;font-size:12px;flex-shrink:0}.language-picker select{width:auto;max-width:130px;padding:7px}.app-header{flex-wrap:wrap;gap:12px}.app-header nav{flex-wrap:wrap}.field>span{display:inline}
 
-/* Language preference is local to this browser. */
-.language-picker{display:flex;gap:7px;align-items:center;font-size:12px;flex-shrink:0}.language-picker select{width:auto;max-width:130px;padding:7px}.app-header{flex-wrap:wrap;gap:12px}.app-header nav{flex-wrap:wrap}.field>span{display:inline}
-
 .upload{position:relative}.upload input.localized-file{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip-path:inset(50%);padding:0;margin:0}.file-trigger{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:7px 10px;margin:10px 0;background:#fffdf7;font-size:12px}.upload:focus-within .file-trigger{outline:3px solid #1768bd;outline-offset:2px}
+
+
+/* Keep translated controls readable as panels and viewports become narrower. */
+.studio,.workspace,.sequence,.inspector{min-width:0}
+.studio{min-height:0}
+.workspace,.sequence,.inspector{height:auto}
+.workspace-heading{flex-wrap:wrap;align-items:flex-start}
+.workspace-heading>div{min-width:0;flex:1 1 180px}
+.workspace-heading h2,.status,.general-parameter,.highlight-row button,.initial-card,.stage-select small{overflow-wrap:anywhere}
+.view-select{flex-wrap:wrap;min-width:0;max-width:100%}
+.view-select select{min-width:0}
+.canvas-caption{flex-wrap:wrap}
+.canvas-caption>span:first-child{flex:1 1 180px}
+.canvas-caption>span:last-child{margin-left:auto}
+.transport{flex-wrap:wrap}
+.transport-buttons{flex-shrink:0}
+.timeline{min-width:120px}
+.timeline>div{flex-wrap:wrap}
+.timeline strong{white-space:normal;overflow-wrap:anywhere}
+.toolbar button{max-width:100%;overflow-wrap:anywhere}
+.toolbar button span{display:inline}
+.selection-help{margin:12px 0 16px}
+.point-row-header{flex-wrap:wrap}
+.point-row-header label{flex-basis:65px;overflow-wrap:anywhere}
+.point-heading,.wind-section summary{gap:8px;flex-wrap:wrap}
+.point-delay{flex-wrap:wrap}
+.point-delay input{flex-shrink:0}
+.general-actions button,.camera-actions button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.language-picker select{min-width:96px}
+.field,.general-parameter{min-width:0}
+.field input,.field select,.general-parameter input,.general-parameter select{min-width:0;max-width:100%}
+.select-value{display:block;white-space:normal;overflow-wrap:anywhere;font-size:11px;font-weight:400;line-height:1.5;color:var(--muted)}
+.general-parameter .select-value{color:inherit}
+dialog{overflow-wrap:anywhere}
+.dialog-heading{align-items:flex-start}
+.dialog-heading>div{min-width:0}
+.dialog-heading button{flex-shrink:0}
+.dialog-footer{flex-wrap:wrap}
+.dialog-footer button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.dialog-footer>span{min-width:0;flex:1 1 180px}
+.upload-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.upload{min-width:0}
+.base-actions button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.base-actions label{flex-wrap:wrap;min-width:0;max-width:100%}
+.base-layout>div,.base-navigation{min-width:0}
+.base-previews figure{display:flex;flex-direction:column}
+.base-previews figcaption{flex:1}
+.base-view{flex-shrink:0}
+@media(min-width:901px) and (min-height:650px){
+  body{height:100vh;height:100dvh;display:flex;flex-direction:column}
+  .app-header{flex-shrink:0}
+  .studio{flex:1;min-height:0}
+  .workspace,.sequence,.inspector{height:100%;min-height:0;overflow-y:auto}
+}
+@media(max-width:600px){
+  .upload-grid{grid-template-columns:minmax(0,1fr)}
+  .transport .timeline{flex-basis:100%}
+  .transport>button:last-child{display:block}
+  .dialog-footer>span{flex-basis:auto}
+  .base-actions label{flex-basis:100%}
+}

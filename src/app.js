@@ -268,7 +268,7 @@
       } else { input.type = 'color'; input.value = value || '#202c29'; input.oninput = () => change(input.value); }
       row.append(label, output, input); if (number) row.append(number); container.append(row);
     }
-    updateGeneralPending();
+    updateGeneralPending(); scheduleSelectLabels();
   }
   $('generalCard').onclick = () => { selected = -2; stageSelection.clear(); selectionDraft = {}; polygon = []; gesture = null; enterEdit(); renderStages(); updateInspector(); $('toolHint').textContent = t("general_modifica_parametros_de_toda_la_presentacion_despue"); };
   $('includeInitial').onchange = renderGeneral;
@@ -323,6 +323,7 @@
       }
       $('pointList').append(row);
     });
+    scheduleSelectLabels();
   }
   function setTool(next) {
     if (isBulk()) return;
@@ -495,6 +496,7 @@
   } });
   const baseControls = { baseColorToGray: 'colorToGray', baseSensitivity: 'sensitivity', baseBlackPoint: 'blackPoint', baseWhitePoint: 'whitePoint', baseSmoothness: 'smoothness' };
   function syncBaseControls() {
+    scheduleSelectLabels();
     const config = draft.baseGeneration = window.PaintBase.normalize(draft.baseGeneration);
     $('basePreset').value = window.PaintBase.presetName(config); $('basePaper').value = config.paper;
     $('baseInkMatch').value = config.inkMatch; $('baseInkMatch').disabled = !['coherent', 'protected'].includes(config.method);
@@ -681,6 +683,33 @@
   $('exampleButton').onclick = () => action(loadDemo);
   window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
   new ResizeObserver(fitCanvas).observe($('canvasArea'));
+  // Native selectors remain keyboard accessible; show their full value if it is clipped.
+  const selectLabels = new WeakMap(), observedSelects = new Set(), selectMetrics = document.createElement('canvas').getContext('2d');
+  function fitSelectLabel(select) {
+    const label = selectLabels.get(select); if (!label || !select.isConnected) return;
+    const text = select.selectedOptions[0]?.textContent || '', style = getComputedStyle(select);
+    selectMetrics.font = style.font || `${style.fontSize} ${style.fontFamily}`;
+    const required = selectMetrics.measureText(text).width + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + 24;
+    select.title = text; label.textContent = text;
+    label.hidden = !select.clientWidth || required <= select.clientWidth;
+  }
+  const selectResize = new ResizeObserver(entries => entries.forEach(({ target }) => fitSelectLabel(target)));
+  let selectLayoutFrame = 0;
+  function scheduleSelectLabels() {
+    if (selectLayoutFrame) return;
+    selectLayoutFrame = requestAnimationFrame(() => {
+      selectLayoutFrame = 0;
+      for (const select of observedSelects) if (!select.isConnected) { selectResize.unobserve(select); observedSelects.delete(select); }
+      document.querySelectorAll('.field select,.point-mode select,.general-parameter select').forEach(select => {
+        if (!selectLabels.has(select)) {
+          const label = document.createElement('span'); label.className = 'select-value'; label.hidden = true;
+          label.setAttribute('aria-hidden', 'true'); select.after(label); selectLabels.set(select, label); observedSelects.add(select); selectResize.observe(select);
+        }
+        fitSelectLabel(select);
+      });
+    });
+  }
+  document.addEventListener('change', event => { if (event.target.matches('select')) scheduleSelectLabels(); }, true);
   // Interfaz de diagnóstico local, útil para comprobar exportaciones sin dependencias.
   window.TintaColor = { getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision, getBasePreviewState: () => ({ complete: basePreviewGenerated, revision: previewRevision, view: { ...comparison.view }, state: $('basePreviewIndicator').dataset.state }) };
 
@@ -719,7 +748,7 @@
       else if (state === 'error') { $('basePreviewIndicator').title = i18n.error(previewErrorMessage); $('basePreviewStatus').textContent = i18n.error(previewErrorMessage); }
     }
     if (lastStatus) status(lastStatus.message, lastStatus.error);
-    drawOverlay();
+    scheduleSelectLabels(); drawOverlay();
   }
   document.querySelectorAll('[data-language-select], #exportLanguage').forEach(select => {
     select.replaceChildren(); for (const code of i18n.languages) { const option = document.createElement('option'); option.value = code; option.textContent = i18n.messages(code)._language_name || code; select.append(option); }
@@ -727,5 +756,5 @@
   document.querySelectorAll('[data-language-select]').forEach(select => { select.value = i18n.language; select.onchange = () => i18n.setLanguage(select.value); });
   i18n.subscribe(refreshLanguage);
 
-  renderStages(); updateInspector(); action(loadDemo);
+  renderStages(); updateInspector(); scheduleSelectLabels(); action(loadDemo);
 })();

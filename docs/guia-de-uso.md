@@ -10,6 +10,8 @@ El selector de la cabecera y el de Imágenes permiten elegir Español, English, 
 
 Al exportar puedes elegir el idioma de la presentación de forma independiente; comienza con el del editor y se incorpora al HTML sin recursos externos. No se guarda como un parámetro de animación. Consulta los [idiomas](idiomas.md).
 
+Los títulos, las herramientas y los diálogos se distribuyen en varias líneas cuando falta espacio. Si el valor elegido no cabe en un selector, su texto completo aparece debajo y también al dejar el puntero sobre el selector. Las herramientas conservan sus etiquetas en ventanas estrechas. En ventanas pequeñas o bajas puedes desplazarte para acceder al resto de los controles. La barra del HTML exportado también admite desplazamiento si supera la altura disponible; mostrarla u ocultarla conserva el tamaño de la imagen.
+
 ## Abrir
 
 Abre [index.html](../index.html) en Chrome o Edge. Conserva la estructura completa de carpetas al copiar o descomprimir el editor. El ejemplo se incluye en `examples/demo-data.js` para no tener que leer imágenes locales mediante peticiones web.

@@ -24,6 +24,13 @@
     assert(document.querySelector('.stage-select strong').textContent===input.stages[0].name,'Authored stage name changed');
     assert(JSON.stringify(TintaColor.getProject())===project && TintaColor.getRevision()===revision,'Language mutated project or invalidated computation');
     assert(localStorage.getItem('colorflow.language')===target,'Preference not stored');
+    for (const button of document.querySelectorAll('.toolbar button')) {
+      assert(getComputedStyle(button.querySelector('span')).display!=='none','Toolbar label hidden: '+button.textContent);
+    }
+    const pointMode=document.querySelector('.point-mode select');pointMode.style.width='80px';
+    await wait(()=>pointMode.nextElementSibling?.classList.contains('select-value')&&!pointMode.nextElementSibling.hidden);
+    assert(pointMode.nextElementSibling.textContent===pointMode.selectedOptions[0].textContent,'Full selected value missing');
+    assert(pointMode.title===pointMode.selectedOptions[0].textContent,'Select tooltip incomplete');pointMode.style.width='';
     $('generalCard').click();change('general-radius','35','input');change('general-number-speed','999','input');
     assert($('general-number-speed').getAttribute('aria-invalid')==='true','Invalid input fixture');
     change('languageSelect',alternate);assert($('general-number-speed').value==='999' && $('general-number-speed').getAttribute('aria-invalid')==='true','Invalid input lost');

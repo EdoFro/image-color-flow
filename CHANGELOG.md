@@ -8,6 +8,13 @@
 - Code and documentation under MIT, with LICENSE and package.json metadata. Example images retain separate conditions.
 - Seven MP4 recordings: example 6 featured in the README and a gallery of additional videos with links back to the project.
 
+## v0.13.1
+
+- Layout review for Spanish, English, French and German: wrapping headings, controls and dialogs, readable tool labels at narrow widths, aligned comparison canvases and full selected values below selectors when needed.
+- Desktop panels use the actual header height; small or short windows allow scrolling. Exported controls wrap long captions and remain scrollable without resizing the artwork.
+- Removed duplicate editor script/catalog and language-style loading. Added regression checks for labels, selected values, long captions and stable exported canvas size.
+- Offline Chrome review: 384 cases across four languages and twelve viewport sizes, plus editor, highlight, standalone export and core/automation regressions. User guide and verification record updated in both languages.
+
 ## v0.13.0
 
 - French and German in the editor and standalone HTML, with 429 complete messages per language: controls, help, errors, accessibility, progress and playback.
