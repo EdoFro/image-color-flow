@@ -4,9 +4,15 @@
 
 ## Unreleased
 
-- English/Spanish documentation: READMEs, manual, technical guides, gallery and changelog with language navigation. The interface remains in Spanish in this delivery.
+- English/Spanish documentation: READMEs, manual, technical guides, gallery and changelog with language navigation. The interface remained in Spanish in that initial documentation commit.
 - Code and documentation under MIT, with LICENSE and package.json metadata. Example images retain separate conditions.
 - Seven MP4 recordings: example 6 featured in the README and a gallery of additional videos with links back to the project.
+
+## v0.12.0
+
+- English/Spanish editor with local catalogs, browser-language detection, remembered preference and live switching without changing project data, drafts, preview calculation or playback.
+- Independent export language; standalone HTML embeds its controls and messages. File-chooser labels inside the editor are localized.
+- Shared translation factory, fallback, placeholder checks and actual Chrome editor/export regression tests. French/German and a full long-text layout review remain separate deliveries.
 
 ## v0.11.0
 

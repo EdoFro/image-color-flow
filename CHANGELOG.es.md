@@ -4,10 +4,16 @@
 
 ## Sin publicar
 
-- Documentación bilingüe español/inglés: portadas, manual, guías técnicas, galería y cambios, con navegación por idioma. La interfaz permanece en español en esta entrega.
+- Documentación bilingüe español/inglés: portadas, manual, guías técnicas, galería y cambios, con navegación por idioma. La interfaz permaneció en español en ese primer commit documental.
 
 - Código y documentación bajo licencia MIT, con archivo LICENSE y metadato en package.json. Las imágenes de ejemplo conservan sus condiciones por separado.
 - Siete grabaciones MP4 de demostración: ejemplo 6 destacado en el README y galería de vídeos adicionales con navegación de ida y vuelta.
+
+## v0.12.0
+
+- Editor español/inglés con catálogos locales, detección del navegador, preferencia recordada y cambio en vivo sin alterar proyecto, pendientes, cálculo de la base ni reproducción.
+- Idioma de exportación independiente; el HTML autónomo incorpora controles y mensajes. Etiquetas de selección de archivo del editor traducidas.
+- Fábrica de traducción compartida, alternativa española, comprobación de variables y pruebas reales en Chrome del editor y del HTML. Francés/alemán y revisión completa de textos largos quedan para entregas separadas.
 
 ## v0.11.0
 

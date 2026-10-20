@@ -39,7 +39,7 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 5. El reproductor mezcla la base con la imagen final y acumula el color revelado. La vista aplica el destacado y la cámara. Durante una transición interpola el rectángulo y combina los estilos en alfa premultiplicada, conservando la transparencia.
 6. El guardado de proyecto conserva datos editables; la exportación incorpora imágenes preparadas, mapas y funciones necesarias en un único HTML.
 
-El orden de carga del editor es motor, generación de base, formato de proyecto, preparación, vista, reproductor, códec, parámetros generales, imágenes de ejemplo, exportación, automatización y aplicación. Las fábricas del motor, reproductor, vista y códec deben seguir siendo autocontenidas: sus funciones se incorporan al trabajador o al HTML exportado mediante `toString()`.
+El orden de carga del editor comienza con i18n y sus catálogos, seguidos por motor, generación de base, formato de proyecto, preparación, vista, reproductor, códec, parámetros generales, imágenes de ejemplo, exportación, automatización y aplicación. Las fábricas del motor, reproductor, vista y códec deben seguir siendo autocontenidas: sus funciones se incorporan al trabajador o al HTML exportado mediante `toString()`.
 
 ## Cómo se propaga el color
 
@@ -92,4 +92,10 @@ MCP utiliza JSON-RPC por stdio, sin dependencias, con descubrimiento de siete he
 
 ## Idiomas de la documentación
 
-El README inglés es la portada del repositorio; `README.es.md` es su equivalente español. Las guías españolas conservan sus rutas, con versiones inglesas en `docs/en/`. Esta entrega de documentación no cambia el funcionamiento de la aplicación. Consulta el [mantenimiento de documentación](documentacion.md) para las actualizaciones por pares y la navegación de idioma.
+El README inglés es la portada del repositorio; `README.es.md` es su equivalente español. Las guías españolas conservan sus rutas, con versiones inglesas en `docs/en/`. Los archivos de documentación no intervienen en el cálculo de la animación. Consulta el [mantenimiento de documentación](documentacion.md) para las actualizaciones por pares y la navegación de idioma.
+
+## Idiomas de la interfaz
+
+`src/i18n.js` expone una fábrica autocontenida y la instancia `PaintI18n`; los catálogos `src/locales/es.js` y `en.js` se cargan antes del editor mediante scripts clásicos. Los textos estáticos usan atributos `data-i18n`; los dinámicos usan claves y variables. La traducción de metadatos y errores ocurre en la interfaz: el motor, los campos JSON y los nombres del usuario conservan su significado. No se emplean observadores que traduzcan texto arbitrario del lienzo.
+
+El cambio de idioma refresca controles conservando los borradores inválidos y la selección; no llama a invalidate ni reinicia el reproductor o el Worker. La preferencia es local al navegador, fuera del proyecto. Exportar incorpora únicamente las claves necesarias y la fábrica de traducción en el HTML. La automatización sin idioma explícito conserva el español. Consulta [idiomas](idiomas.md).

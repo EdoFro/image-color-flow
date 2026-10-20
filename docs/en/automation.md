@@ -120,7 +120,7 @@ For a browser in another location, add `"--browser", "/path/to/executable"` to `
 | `colorflow_render` | Generate HTML, project, report and previews. |
 | `colorflow_read_image` | Return a source or preview as an image to the model. |
 
-The server also exposes `colorflow://schema/plan` and `colorflow://guide` resources. It returns structured content and tool errors, supports render cancellation and closes jobs when the client disconnects. Only local `stdio` transport is implemented: there is no remote MCP endpoint, account system or provider key requirement. In this documentation-only delivery, tool descriptions, errors and the `colorflow://guide` runtime resource remain in Spanish; the English guide is [for-ai.md](for-ai.md).
+The server also exposes `colorflow://schema/plan` and `colorflow://guide` resources. It returns structured content and tool errors, supports render cancellation and closes jobs when the client disconnects. Only local `stdio` transport is implemented: there is no remote MCP endpoint, account system or provider key requirement. MCP tool descriptions, automation errors and the `colorflow://guide` runtime resource remain in Spanish; the English guide is [for-ai.md](for-ai.md).
 
 Example request after connecting:
 

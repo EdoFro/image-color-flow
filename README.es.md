@@ -16,7 +16,7 @@ Los vídeos se grabaron en ventanas pequeñas para reducir su peso; su resoluci�
 
 ## Empezar
 
-La interfaz está actualmente en **español**. Los idiomas inglés, francés y alemán se incorporarán en entregas posteriores; esta entrega incluye documentación en español e inglés.
+La interfaz está disponible en **español e inglés**. Elige el idioma en la cabecera o en Imágenes; se recuerda localmente. La primera vez se utiliza un idioma compatible del navegador, con español como alternativa. Cambiarlo conserva el proyecto y la reproducción. Francés y alemán se incorporarán después. Consulta los [idiomas de la aplicación](docs/idiomas.md).
 
 1. Descarga o copia el proyecto completo, conservando sus carpetas.
 2. Abre [index.html](index.html) en Chrome o Edge. No requiere instalación, servidor ni conexión.

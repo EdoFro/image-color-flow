@@ -6,6 +6,14 @@
 
 Este documento registra comprobaciones históricas y sus limitaciones. Su traducción no significa que se hayan repetido esas pruebas. Si un resultado antiguo difiere del comportamiento actual, consulta la versión más reciente correspondiente.
 
+## v0.12.0 · Español e inglés
+
+- Catálogos y variables verificados con `node tests/i18n.test.mjs`: claves equivalentes, enlaces de texto HTML, detección regional, alternativa española, almacenamiento bloqueado, interpolación y fábrica/exportación autocontenidas.
+- 106/106 pruebas sin DOM y 29/29 de automatización correctas. Se actualizó el contexto de pruebas del constructor para cargar su dependencia de traducción.
+- Chrome real con `node scripts/ejecutar-pruebas-vista.mjs --i18n`: proyecto y revisión sin cambios, nombres literales conservados, selección múltiple, borradores numéricos inválidos, revisión abierta, cambio durante cálculo de base, zoom, reproductor pausado y exportación independiente. HTML inglés ejecutado en otro trabajo: inicio, controles, avance, final y reinicio traducidos.
+- Regresión en Chrome de Imágenes y destacados múltiples: luz, cancelación, ajustes recientes, píxeles completos, originales intactos, unión, transparencia y HTML exportado correctos.
+- Apertura directa `file://` comprobada en Chrome con el contexto sin conexión: detección inglesa, cambio a español y preferencia conservada al recargar. Revisión visual básica a 1440 × 1000 de cabecera y diálogo, sin errores de página ni desbordamiento de cabecera. No sustituye la revisión completa de textos largos prevista para una entrega posterior.
+
 ## v0.11.0 · Destacados múltiples
 
 - 106/106 pruebas sin DOM y 28/29 de automatización: migración del rectángulo único, precedencia de la lista, persistencia en Inicio/etapas y codec, selección, asas, límites, tamaño mínimo, vínculo general, validación de listas y parche antiguo de API.

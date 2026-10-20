@@ -4,7 +4,13 @@
 
 [Back to the project](../../README.md)
 
-The interface is currently in Spanish. This guide explains controls in English and includes their actual Spanish labels. Screenshots also show the Spanish interface. Interface language selection is a later delivery.
+The editor supports English and Spanish. Use the language selector in the header or Images dialog. This guide includes Spanish button labels as references; the English interface uses their translations. Existing screenshots show the Spanish interface. See [language support](languages.md) for preferences and export language.
+
+## Language
+
+The header and Images selectors switch between English and Spanish. The choice is remembered in this browser; first use chooses a supported browser language or Spanish. Switching preserves the project, selection, pending edits, zoom and playback, without recalculating maps or regenerating the base. User-authored names remain unchanged.
+
+Export lets you independently choose the presentation language, initially the editor language. It is embedded in the HTML without external resources, rather than saved as an animation parameter. See [languages](languages.md).
 
 ## Open the editor
 

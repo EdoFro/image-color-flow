@@ -1,5 +1,8 @@
 (function () {
   'use strict';
+  const i18n = window.PaintI18n, t = (key, values) => i18n.t(key, values), tx = text => i18n.source(text);
+  let savedLanguage; try { savedLanguage = localStorage.getItem('colorflow.language'); } catch (_) {}
+  i18n.setLanguage(document.documentElement.dataset.language || i18n.choose(savedLanguage, navigator.languages || [navigator.language]), false); i18n.apply(document);
   const $ = id => document.getElementById(id), engine = window.PaintEngine;
   const canvas = $('canvas'), overlay = $('overlay'), ctx = canvas.getContext('2d'), octx = overlay.getContext('2d');
   const zeroAlignment = () => ({ x: 0, y: 0, sx: 1, sy: 1, angle: 0 });
@@ -31,13 +34,15 @@
   function clearBulkDraft() { if (isGeneral()) generalDraft = {}; else selectionDraft = {}; }
   const current = () => selected < 0 ? project.initialView : project.stages[selected];
   const waitFrame = () => new Promise(resolve => setTimeout(resolve, 30));
-  function status(message, error = false) { $('status').textContent = message; $('status').classList.toggle('error', error); }
+  const formatGeneral = (parameter, value) => tx(general.format(parameter, value));
+  let lastStatus = null;
+  function status(message, error = false) { lastStatus = { message, error }; $('status').textContent = i18n.error(typeof message === 'function' ? message() : message); $('status').classList.toggle('error', error); }
   function timeLabel(seconds) { if (!Number.isFinite(seconds)) return '—'; const s = Math.round(seconds); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
-  function report(error) { console.error(error); status(error.message || String(error), true); }
+  function report(error) { console.error(error); status(() => (error.message || String(error)), true); }
   async function action(fn) { if (busy) return; busy = true; document.body.classList.add('busy'); const controls = [...document.querySelectorAll('button,input,select')].map(e => [e, e.disabled]); controls.forEach(([e]) => e.disabled = true); try { await fn(); } catch (error) { report(error); } finally { busy = false; document.body.classList.remove('busy'); controls.forEach(([e, disabled]) => e.disabled = disabled); if ($('imagesDialog').open) { syncBaseControls(); $('downloadBase').disabled = !basePreviewGenerated; } if (player) playerState(player.getState()); } }
   function destroyPlayer() { if (player) player.destroy(); player = null; }
-  function enterEdit() { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); $('viewMode').value = 'edit'; $('playButton').textContent = '▶'; $('playButton').setAttribute('aria-label', 'Reproducir'); $('playStatus').textContent = 'Listo para explorar'; $('playButton').disabled = false; $('nextButton').disabled = false; drawEditor(); }
-  function invalidate() { revision++; cached = null; dirty = true; $('estimate').textContent = 'Por calcular'; $('timeLabel').textContent = '0:00 / —'; $('timeline').value = 0; enterEdit(); }
+  function enterEdit() { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); $('viewMode').value = 'edit'; $('playButton').textContent = '▶'; $('playButton').setAttribute('aria-label', t("reproducir")); $('playStatus').textContent = t("listo_para_explorar"); $('playButton').disabled = false; $('nextButton').disabled = false; drawEditor(); }
+  function invalidate() { revision++; cached = null; dirty = true; $('estimate').textContent = t("por_calcular"); $('timeLabel').textContent = '0:00 / —'; $('timeline').value = 0; enterEdit(); }
   function fitCanvas() {
     if (!prepared) return;
     const area = $('canvasArea'), padding = innerWidth <= 600 ? 24 : 40;
@@ -108,7 +113,7 @@
     }
     function guide(rect, color, label) { if (!rect) return; octx.save(); octx.beginPath(); octx.rect(rect.x * w, rect.y * h, rect.width * w, rect.height * h); contrast(color, [9, 5], 1.5); octx.fillStyle = color; octx.font = 'bold ' + 11 * scale + 'px sans-serif'; octx.textAlign = 'left'; octx.textBaseline = 'top'; octx.fillText(label, rect.x * w + 6 * scale, rect.y * h + 6 * scale); octx.restore(); }
     const framing = gesture?.kind === 'camera' ? frameFromRect(gesture.start, gesture.end) : config.frame;
-    guide(framing, '#5db8ff', config.highlightEnabled && config.highlightLinked ? 'Enfoque + destacado' : 'Enfoque');
+    guide(framing, '#5db8ff', config.highlightEnabled && config.highlightLinked ? t("enfoque_destacado") : t("enfoque"));
     if (config.highlightEnabled && !config.highlightLinked) {
       let rects = config.highlightFrames || [];
       if (gesture?.kind === 'highlight') {
@@ -116,7 +121,7 @@
         else rects = gesture.append ? [...rects, gesture.candidate] : [gesture.candidate];
       }
       rects.forEach((rect, index) => {
-        const active = index === selectedHighlight; guide(rect, active ? '#b829df' : '#db76f3', `Destacado ${index + 1}`);
+        const active = index === selectedHighlight; guide(rect, active ? '#b829df' : '#db76f3', t("destacado_value", { p0: index + 1 }));
         if (tool === 'highlight' && active) for (const handle of PaintHighlightEditor.handles(rect)) {
           octx.fillStyle = '#fff'; octx.fillRect(handle.x * w - 5 * scale, handle.y * h - 5 * scale, 10 * scale, 10 * scale);
           octx.strokeStyle = '#8d21ab'; octx.lineWidth = 2 * scale; octx.strokeRect(handle.x * w - 5 * scale, handle.y * h - 5 * scale, 10 * scale, 10 * scale);
@@ -136,16 +141,16 @@
     project.stages.forEach((stage, i) => {
       const card = document.createElement('div'); card.className = `stage-card${stageSelection.has(stage) ? ' selected' : ''}${stage.enabled === false ? ' disabled-stage' : ''}`; card.dataset.stageIndex = i;
       const number = document.createElement('span'); number.className = 'stage-number'; number.textContent = String(i + 1).padStart(2, '0'); card.append(number);
-      const enabled = document.createElement('input'); enabled.type = 'checkbox'; enabled.className = 'stage-enabled'; enabled.checked = stage.enabled !== false; enabled.setAttribute('aria-label', `Habilitar etapa ${i + 1}: ${stage.name}`); enabled.title = 'Habilitar etapa'; enabled.onchange = () => { stage.enabled = enabled.checked; invalidate(); renderStages(); updateInspector(); }; number.append(enabled);
+      const enabled = document.createElement('input'); enabled.type = 'checkbox'; enabled.className = 'stage-enabled'; enabled.checked = stage.enabled !== false; enabled.setAttribute('aria-label', t("habilitar_etapa_value_value", { p0: i + 1, p1: stage.name })); enabled.title = t("habilitar_etapa"); enabled.onchange = () => { stage.enabled = enabled.checked; invalidate(); renderStages(); updateInspector(); }; number.append(enabled);
       const select = document.createElement('button'); select.className = 'stage-select'; select.setAttribute('aria-pressed', String(i === selected));
-      const name = document.createElement('strong'); name.textContent = stage.name; const sub = document.createElement('small'); sub.textContent = stage.enabled === false ? 'Deshabilitada · editable' : `${!activeCount(stage) && !stage.path.length ? 'Solo enfoque / destacado' : `${activeCount(stage)}/${stage.points.length} activos${stage.path.length ? ' + recorrido' : ''}`} · ${stage.pauseAfter ? 'con pausa' : 'continua'}`; select.append(name, sub);
+      const name = document.createElement('strong'); name.textContent = stage.name; const sub = document.createElement('small'); sub.textContent = stage.enabled === false ? t('disabled_stage_summary') : `${!activeCount(stage) && !stage.path.length ? t("solo_enfoque_destacado") : t('stage_summary', { active: activeCount(stage), total: stage.points.length, path: stage.path.length ? t('path_suffix') : '' })} · ${stage.pauseAfter ? t("con_pausa") : t("continua")}`; select.append(name, sub);
       select.onclick = event => selectStage(i, event.ctrlKey); name.ondblclick = e => { e.preventDefault(); e.stopPropagation(); if (e.ctrlKey) return; selectStage(i); beginRename(i); }; card.append(select);
       const order = document.createElement('div'); order.className = 'stage-order';
       for (const [delta, text] of [[-1, '↑'], [1, '↓']]) {
-        const b = document.createElement('button'); b.textContent = text; b.title = delta < 0 ? 'Mover antes' : 'Mover después'; b.setAttribute('aria-label', `${b.title}: ${stage.name}`);
+        const b = document.createElement('button'); b.textContent = text; b.title = delta < 0 ? t("mover_antes") : t("mover_despues"); b.setAttribute('aria-label', `${b.title}: ${stage.name}`);
         b.onclick = () => { const j = i + delta; if (j < 0 || j >= project.stages.length) return; const primary = current(); [project.stages[i], project.stages[j]] = [project.stages[j], project.stages[i]]; if (!stageSelection.has(stage)) { stageSelection = new Set([stage]); selectionDraft = {}; } selected = project.stages.indexOf(stageSelection.has(primary) ? primary : stage); invalidate(); renderStages(); updateInspector(); }; order.append(b);
       }
-      const rename = document.createElement('button'); rename.textContent = '✎'; rename.setAttribute('aria-label', `Renombrar etapa ${i + 1}`); rename.onclick = () => { selectStage(i); beginRename(i); }; order.append(rename);
+      const rename = document.createElement('button'); rename.textContent = '✎'; rename.setAttribute('aria-label', t("renombrar_etapa_value", { p0: i + 1 })); rename.onclick = () => { selectStage(i); beginRename(i); }; order.append(rename);
       card.append(order); $('stageList').append(card);
     });
     updateStageSelection();
@@ -154,7 +159,7 @@
     $('generalCard').classList.toggle('selected', isGeneral()); $('generalCard').setAttribute('aria-pressed', String(isGeneral()));
     $('initialCard').classList.toggle('selected', isInitial()); $('initialCard').setAttribute('aria-pressed', String(isInitial()));
     document.querySelectorAll('.stage-card').forEach(card => { const active = stageSelection.has(project.stages[+card.dataset.stageIndex]); card.classList.toggle('selected', active); card.classList.toggle('reference-stage', active && +card.dataset.stageIndex === selected && isMultiple()); card.querySelector('.stage-select').setAttribute('aria-pressed', String(active)); });
-    $('canvasTitle').textContent = isGeneral() ? 'General · toda la presentación' : isInitial() ? 'Inicio de la presentación' : isMultiple() ? `${stageSelection.size} etapas · referencia: ${current().name}` : current().name;
+    $('canvasTitle').textContent = isGeneral() ? t("general_toda_la_presentacion") : isInitial() ? t("inicio_de_la_presentacion") : isMultiple() ? t('selection_reference', { count: stageSelection.size, name: current().name }) : current().name;
   }
   function selectStage(index, additive = false) {
     const stage = project.stages[index], before = [...stageSelection];
@@ -163,46 +168,46 @@
       else stageSelection.add(stage);
     } else stageSelection = new Set([stage]);
     if (before.length !== stageSelection.size || before.some(item => !stageSelection.has(item))) {
-      if (Object.keys(selectionDraft).length) status('Cambió la selección; se descartaron sus cambios pendientes.');
+      if (Object.keys(selectionDraft).length) status(() => (t("cambio_la_seleccion_se_descartaron_sus_cambios_pendientes")));
       selectionDraft = {};
     }
     selected = project.stages.indexOf(stageSelection.has(stage) ? stage : [...stageSelection].at(-1)); selectedPoint = 0; selectedHighlight = 0; polygon = []; gesture = null;
     enterEdit(); updateStageSelection(); updateInspector();
-    if (isMultiple()) $('toolHint').textContent = 'Edición de parámetros de las etapas seleccionadas · geometrías individuales desactivadas.';
+    if (isMultiple()) $('toolHint').textContent = t("edicion_de_parametros_de_las_etapas_seleccionadas_geometri");
     else setTool(tool === 'highlight' && (!current().highlightEnabled || current().highlightLinked) ? 'camera' : tool);
   }
   function beginRename(index) {
     if (busy || document.querySelector('.stage-name-editor')) return;
     const stage = project.stages[index], card = document.querySelector(`.stage-card[data-stage-index="${index}"]`), input = document.createElement('input');
-    input.className = 'stage-name-editor'; input.maxLength = 80; input.value = stage.name; input.setAttribute('aria-label', `Nombre de etapa ${index + 1}`); card.append(input); input.focus(); input.select(); let done = false;
+    input.className = 'stage-name-editor'; input.maxLength = 80; input.value = stage.name; input.setAttribute('aria-label', t("nombre_de_etapa_value", { p0: index + 1 })); card.append(input); input.focus(); input.select(); let done = false;
     function finish(save) { if (done) return; done = true; if (save) { const name = input.value.trim() || stage.name; if (name !== stage.name) { stage.name = name; invalidate(); } } renderStages(); updateInspector(); }
     input.onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); finish(true); } if (e.key === 'Escape') { e.preventDefault(); finish(false); } }; input.onblur = () => finish(true);
   }
   function updateInspector() {
     $('generalSettings').hidden = !isBulk(); $('individualSettings').hidden = isBulk(); $('includeInitialField').hidden = !isGeneral();
     if (isBulk()) {
-      $('inspectorTitle').textContent = isGeneral() ? 'Una mirada al conjunto' : `${stageSelection.size} etapas seleccionadas`; $('inspectorEyebrow').textContent = isGeneral() ? 'GENERAL / PARÁMETROS' : 'SELECCIÓN / PARÁMETROS';
+      $('inspectorTitle').textContent = isGeneral() ? t("una_mirada_al_conjunto") : t("value_etapas_seleccionadas", { p0: stageSelection.size }); $('inspectorEyebrow').textContent = isGeneral() ? t('general_parameters') : t('selection_parameters');
       for (const id of ['duplicateStage', 'deleteStage', 'clearZone', 'clearPath']) $(id).disabled = true;
       document.querySelectorAll('[data-tool]').forEach(button => button.disabled = true); renderGeneral(); return;
     }
     const stage = current(); $('stageSettings').hidden = isInitial(); $('initialHint').hidden = !isInitial(); $('estimateBlock').hidden = isInitial(); $('cameraTiming').hidden = isInitial();
-    $('inspectorTitle').textContent = isInitial() ? 'La primera mirada' : 'El movimiento del color'; $('inspectorEyebrow').textContent = isInitial() ? '00 / INICIO' : '02 / PROPAGACIÓN';
+    $('inspectorTitle').textContent = isInitial() ? t("la_primera_mirada") : t("el_movimiento_del_color"); $('inspectorEyebrow').textContent = isInitial() ? t('initial_heading') : t('02_propagacion');
     for (const id of ['duplicateStage', 'deleteStage', 'clearZone', 'clearPath']) $(id).disabled = isInitial();
     document.querySelectorAll('[data-tool]').forEach(button => button.disabled = (isInitial() && !['camera', 'highlight'].includes(button.dataset.tool)) || (button.dataset.tool === 'highlight' && (!stage.highlightEnabled || stage.highlightLinked)));
     if (!isInitial()) {
       $('stageName').value = stage.name;
       for (const [id, [key, multiplier, format]] of Object.entries(params)) { $(id).value = stage[key] * multiplier; $(`${id}Out`).textContent = format(stage[key]); }
-      $('pauseAfter').checked = stage.pauseAfter; $('windSummary').textContent = stage.windStrength ? `${Math.round(stage.windAngle)}° · ${stage.windStrength.toFixed(2)}` : 'Sin viento'; renderPoints();
-      $('pathInfo').textContent = stage.path.length ? `Recorrido trazado · ${stage.path.length} vértices. El pincel deja color a su paso.` : 'Sin recorrido de pincel.';
-      if (stage.enabled === false) $('estimate').textContent = 'Deshabilitada';
-      else if (cached) $('estimate').textContent = `${cached.fields[selected].duration.toFixed(1)} s / ${cached.fields.reduce((s, f) => s + f.duration, 0).toFixed(1)} s total`;
+      $('pauseAfter').checked = stage.pauseAfter; $('windSummary').textContent = stage.windStrength ? `${Math.round(stage.windAngle)}° · ${stage.windStrength.toFixed(2)}` : t("sin_viento"); renderPoints();
+      $('pathInfo').textContent = stage.path.length ? t("recorrido_trazado_value_vertices_el_pincel_deja_color_a_su", { p0: stage.path.length }) : t("sin_recorrido_de_pincel");
+      if (stage.enabled === false) $('estimate').textContent = t("deshabilitada");
+      else if (cached) $('estimate').textContent = t("value_s_value_s_total", { p0: cached.fields[selected].duration.toFixed(1), p1: cached.fields.reduce((s, f) => s + f.duration, 0).toFixed(1) });
     }
-    $('frameInfo').textContent = stage.frame ? `Enfoque definido · ${Math.round(stage.frame.width * 100)}% × ${Math.round(stage.frame.height * 100)}% de la imagen.` : 'Enfoque: página completa.';
+    $('frameInfo').textContent = stage.frame ? t("enfoque_definido_value_value_de_la_imagen", { p0: Math.round(stage.frame.width * 100), p1: Math.round(stage.frame.height * 100) }) : t("enfoque_pagina_completa");
     $('zoom').value = (stage.zoom ?? 1) * 100; $('zoomOut').textContent = Math.round((stage.zoom ?? 1) * 100) + '%';
     $('highlightEnabled').checked = stage.highlightEnabled; $('highlightSettings').hidden = !stage.highlightEnabled; $('highlightLinked').checked = stage.highlightLinked;
     $('setHighlight').disabled = stage.highlightLinked; $('outside').value = stage.outside; $('outsideColor').value = stage.outsideColor;
     $('outsideColorField').hidden = stage.outside !== 'color'; $('blurField').hidden = stage.outside !== 'blur'; $('blur').value = stage.blur; $('blurOut').textContent = stage.blur + ' px';
-    $('highlightInfo').textContent = stage.highlightLinked ? 'El destacado usa el rectángulo de enfoque. Los separados se conservan.' : stage.highlightFrames.length ? `${stage.highlightFrames.length} destacado${stage.highlightFrames.length === 1 ? '' : 's'} separado${stage.highlightFrames.length === 1 ? '' : 's'}. Ctrl + arrastrar agrega otro. Sin Ctrl, arrastrar en un área libre reemplaza la lista.` : 'Sin rectángulos: se muestra la página completa. Dibuja un destacado en el lienzo.';
+    $('highlightInfo').textContent = stage.highlightLinked ? t("el_destacado_usa_el_rectangulo_de_enfoque_los_separados_se") : stage.highlightFrames.length ? t("value_destacadovalue_separadovalue_ctrl_arrastrar_agrega_o", { p0: stage.highlightFrames.length, p1: stage.highlightFrames.length === 1 ? '' : 's', p2: stage.highlightFrames.length === 1 ? '' : 's' }) : t("sin_rectangulos_se_muestra_la_pagina_completa_dibuja_un_de");
     renderHighlights();
   }
   function setHighlightFrames(frames) { const normalized = engine.normalizeView({ highlightFrames: frames }); current().highlightFrames = normalized.highlightFrames; current().highlightFrame = normalized.highlightFrame; }
@@ -211,9 +216,9 @@
     if (!(gesture?.kind === 'highlight' && !gesture.original)) selectedHighlight = Math.max(0, Math.min(selectedHighlight, config.highlightFrames.length - 1));
     config.highlightFrames.forEach((rect, i) => {
       const row = document.createElement('div'); row.className = 'highlight-row' + (i === selectedHighlight ? ' selected' : '');
-      const choose = document.createElement('button'); choose.type = 'button'; choose.textContent = `Destacado ${i + 1}`; choose.setAttribute('aria-pressed', String(i === selectedHighlight));
+      const choose = document.createElement('button'); choose.type = 'button'; choose.textContent = t("destacado_value", { p0: i + 1 }); choose.setAttribute('aria-pressed', String(i === selectedHighlight));
       choose.onclick = () => { selectedHighlight = i; setTool('highlight'); renderHighlights(); overlay.focus({ preventScroll: true }); };
-      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', `Eliminar destacado ${i + 1}`); remove.onclick = () => removeHighlight(i);
+      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', t("eliminar_destacado_value", { p0: i + 1 })); remove.onclick = () => removeHighlight(i);
       row.append(choose, remove); list.append(row);
     });
   }
@@ -221,11 +226,11 @@
     if (busy || isBulk() || index < 0 || index >= current().highlightFrames.length) return;
     gesture = null; const rects = current().highlightFrames.slice(); rects.splice(index, 1); setHighlightFrames(rects); selectedHighlight = Math.max(0, Math.min(index, rects.length - 1));
     if (!rects.length) { current().highlightEnabled = false; if (tool === 'highlight') setTool('camera'); }
-    invalidate(); updateInspector(); status(rects.length ? 'Destacado eliminado.' : 'Último rectángulo eliminado; destacado deshabilitado.');
+    invalidate(); updateInspector(); status(() => (rects.length ? t("destacado_eliminado") : t("ultimo_rectangulo_eliminado_destacado_deshabilitado")));
   }
   function updateGeneralPending() {
     const count = Object.keys(bulkDraft()).length;
-    $('generalPending').textContent = generalInvalid.size ? 'Revisa los valores fuera de rango antes de aplicar.' : count ? `${count} parámetro${count === 1 ? '' : 's'} pendiente${count === 1 ? '' : 's'} de confirmar.` : 'Sin cambios pendientes.';
+    $('generalPending').textContent = generalInvalid.size ? t("revisa_los_valores_fuera_de_rango_antes_de_aplicar") : count ? t("value_parametrovalue_pendientevalue_de_confirmar", { p0: count, p1: count === 1 ? '' : 's', p2: count === 1 ? '' : 's' }) : t("sin_cambios_pendientes");
     $('reviewGeneral').disabled = !count || generalInvalid.size > 0; $('cancelGeneral').disabled = !count && !generalInvalid.size;
   }
   function renderGeneral() {
@@ -235,29 +240,29 @@
     for (const parameter of general.parameters) {
       if (group !== parameter.group) {
         group = parameter.group; container = document.createElement('section'); container.className = 'general-group';
-        const title = document.createElement('h3'); title.textContent = group; container.append(title); $('generalParameters').append(container);
+        const title = document.createElement('h3'); title.textContent = tx(group); container.append(title); $('generalParameters').append(container);
       }
       const summary = general.summary(scope, parameter, includeInitial()), pending = Object.hasOwn(changes, parameter.key);
       const row = document.createElement('div'); row.className = `general-parameter${summary.mixed ? ' mixed' : ''}${pending ? ' pending' : ''}`; row.dataset.parameter = parameter.key;
-      const label = document.createElement('label'); label.textContent = parameter.label; label.htmlFor = 'general-' + parameter.key;
-      const output = document.createElement('output'); output.textContent = !summary.count ? 'No hay puntos.' : pending ? 'Pendiente: ' + general.format(parameter, changes[parameter.key]) : summary.mixed ? `Varios valores${parameter.type === 'number' ? ` · ${general.format(parameter, summary.min)} – ${general.format(parameter, summary.max)}` : ''}` : 'Valor uniforme · ' + general.format(parameter, summary.value);
-      const input = document.createElement(parameter.type === 'select' ? 'select' : 'input'); input.id = label.htmlFor; input.setAttribute('aria-label', (isGeneral() ? 'General · ' : 'Selección · ') + parameter.label); input.disabled = !summary.count;
+      const label = document.createElement('label'); label.textContent = tx(parameter.label); label.htmlFor = 'general-' + parameter.key;
+      const output = document.createElement('output'); output.textContent = !summary.count ? t("no_hay_puntos") : pending ? t("pendiente") + formatGeneral(parameter, changes[parameter.key]) : summary.mixed ? t("varios_valoresvalue", { p0: parameter.type === 'number' ? ` · ${formatGeneral(parameter, summary.min)} – ${formatGeneral(parameter, summary.max)}` : '' }) : t("valor_uniforme") + formatGeneral(parameter, summary.value);
+      const input = document.createElement(parameter.type === 'select' ? 'select' : 'input'); input.id = label.htmlFor; input.setAttribute('aria-label', (isGeneral() ? t("general") : t("seleccion")) + tx(parameter.label)); input.disabled = !summary.count;
       const value = pending ? changes[parameter.key] : summary.value;
       let number;
-      function change(next) { generalInvalid.delete(parameter.key); number?.removeAttribute('aria-invalid'); changes[parameter.key] = next; row.classList.add('pending'); output.textContent = 'Pendiente: ' + general.format(parameter, next); updateGeneralPending(); }
+      function change(next) { generalInvalid.delete(parameter.key); number?.removeAttribute('aria-invalid'); changes[parameter.key] = next; row.classList.add('pending'); output.textContent = t("pendiente") + formatGeneral(parameter, next); updateGeneralPending(); }
       if (parameter.type === 'number') {
-        input.type = 'range'; number = document.createElement('input'); number.type = 'number'; number.setAttribute('aria-label', (isGeneral() ? 'Valor general · ' : 'Valor de selección · ') + parameter.label); number.disabled = !summary.count;
+        input.type = 'range'; number = document.createElement('input'); number.type = 'number'; number.id = 'general-number-' + parameter.key; number.setAttribute('aria-label', (isGeneral() ? t("valor_general") : t("valor_de_seleccion")) + tx(parameter.label)); number.disabled = !summary.count;
         for (const control of [input, number]) { control.min = parameter.min; control.max = parameter.max; control.step = parameter.step; }
         input.value = value === undefined ? parameter.min : value * parameter.scale;
-        number.value = value === undefined ? '' : +(value * parameter.scale).toFixed(6); number.placeholder = summary.mixed ? 'Varios valores' : '';
+        number.value = value === undefined ? '' : +(value * parameter.scale).toFixed(6); number.placeholder = summary.mixed ? t("varios_valores") : '';
         input.oninput = () => { number.value = input.value; change(+input.value / parameter.scale); };
         number.oninput = () => {
           if (number.value !== '' && number.checkValidity()) { input.value = number.value; change(+number.value / parameter.scale); }
-          else { generalInvalid.add(parameter.key); delete changes[parameter.key]; row.classList.remove('pending'); number.setAttribute('aria-invalid', 'true'); output.textContent = `Introduce un valor entre ${parameter.min} y ${parameter.max}.`; updateGeneralPending(); }
+          else { generalInvalid.add(parameter.key); delete changes[parameter.key]; row.classList.remove('pending'); number.setAttribute('aria-invalid', 'true'); output.textContent = t("introduce_un_valor_entre_value_y_value", { p0: parameter.min, p1: parameter.max }); updateGeneralPending(); }
         };
       } else if (parameter.type === 'select') {
-        const blank = document.createElement('option'); blank.value = ''; blank.textContent = 'Varios valores'; blank.disabled = true; input.append(blank);
-        parameter.options.forEach(([optionValue, text], i) => { const option = document.createElement('option'); option.value = String(i); option.textContent = text; input.append(option); });
+        const blank = document.createElement('option'); blank.value = ''; blank.textContent = t("varios_valores"); blank.disabled = true; input.append(blank);
+        parameter.options.forEach(([optionValue, text], i) => { const option = document.createElement('option'); option.value = String(i); option.textContent = tx(text); input.append(option); });
         const index = parameter.options.findIndex(option => option[0] === value); input.value = index < 0 ? '' : String(index);
         input.onchange = () => change(parameter.options[+input.value][0]);
       } else { input.type = 'color'; input.value = value || '#202c29'; input.oninput = () => change(input.value); }
@@ -265,52 +270,54 @@
     }
     updateGeneralPending();
   }
-  $('generalCard').onclick = () => { selected = -2; stageSelection.clear(); selectionDraft = {}; polygon = []; gesture = null; enterEdit(); renderStages(); updateInspector(); $('toolHint').textContent = 'General modifica parámetros de toda la presentación después de confirmar.'; };
+  $('generalCard').onclick = () => { selected = -2; stageSelection.clear(); selectionDraft = {}; polygon = []; gesture = null; enterEdit(); renderStages(); updateInspector(); $('toolHint').textContent = t("general_modifica_parametros_de_toda_la_presentacion_despue"); };
   $('includeInitial').onchange = renderGeneral;
   $('cancelGeneral').onclick = () => { clearBulkDraft(); renderGeneral(); };
   $('reviewGeneral').onclick = () => {
     try { generalReview = { changes: general.validate(bulkDraft()), includeInitial: includeInitial(), project: bulkProject(), multiple: isMultiple() }; } catch (error) { report(error); return; }
-    $('generalDialogTitle').textContent = generalReview.multiple ? `Aplicar a ${generalReview.project.stages.length} etapas seleccionadas` : 'Aplicar a toda la presentación';
+    renderGeneralReview(); $('generalDialog').showModal();
+  };
+  function renderGeneralReview() {
+    $('generalDialogTitle').textContent = generalReview.multiple ? t("aplicar_a_value_etapas_seleccionadas", { p0: generalReview.project.stages.length }) : t("aplicar_a_toda_la_presentacion");
     $('generalReview').replaceChildren();
     for (const [key, value] of Object.entries(generalReview.changes)) {
       const parameter = general.parameters.find(item => item.key === key), li = document.createElement('li'), points = generalReview.project.stages.reduce((sum, stage) => sum + stage.points.length, 0);
-      const target = parameter.scope === 'point' ? `${points} puntos` : `${generalReview.project.stages.length} etapas${parameter.scope === 'radius' ? ` y ${points} puntos` : parameter.scope === 'view' && generalReview.includeInitial ? ' e Inicio' : ''}`;
-      li.textContent = `${parameter.label}: ${general.format(parameter, value)} → ${target}.`; $('generalReview').append(li);
+      const target = parameter.scope === 'point' ? t('point_count', { count: points }) : t('stage_count', { count: generalReview.project.stages.length }) + (parameter.scope === 'radius' ? t('and_points', { count: points }) : parameter.scope === 'view' && generalReview.includeInitial ? t('and_initial') : '');
+      li.textContent = `${tx(parameter.label)}: ${formatGeneral(parameter, value)} → ${target}.`; $('generalReview').append(li);
     }
     $('radiusResetNote').hidden = !('radius' in generalReview.changes || 'maxRadius' in generalReview.changes);
-    $('generalDialog').showModal();
-  };
+  }
   $('cancelGeneralReview').onclick = () => { generalReview = null; $('generalDialog').close(); };
   $('confirmGeneral').onclick = () => {
     if (!generalReview) return;
     general.apply(generalReview.project, generalReview.changes, generalReview.includeInitial); clearBulkDraft(); generalReview = null;
-    $('generalDialog').close(); invalidate(); renderStages(); updateInspector(); status('Parámetros aplicados a las etapas indicadas. Guarda el proyecto para conservarlos.');
+    $('generalDialog').close(); invalidate(); renderStages(); updateInspector(); status(() => (t("parametros_aplicados_a_las_etapas_indicadas_guarda_el_proy")));
   };
   function pointsChanged() { invalidate(); updateInspector(); renderStages(); }
   function removePoint(index) { current().points.splice(index, 1); selectedPoint = Math.max(0, Math.min(selectedPoint > index ? selectedPoint - 1 : selectedPoint, current().points.length - 1)); pointsChanged(); }
   function renderPoints() {
     const stage = current(), first = stage.points.findIndex(p => p.enabled !== false);
-    $('pointCount').textContent = `${activeCount(stage)}/${stage.points.length} activos`; $('pointList').replaceChildren();
+    $('pointCount').textContent = t('active_points', { active: activeCount(stage), total: stage.points.length }); $('pointList').replaceChildren();
     stage.points.forEach((p, i) => {
       const row = document.createElement('div'); row.className = `point-row${p.enabled === false ? ' inactive' : ''}`; row.dataset.pointIndex = i;
       const header = document.createElement('div'); header.className = 'point-row-header';
-      const label = document.createElement('label'), enabled = document.createElement('input'); enabled.type = 'checkbox'; enabled.checked = p.enabled !== false; enabled.setAttribute('aria-label', `Activar punto ${i + 1}`); enabled.onchange = () => { p.enabled = enabled.checked; pointsChanged(); }; label.append(enabled, ` Punto ${i + 1}`); header.append(label);
-      for (const [delta, symbol] of [[-1, '↑'], [1, '↓']]) { const b = document.createElement('button'); b.textContent = symbol; b.setAttribute('aria-label', `Mover punto ${i + 1} ${delta < 0 ? 'arriba' : 'abajo'}`); b.disabled = i + delta < 0 || i + delta >= stage.points.length; b.onclick = () => { if (selectedPoint === i) selectedPoint = i + delta; else if (selectedPoint === i + delta) selectedPoint = i; [stage.points[i], stage.points[i + delta]] = [stage.points[i + delta], stage.points[i]]; pointsChanged(); }; header.append(b); }
-      const remove = document.createElement('button'); remove.textContent = '×'; remove.setAttribute('aria-label', `Eliminar punto ${i + 1}`); remove.onclick = () => removePoint(i); header.append(remove); row.append(header);
-      const focus = document.createElement('button'); focus.className = 'point-focus'; focus.textContent = selectedPoint === i ? 'Radios seleccionados' : 'Editar radios'; focus.setAttribute('aria-label', `Seleccionar radios del punto ${i + 1}`); focus.onclick = () => { selectedPoint = i; setTool('point'); renderPoints(); }; row.append(focus); row.classList.toggle('selected', selectedPoint === i);
-      const modeLabel = document.createElement('label'); modeLabel.className = 'point-mode'; modeLabel.textContent = 'Inicio';
-      const mode = document.createElement('select'); mode.setAttribute('aria-label', `Modo de inicio del punto ${i + 1}`);
-      for (const [value, text] of [['with', 'Junto al anterior activo'], ['after', 'Al terminar el anterior activo'], ['delay', 'Con demora desde el anterior activo']]) { const o = document.createElement('option'); o.value = value; o.textContent = text; mode.append(o); }
+      const label = document.createElement('label'), enabled = document.createElement('input'); enabled.type = 'checkbox'; enabled.checked = p.enabled !== false; enabled.setAttribute('aria-label', t("activar_punto_value", { p0: i + 1 })); enabled.onchange = () => { p.enabled = enabled.checked; pointsChanged(); }; label.append(enabled, t("punto_value", { p0: i + 1 })); header.append(label);
+      for (const [delta, symbol] of [[-1, '↑'], [1, '↓']]) { const b = document.createElement('button'); b.textContent = symbol; b.setAttribute('aria-label', t("mover_punto_value_value", { p0: i + 1, p1: delta < 0 ? t("arriba") : t("abajo") })); b.disabled = i + delta < 0 || i + delta >= stage.points.length; b.onclick = () => { if (selectedPoint === i) selectedPoint = i + delta; else if (selectedPoint === i + delta) selectedPoint = i; [stage.points[i], stage.points[i + delta]] = [stage.points[i + delta], stage.points[i]]; pointsChanged(); }; header.append(b); }
+      const remove = document.createElement('button'); remove.textContent = '×'; remove.setAttribute('aria-label', t("eliminar_punto_value", { p0: i + 1 })); remove.onclick = () => removePoint(i); header.append(remove); row.append(header);
+      const focus = document.createElement('button'); focus.className = 'point-focus'; focus.textContent = selectedPoint === i ? t("radios_seleccionados") : t("editar_radios"); focus.setAttribute('aria-label', t("seleccionar_radios_del_punto_value", { p0: i + 1 })); focus.onclick = () => { selectedPoint = i; setTool('point'); renderPoints(); }; row.append(focus); row.classList.toggle('selected', selectedPoint === i);
+      const modeLabel = document.createElement('label'); modeLabel.className = 'point-mode'; modeLabel.textContent = t("inicio");
+      const mode = document.createElement('select'); mode.setAttribute('aria-label', t("modo_de_inicio_del_punto_value", { p0: i + 1 }));
+      for (const [value, text] of [['with', t("junto_al_anterior_activo")], ['after', t("al_terminar_el_anterior_activo")], ['delay', t("con_demora_desde_el_anterior_activo")]]) { const o = document.createElement('option'); o.value = value; o.textContent = text; mode.append(o); }
       mode.value = p.startMode || 'with'; mode.disabled = p.enabled === false || i === first; mode.onchange = () => { p.startMode = mode.value; pointsChanged(); }; modeLabel.append(mode); row.append(modeLabel);
-      if (p.startMode === 'delay') { const delayLabel = document.createElement('label'); delayLabel.className = 'point-delay'; delayLabel.textContent = 'Demora (s)'; const delay = document.createElement('input'); delay.type = 'number'; delay.min = 0; delay.max = 3600; delay.step = .1; delay.value = p.delay || 0; delay.disabled = p.enabled === false || i === first; delay.setAttribute('aria-label', `Demora del punto ${i + 1} en segundos`); delay.onchange = () => { if (!delay.checkValidity()) return; p.delay = +delay.value; pointsChanged(); }; delayLabel.append(delay); row.append(delayLabel); }
+      if (p.startMode === 'delay') { const delayLabel = document.createElement('label'); delayLabel.className = 'point-delay'; delayLabel.textContent = t("demora_s"); const delay = document.createElement('input'); delay.type = 'number'; delay.min = 0; delay.max = 3600; delay.step = .1; delay.value = p.delay || 0; delay.disabled = p.enabled === false || i === first; delay.setAttribute('aria-label', t("demora_del_punto_value_en_segundos", { p0: i + 1 })); delay.onchange = () => { if (!delay.checkValidity()) return; p.delay = +delay.value; pointsChanged(); }; delayLabel.append(delay); row.append(delayLabel); }
       const info = document.createElement('small'), timing = cached?.fields[selected]?.pointTimings?.[i];
-      info.textContent = stage.enabled === false ? 'Etapa deshabilitada · no se reproduce' : p.enabled === false ? 'Desactivado · no participa en los tiempos' : timing?.ignored ? 'Fuera de la zona · no emite' : timing ? `Inicio: ${timing.start.toFixed(1)} s · Fin: ${timing.end.toFixed(1)} s` : i === first ? `Primer activo · comienza en ${stage.paintDelay.toFixed(1)} s desde el inicio de la etapa` : 'Tiempos pendientes de calcular'; row.append(info);
+      info.textContent = stage.enabled === false ? t("etapa_deshabilitada_no_se_reproduce") : p.enabled === false ? t("desactivado_no_participa_en_los_tiempos") : timing?.ignored ? t("fuera_de_la_zona_no_emite") : timing ? t("inicio_value_s_fin_value_s", { p0: timing.start.toFixed(1), p1: timing.end.toFixed(1) }) : i === first ? t("primer_activo_comienza_en_value_s_desde_el_inicio_de_la_et", { p0: stage.paintDelay.toFixed(1) }) : t("tiempos_pendientes_de_calcular"); row.append(info);
       if (selectedPoint === i) {
-        const label = document.createElement('label'); label.className = 'checkbox radius-inherit'; const inherit = document.createElement('input'); inherit.type = 'checkbox'; inherit.checked = p.inheritRadii !== false; inherit.setAttribute('aria-label', `Usar radios de la etapa en punto ${i + 1}`); inherit.onchange = () => { const radii = engine.pointRadii(stage, p); Object.assign(p, radii, { inheritRadii: inherit.checked }); pointsChanged(); }; label.append(inherit, ' Usar radios de la etapa'); row.append(label);
+        const label = document.createElement('label'); label.className = 'checkbox radius-inherit'; const inherit = document.createElement('input'); inherit.type = 'checkbox'; inherit.checked = p.inheritRadii !== false; inherit.setAttribute('aria-label', t("usar_radios_de_la_etapa_en_punto_value", { p0: i + 1 })); inherit.onchange = () => { const radii = engine.pointRadii(stage, p); Object.assign(p, radii, { inheritRadii: inherit.checked }); pointsChanged(); }; label.append(inherit, t("usar_radios_de_la_etapa")); row.append(label);
         const radii = engine.pointRadii(stage, p);
-        for (const [key, title] of [['radius', 'Radio de tinta'], ['maxRadius', 'Radio máximo']]) {
+        for (const [key, title] of [['radius', t("radio_de_tinta")], ['maxRadius', t("radio_maximo")]]) {
           const line = document.createElement('label'); line.className = 'point-radius'; line.textContent = title; const out = document.createElement('output'); out.id = key === 'radius' ? 'pointRadiusOut' : 'pointMaxRadiusOut'; out.textContent = Math.round(radii[key] * 100) + '%';
-          const input = document.createElement('input'); input.type = 'range'; input.min = 1; input.max = 150; input.step = 1; input.value = radii[key] * 100; input.disabled = p.inheritRadii !== false; input.setAttribute('aria-label', `${title} del punto ${i + 1}`);
+          const input = document.createElement('input'); input.type = 'range'; input.min = 1; input.max = 150; input.step = 1; input.value = radii[key] * 100; input.disabled = p.inheritRadii !== false; input.setAttribute('aria-label', t("value_del_punto_value", { p0: title, p1: i + 1 }));
           input.oninput = () => { p[key] = +input.value / 100; out.textContent = input.value + '%'; invalidate(); }; input.onchange = () => { updateInspector(); }; line.append(out, input); row.append(line);
         }
       }
@@ -320,16 +327,16 @@
   function setTool(next) {
     if (isBulk()) return;
     if (isInitial() && !['camera', 'highlight'].includes(next)) return;
-    if (next === 'highlight' && (!current().highlightEnabled || current().highlightLinked)) { status('Habilita el destacado y desmarca el vínculo para dibujarlo por separado.'); return; }
+    if (next === 'highlight' && (!current().highlightEnabled || current().highlightLinked)) { status(() => (t("habilita_el_destacado_y_desmarca_el_vinculo_para_dibujarlo"))); return; }
     tool = next; polygon = []; gesture = null; overlay.style.cursor = 'crosshair'; if (next === 'highlight') $('viewMode').value = 'edit'; enterEdit();
     document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
-    const hints = { point: 'Clic: añadir o seleccionar · Centro: mover · Asas T/M: radios · Doble clic: eliminar.', rect: 'Arrastra para delimitar la zona de esta etapa.', polygon: 'Clic para añadir vértices · Enter o doble clic para cerrar · Escape para cancelar.', path: 'Arrastra para dibujar el recorrido. Sustituye el recorrido anterior.', camera: 'Arrastra el rectángulo de enfoque. El acercamiento se ajusta aparte.', highlight: 'Ctrl + arrastrar: agregar · Clic: seleccionar · Arrastra interior o asas: mover / tamaño · Área libre sin Ctrl: reemplazar · Suprimir: eliminar.' }; $('toolHint').textContent = hints[tool]; drawOverlay();
+    const hints = { point: t("clic_anadir_o_seleccionar_centro_mover_asas_t_m_radios_dob"), rect: t("arrastra_para_delimitar_la_zona_de_esta_etapa"), polygon: t("clic_para_anadir_vertices_enter_o_doble_clic_para_cerrar_e"), path: t("arrastra_para_dibujar_el_recorrido_sustituye_el_recorrido_"), camera: t("arrastra_el_rectangulo_de_enfoque_el_acercamiento_se_ajust"), highlight: t("ctrl_arrastrar_agregar_clic_seleccionar_arrastra_interior_") }; $('toolHint').textContent = hints[tool]; drawOverlay();
   }
   function position(event) { const r = overlay.getBoundingClientRect(); return { x: Math.max(0, Math.min(1, (event.clientX - r.left) / r.width)), y: Math.max(0, Math.min(1, (event.clientY - r.top) / r.height)) }; }
   function finishPolygon() {
-    if (polygon.length < 3) { status('Marca al menos tres vértices para cerrar la zona.'); return; }
+    if (polygon.length < 3) { status(() => (t("marca_al_menos_tres_vertices_para_cerrar_la_zona"))); return; }
     // El doble clic puede repetir el último vértice: la geometría sigue siendo válida.
-    current().zone = polygon.slice(); polygon = []; invalidate(); status('Zona delimitada.');
+    current().zone = polygon.slice(); polygon = []; invalidate(); status(() => (t("zona_delimitada")));
   }
   overlay.addEventListener('pointerdown', e => {
     if (busy || isBulk() || !prepared || !editing || $('viewMode').value !== 'edit' || e.button !== 0) return;
@@ -344,7 +351,7 @@
       if (hit) {
         selectedHighlight = hit.index; const original = { ...rects[hit.index] }; gesture = { kind: 'highlight', start: p, end: p, index: hit.index, edge: hit.edge, original, candidate: original };
       } else {
-        if (e.ctrlKey && rects.length >= 64) { status('Máximo de 64 destacados por etapa.', true); return; }
+        if (e.ctrlKey && rects.length >= 64) { status(() => (t("maximo_de_64_destacados_por_etapa")), true); return; }
         gesture = { kind: 'highlight', start: p, end: p, append: e.ctrlKey, candidate: frameFromRect(p, p) }; selectedHighlight = e.ctrlKey ? rects.length : 0;
       }
       renderHighlights();
@@ -359,7 +366,7 @@
         Object.assign(point, radii, { inheritRadii: false }); renderPoints(); drawOverlay(); return;
       }
       const r = overlay.getBoundingClientRect(); let index = current().points.findIndex(q => Math.hypot((q.x - p.x) * r.width, (q.y - p.y) * r.height) < 16);
-      if (index === -1) { if (current().points.length >= 64) { status('Máximo de 64 puntos por etapa.', true); return; } index = current().points.push(engine.normalizeStage({ points: [p] }).points[0]) - 1; }
+      if (index === -1) { if (current().points.length >= 64) { status(() => (t("maximo_de_64_puntos_por_etapa")), true); return; } index = current().points.push(engine.normalizeStage({ points: [p] }).points[0]) - 1; }
       gesture = { kind: 'point', index, original: { ...current().points[index] } }; Object.assign(current().points[index], p);
       selectedPoint = index; renderPoints();
     }
@@ -406,7 +413,7 @@
     if (busy || !editing || $('viewMode').value !== 'edit') return;
     if (selected < 0 || isMultiple()) return;
     if (tool === 'polygon') { finishPolygon(); return; }
-    if (tool === 'point') { const p = position(e), r = overlay.getBoundingClientRect(); const i = current().points.findIndex(q => Math.hypot((q.x - p.x) * r.width, (q.y - p.y) * r.height) < 16); if (i >= 0) { removePoint(i); status('Punto eliminado.'); } }
+    if (tool === 'point') { const p = position(e), r = overlay.getBoundingClientRect(); const i = current().points.findIndex(q => Math.hypot((q.x - p.x) * r.width, (q.y - p.y) * r.height) < 16); if (i >= 0) { removePoint(i); status(() => (t("punto_eliminado"))); } }
   });
   overlay.addEventListener('keydown', e => { if (e.key === 'Delete' && tool === 'highlight' && editing && !isBulk() && $('viewMode').value === 'edit') { e.preventDefault(); removeHighlight(selectedHighlight); return; } if (e.key === 'Enter' && polygon.length) { e.preventDefault(); finishPolygon(); } if (e.key === 'Escape') { polygon = []; finishGesture(true); drawOverlay(); } });
   document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
@@ -415,11 +422,11 @@
   $('clearZone').onclick = () => { current().zone = null; polygon = []; invalidate(); };
   $('clearPath').onclick = () => { current().path = []; invalidate(); updateInspector(); renderStages(); };
   for (const [id, [key, multiplier]] of Object.entries(params)) $(id).addEventListener('input', () => { current()[key] = +$(id).value / multiplier; invalidate(); updateInspector(); });
-  $('stageName').addEventListener('input', () => { current().name = $('stageName').value || `Etapa ${selected + 1}`; invalidate(); renderStages(); });
+  $('stageName').addEventListener('input', () => { current().name = $('stageName').value || t("etapa_value", { p0: selected + 1 }); invalidate(); renderStages(); });
   $('pauseAfter').onchange = () => { current().pauseAfter = $('pauseAfter').checked; invalidate(); renderStages(); };
-  $('addStage').onclick = () => { if (project.stages.length >= 64) { status('Máximo de 64 etapas por proyecto.', true); return; } project.stages.push(engine.normalizeStage({ maxRadius: .4, points: [] }, project.stages.length)); selected = project.stages.length - 1; selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
-  $('duplicateStage').onclick = () => { if (project.stages.length >= 64) return; project.stages.splice(selected + 1, 0, engine.normalizeStage({ ...structuredClone(current()), name: `${current().name} · copia` })); selected++; selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
-  $('deleteStage').onclick = () => { if (project.stages.length === 1) { status('El proyecto necesita al menos una etapa.'); return; } project.stages.splice(selected, 1); selected = Math.min(selected, project.stages.length - 1); selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
+  $('addStage').onclick = () => { if (project.stages.length >= 64) { status(() => (t("maximo_de_64_etapas_por_proyecto")), true); return; } project.stages.push(engine.normalizeStage({ maxRadius: .4, points: [] }, project.stages.length)); selected = project.stages.length - 1; selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
+  $('duplicateStage').onclick = () => { if (project.stages.length >= 64) return; project.stages.splice(selected + 1, 0, engine.normalizeStage({ ...structuredClone(current()), name: t('copied_name', { name: current().name }) })); selected++; selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
+  $('deleteStage').onclick = () => { if (project.stages.length === 1) { status(() => (t("el_proyecto_necesita_al_menos_una_etapa"))); return; } project.stages.splice(selected, 1); selected = Math.min(selected, project.stages.length - 1); selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
   $('viewMode').onchange = () => { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); drawEditor(); };
   $('editButton').onclick = () => enterEdit();
   $('setFrame').onclick = () => setTool('camera');
@@ -434,31 +441,31 @@
   $('blur').oninput = () => { current().blur = +$('blur').value; invalidate(); $('blurOut').textContent = $('blur').value + ' px'; };
 
   async function prepareProject(ready) {
-    if (!decoded.final) throw new Error('Carga primero una imagen final coloreada.');
+    if (!decoded.final) throw new Error(t("carga_primero_una_imagen_final_coloreada"));
     await waitFrame(); prepared = ready || PaintPreparation.prepare(decoded.final, decoded.initial, project);
     canvas.width = overlay.width = prepared.width; canvas.height = overlay.height = prepared.height;
     $('dimensions').textContent = `${prepared.width} × ${prepared.height} px`; $('emptyState').hidden = true;
     invalidate(); fitCanvas(); renderStages(); updateInspector(); drawEditor();
   }
   async function calculateFields() {
-    if (!prepared) throw new Error('Carga primero una imagen.');
+    if (!prepared) throw new Error(t("carga_primero_una_imagen"));
     if (cached && cached.revision === revision) return cached.fields;
-    if (polygon.length) throw new Error('Termina la zona con Enter o cancélala con Escape antes de reproducir.');
+    if (polygon.length) throw new Error(t("termina_la_zona_con_enter_o_cancelala_con_escape_antes_de_"));
     const stages = structuredClone(project.stages);
-    status('Calculando la propagación…'); await waitFrame();
+    status(() => (t("calculando_la_propagacion"))); await waitFrame();
     const fields = await window.PaintAutomation.calculate(prepared, stages, data => {
-      if (data.type === 'progress') status(`Calculando ${data.index + 1}/${stages.length}: ${stages[data.index].name} · ${data.progress.part === 'point' ? 'punto' : 'recorrido'} ${data.progress.index}`);
-      if (data.type === 'stage') status(`Calculada ${data.index + 1} de ${stages.length}: ${stages[data.index].name}`);
+      if (data.type === 'progress') status(() => (t("calculando_value_value_value_value_value", { p0: data.index + 1, p1: stages.length, p2: stages[data.index].name, p3: data.progress.part === 'point' ? t("punto") : t("recorrido"), p4: data.progress.index })));
+      if (data.type === 'stage') status(() => (t("calculada_value_de_value_value", { p0: data.index + 1, p1: stages.length, p2: stages[data.index].name })));
     });
     cached = { revision, fields }; updateInspector();
     const reached = fields.reduce((sum, f) => sum + f.reached, 0), skipped = fields.reduce((sum, f) => sum + f.ignoredSeeds, 0);
-    status(`Propagación lista · ${fields.reduce((s, f) => s + f.duration, 0).toFixed(1)} s de animación${fields.some(f => f.visualOnly) ? ' · Incluye etapas visuales.' : ''}${skipped ? ' · Hay puntos o tramos fuera de sus zonas; no emiten color.' : ''}${reached ? '' : ' · Secuencia sin pintura.'}`);
+    status(() => (t("propagacion_lista_value_s_de_animacionvaluevaluevalue", { p0: fields.reduce((s, f) => s + f.duration, 0).toFixed(1), p1: fields.some(f => f.visualOnly) ? t("incluye_etapas_visuales") : '', p2: skipped ? t("hay_puntos_o_tramos_fuera_de_sus_zonas_no_emiten_color") : '', p3: reached ? '' : t("secuencia_sin_pintura") })));
     return fields;
   }
   function playerState(s) {
-    $('playButton').textContent = s.playing ? 'Ⅱ' : '▶'; $('playButton').setAttribute('aria-label', s.playing ? 'Pausar' : 'Reproducir o continuar');
+    $('playButton').textContent = s.playing ? 'Ⅱ' : '▶'; $('playButton').setAttribute('aria-label', s.playing ? t("pausar") : t("reproducir_o_continuar"));
     $('canvasWrap').classList.toggle('transparent', s.transparent); $('playButton').disabled = $('nextButton').disabled = s.empty;
-    $('playStatus').textContent = s.empty ? 'Inicio · no hay etapas habilitadas' : s.atStart ? 'Inicio · pulsa reproducir para comenzar' : s.ended ? 'Animación terminada' : s.waiting ? 'Pausa · clic en ▶ o espacio para continuar' : `${s.name}${s.playing ? '' : ' · detenida'}`;
+    $('playStatus').textContent = s.empty ? t("inicio_no_hay_etapas_habilitadas") : s.atStart ? t("inicio_pulsa_reproducir_para_comenzar") : s.ended ? t("animacion_terminada") : s.waiting ? t("pausa_clic_en_o_espacio_para_continuar") : `${s.name}${s.playing ? '' : t("detenida")}`;
     $('timeLabel').textContent = `${timeLabel(s.elapsed)} / ${timeLabel(s.total)}`; $('timeline').value = s.total ? Math.round(s.elapsed / s.total * 1000) : 0;
   }
   async function ensurePlayer() {
@@ -480,7 +487,7 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden && player?.getState().playing) player.pause(); });
 
   let basePreviewGenerated = false, generatedBase = null, basePreviewTimer;
-  let previewStarted = false, previewRevision = 0, previewWorker = null, previewSource = null, previewImage = null, previewKey = '', previewResult = null, previewError = false;
+  let previewStarted = false, previewRevision = 0, previewWorker = null, previewSource = null, previewImage = null, previewKey = '', previewResult = null, previewError = false, previewErrorMessage = '';
   const completedTiles = new Set();
   const comparison = PaintImageComparison.create({ panels: [$('comparisonFinal'), $('comparisonBase')], mini: $('baseMini'), zoomOutput: $('baseZoomValue'), onView: () => {
     $('basePreviewZoom').value = comparison.fitted ? 'fit' : [1, 2, 4].includes(comparison.view.scale) ? String(comparison.view.scale) : 'custom';
@@ -497,9 +504,9 @@
       $(id).value = Math.round(config[key] * 100); $(id).disabled = config.method === 'grayscale';
       $(id + 'Out').textContent = `${Math.round(config[key] * 100)}%`;
     }
-    $('baseSensitivityHelp').textContent = ['coherent', 'protected'].includes(config.method) ? 'Auméntala para descartar contrastes débiles de pigmento o textura; puede debilitar trazos.' : 'Auméntala para retirar colores tenues.';
-    $('baseSmoothnessHelp').textContent = ['coherent', 'protected'].includes(config.method) ? '0% conserva el acabado de L/K. Auméntala para suavizar bordes; puede perder nitidez.' : 'Transiciones más amplias entre tinta, grises y papel. Rango completo de 0 a 100%.';
-    $('baseMethodNote').textContent = ['coherent', 'protected'].includes(config.method) ? `${config.method === 'protected' ? 'L añade protección de superficies oscuras a K.' : 'K conserva el método anterior.'} Recupera líneas y reduce la trama del color. Sensibilidad mayor descarta contrastes débiles; suavidad añade un acabado opcional. Compara letras, rayas y pigmentos oscuros antes de aplicar.` : config.method === 'grayscale' ? 'Compatibilidad: desatura y conserva las sombras. Elige Tinta sobre papel para retirar el pigmento.' : 'Los valores iniciales conservan negros sólidos y grises intermedios. Los pigmentos muy oscuros o poco saturados pueden requerir ajustes.';
+    $('baseSensitivityHelp').textContent = ['coherent', 'protected'].includes(config.method) ? t("aumentala_para_descartar_contrastes_debiles_de_pigmento_o_") : t("aumentala_para_retirar_colores_tenues");
+    $('baseSmoothnessHelp').textContent = ['coherent', 'protected'].includes(config.method) ? t("0_conserva_el_acabado_de_l_k_aumentala_para_suavizar_borde") : t("transiciones_mas_amplias_entre_tinta_grises_y_papel_rango_");
+    $('baseMethodNote').textContent = ['coherent', 'protected'].includes(config.method) ? t("value_recupera_lineas_y_reduce_la_trama_del_color_sensibil", { p0: config.method === 'protected' ? t("l_anade_proteccion_de_superficies_oscuras_a_k") : t("k_conserva_el_metodo_anterior") }) : config.method === 'grayscale' ? t("compatibilidad_desatura_y_conserva_las_sombras_elige_tinta") : t("los_valores_iniciales_conservan_negros_solidos_y_grises_in");
   }
   function previewState(state, text, title = text) {
     $('basePreviewIndicator').dataset.state = state; $('basePreviewState').textContent = text; $('basePreviewIndicator').title = title;
@@ -510,11 +517,11 @@
     for (let y = 0; previewResult && y < previewResult.height; y += 192) for (let x = 0; x < previewResult.width; x += 192) {
       if (x < r.x + r.width && r.x < x + 192 && y < r.y + r.height && r.y < y + 192 && !completedTiles.has(`${x},${y}`)) pending = true;
     }
-    previewState(pending || !previewResult ? 'pending' : 'detail', pending || !previewResult ? 'Actualizando detalle…' : 'Completando imagen…', pending ? 'La vista puede contener zonas con los ajustes anteriores. Se prioriza el encuadre visible.' : 'El detalle visible está actualizado; continúa el resto de la imagen.');
+    previewState(pending || !previewResult ? 'pending' : 'detail', pending || !previewResult ? t("actualizando_detalle") : t("completando_imagen"), pending ? t("la_vista_puede_contener_zonas_con_los_ajustes_anteriores_s") : t("el_detalle_visible_esta_actualizado_continua_el_resto_de_l"));
   }
   function previewFailed(error) {
     previewWorker?.destroy(); previewWorker = null; previewImage = null; previewKey = '';
-    previewError = true; basePreviewGenerated = false; previewState('error', 'Error al actualizar', error.message); $('basePreviewStatus').textContent = error.message; syncBaseControls();
+    previewError = true; previewErrorMessage = error.message; basePreviewGenerated = false; previewState('error', t("error_al_actualizar"), i18n.error(error.message)); $('basePreviewStatus').textContent = i18n.error(error.message); syncBaseControls();
   }
   function receivePreview(message) {
     if (message.revision !== previewRevision || !previewStarted) return;
@@ -527,8 +534,8 @@
     }
     if (message.type === 'complete') {
       const p = previewResult; p.base = p.baseCanvas.getContext('2d').getImageData(0, 0, p.width, p.height); p.final = p.finalCanvas.getContext('2d').getImageData(0, 0, p.width, p.height); p.inkMatchPixels = message.matched;
-      generatedBase = p; basePreviewGenerated = true; previewState('ready', 'Actualizada', 'Toda la imagen corresponde a los últimos parámetros.');
-      $('basePreviewStatus').textContent = `${p.width} × ${p.height} px · ${message.matched} píxeles igualados. Compara antes de aplicar; los originales permanecen intactos.`;
+      generatedBase = p; basePreviewGenerated = true; previewState('ready', t("actualizada"), t("toda_la_imagen_corresponde_a_los_ultimos_parametros"));
+      $('basePreviewStatus').textContent = t("value_value_px_value_pixeles_igualados_compara_antes_de_ap", { p0: p.width, p1: p.height, p2: message.matched });
       $('downloadBase').disabled = false; syncBaseControls();
     }
   }
@@ -536,7 +543,7 @@
     clearTimeout(basePreviewTimer);
     if (!draftDecoded?.final || draft.baseMode !== 'derived') return;
     basePreviewGenerated = false; previewError = false; generatedBase = null; previewRevision++; completedTiles.clear();
-    $('downloadBase').disabled = true; previewState('pending', 'Actualizando detalle…', 'Se muestran zonas anteriores hasta recibir el nuevo cálculo.'); syncBaseControls();
+    $('downloadBase').disabled = true; previewState('pending', t("actualizando_detalle"), t("se_muestran_zonas_anteriores_hasta_recibir_el_nuevo_calcul")); syncBaseControls();
     try {
       const lineMethod = ['coherent', 'protected'].includes(draft.baseGeneration.method), key = `${draft.resolution}:${lineMethod}`;
       if (!previewWorker) previewWorker = PaintBasePreview.create(receivePreview, previewFailed);
@@ -552,26 +559,26 @@
       finalCanvas.getContext('2d').drawImage(previewResult?.finalCanvas || previewSource.finalCanvas, 0, 0, width, height);
       previewResult = { width, height, baseSourceSize: previewSource.baseSourceSize, baseCanvas, finalCanvas };
       $('basePreviews').hidden = false; comparison.setSources([finalCanvas, baseCanvas], !previewStarted); previewStarted = true;
-      $('generateBase').textContent = 'Actualizar vista previa';
-      $('basePreviewStatus').textContent = `${width} × ${height} px · Se actualiza primero el detalle visible.`;
+      $('generateBase').textContent = t("actualizar_vista_previa");
+      $('basePreviewStatus').textContent = t("value_value_px_se_actualiza_primero_el_detalle_visible", { p0: width, p1: height });
       previewWorker.post({ type: 'start', revision: previewRevision, config: draft.baseGeneration, view: comparison.rect() });
     } catch (error) { previewFailed(error); }
   }
   function resetBasePreview() {
     clearTimeout(basePreviewTimer); previewRevision++; previewWorker?.destroy(); previewWorker = null; previewSource = previewImage = previewResult = null; previewKey = ''; previewStarted = false; previewError = false;
-    basePreviewGenerated = false; generatedBase = null; $('basePreviews').hidden = true; $('downloadBase').disabled = true; $('generateBase').textContent = 'Generar vista previa';
-    previewState('off', 'Sin vista previa'); $('basePreviewStatus').textContent = 'Pulsa Generar vista previa para ver la base propuesta.';
+    basePreviewGenerated = false; generatedBase = null; $('basePreviews').hidden = true; $('downloadBase').disabled = true; $('generateBase').textContent = t("generar_vista_previa");
+    previewState('off', t("sin_vista_previa")); $('basePreviewStatus').textContent = t("pulsa_generar_vista_previa_para_ver_la_base_propuesta");
   }
   function scheduleBasePreview() {
     clearTimeout(basePreviewTimer);
     if (previewStarted && draft.baseMode === 'derived') {
       previewRevision++; previewWorker?.post({ type: 'cancel' }); basePreviewGenerated = false; generatedBase = null; previewError = false; completedTiles.clear();
-      $('downloadBase').disabled = true; syncBaseControls(); previewState('pending', 'Actualizando detalle…', 'La imagen todavía no corresponde a los últimos parámetros.');
+      $('downloadBase').disabled = true; syncBaseControls(); previewState('pending', t("actualizando_detalle"), t("la_imagen_todavia_no_corresponde_a_los_ultimos_parametros"));
       basePreviewTimer = setTimeout(generateBasePreview, 150);
     }
   }
   function fillImageDialog() {
-    $('finalName').textContent = draft.images.final?.name || 'Sin imagen'; $('initialName').textContent = draft.images.initial?.name || 'No se necesita si generas la base desde la final';
+    $('finalName').textContent = draft.images.final?.name || t("sin_imagen"); $('initialName').textContent = draft.images.initial?.name || t("no_se_necesita_si_generas_la_base_desde_la_final");
     $('baseMode').value = draft.baseMode; $('resolution').value = draft.resolution;
     for (const [id, key, scale] of [['alignX', 'x', 100], ['alignY', 'y', 100], ['alignSX', 'sx', 100], ['alignSY', 'sy', 100], ['alignAngle', 'angle', 1]]) $(id).value = +(draft.alignment[key] * scale).toFixed(3);
     $('baseGenerationPanel').hidden = draft.baseMode !== 'derived'; $('imageAlignment').hidden = draft.baseMode === 'derived';
@@ -599,19 +606,19 @@
   $('downloadBase').onclick = () => action(async () => {
     if (!basePreviewGenerated || !generatedBase) return;
     const blob = await new Promise(resolve => generatedBase.baseCanvas.toBlob(resolve, 'image/png'));
-    if (!blob) throw new Error('No se pudo generar el PNG.'); download('imagen-inicial.png', blob, 'image/png');
+    if (!blob) throw new Error(t("no_se_pudo_generar_el_png")); download('imagen-inicial.png', blob, 'image/png');
   });
   function readFile(file) {
-    return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(new Error('No se pudo leer el archivo.')); reader.readAsDataURL(file); });
+    return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(new Error(t("no_se_pudo_leer_el_archivo"))); reader.readAsDataURL(file); });
   }
   for (const kind of ['initial', 'final']) $(`${kind}File`).onchange = () => action(async () => {
     const file = $(`${kind}File`).files[0]; if (!file) return;
-    if (!/^image\/(png|jpeg|webp|gif|bmp|avif)$/.test(file.type)) throw new Error('Utiliza una imagen PNG, JPG, WebP, GIF, BMP o AVIF.');
-    if (file.size > 40000000) throw new Error('Utiliza una imagen de menos de 40 MB.');
+    if (!/^image\/(png|jpeg|webp|gif|bmp|avif)$/.test(file.type)) throw new Error(t("utiliza_una_imagen_png_jpg_webp_gif_bmp_o_avif"));
+    if (file.size > 40000000) throw new Error(t("utiliza_una_imagen_de_menos_de_40_mb"));
     const data = await readFile(file), image = await PaintPreparation.loadImage(data);
     draft.images[kind] = { name: file.name, data }; draftDecoded[kind] = image;
     if (kind === 'final' && !draftDecoded.initial) draft.baseMode = 'derived';
-    draft.alignment = zeroAlignment(); resetBasePreview(); fillImageDialog(); status(`Imagen cargada: ${file.name}. Aplica para actualizar el lienzo.`);
+    draft.alignment = zeroAlignment(); resetBasePreview(); fillImageDialog(); status(() => (t("imagen_cargada_value_aplica_para_actualizar_el_lienzo", { p0: file.name })));
   });
   $('baseMode').onchange = () => { draft.baseMode = $('baseMode').value; if (draft.baseMode === 'uploaded') resetBasePreview(); fillImageDialog(); scheduleBasePreview(); };
   $('resolution').onchange = () => { draft.resolution = +$('resolution').value; scheduleBasePreview(); };
@@ -619,46 +626,46 @@
     const value = +$(id).value; if (!Number.isFinite(value) || value < +$(id).min || value > +$(id).max) return; draft.alignment[key] = value / scale; previewAlignment();
   };
   $('autoAlign').onclick = () => action(async () => {
-    if (!draftDecoded.initial || !draftDecoded.final) throw new Error('Carga las dos imágenes para alinearlas.');
-    status('Buscando coincidencias en los contornos…'); await waitFrame(); draft.alignment = PaintPreparation.autoAlign(draftDecoded.final, draftDecoded.initial); fillImageDialog(); status('Alineación automática calculada. Revisa la superposición y aplica los cambios.');
+    if (!draftDecoded.initial || !draftDecoded.final) throw new Error(t("carga_las_dos_imagenes_para_alinearlas"));
+    status(() => (t("buscando_coincidencias_en_los_contornos"))); await waitFrame(); draft.alignment = PaintPreparation.autoAlign(draftDecoded.final, draftDecoded.initial); fillImageDialog(); status(() => (t("alineacion_automatica_calculada_revisa_la_superposicion_y_")));
   });
   $('applyImages').onclick = () => action(async () => {
-    if (!draftDecoded.final) throw new Error('Carga primero una imagen final coloreada.');
+    if (!draftDecoded.final) throw new Error(t("carga_primero_una_imagen_final_coloreada"));
     if (!draftDecoded.initial) draft.baseMode = 'derived';
     if (draft.baseMode === 'derived' && !basePreviewGenerated) return;
     clearTimeout(basePreviewTimer);
-    if (!Array.from($('imagesDialog').querySelectorAll('input[type=number]')).every(i => i.checkValidity())) throw new Error('Revisa los valores de alineación: hay un campo fuera de rango.');
+    if (!Array.from($('imagesDialog').querySelectorAll('input[type=number]')).every(i => i.checkValidity())) throw new Error(t("revisa_los_valores_de_alineacion_hay_un_campo_fuera_de_ran"));
     const selectedIndices = project.stages.flatMap((stage, index) => stageSelection.has(stage) ? [index] : []);
-    project = draft; stageSelection = new Set(selectedIndices.map(index => project.stages[index])); decoded = draftDecoded; await prepareProject(draft.baseMode === 'derived' ? generatedBase : null); $('imagesDialog').close(); status('Imágenes preparadas. En modo Editar se muestra la referencia coloreada.');
+    project = draft; stageSelection = new Set(selectedIndices.map(index => project.stages[index])); decoded = draftDecoded; await prepareProject(draft.baseMode === 'derived' ? generatedBase : null); $('imagesDialog').close(); status(() => (t("imagenes_preparadas_en_modo_editar_se_muestra_la_referenci")));
   });
   function download(name, content, type) {
     const url = URL.createObjectURL(new Blob([content], { type })), a = document.createElement('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
   }
-  $('saveButton').onclick = () => { if (!prepared) return; download('proyecto-tinta-y-color.colorflow.json', JSON.stringify(project), 'application/json'); dirty = false; status('Proyecto descargado. Conserva este archivo para seguir editando.'); };
+  $('saveButton').onclick = () => { if (!prepared) return; download('proyecto-tinta-y-color.colorflow.json', JSON.stringify(project), 'application/json'); dirty = false; status(() => (t("proyecto_descargado_conserva_este_archivo_para_seguir_edit"))); };
   $('openButton').onclick = () => $('projectFile').click();
   const validateProject = data => window.PaintProject.normalize(data);
   $('projectFile').onchange = () => action(async () => {
     const file = $('projectFile').files[0]; $('projectFile').value = ''; if (!file) return;
-    if (file.size > 150000000) throw new Error('El archivo de proyecto es demasiado grande (máximo 150 MB).');
+    if (file.size > 150000000) throw new Error(t("el_archivo_de_proyecto_es_demasiado_grande_maximo_150_mb"));
     const next = validateProject(JSON.parse(await file.text())), images = { final: await PaintPreparation.loadImage(next.images.final.data) };
     if (next.images.initial) images.initial = await PaintPreparation.loadImage(next.images.initial.data);
-    project = next; generalDraft = {}; selectionDraft = {}; stageSelection = new Set([project.stages[0]]); $('includeInitial').checked = false; decoded = images; selected = 0; selectedPoint = 0; polygon = []; await prepareProject(); dirty = false; status('Proyecto abierto. Puedes continuar editando.');
+    project = next; generalDraft = {}; selectionDraft = {}; stageSelection = new Set([project.stages[0]]); $('includeInitial').checked = false; decoded = images; selected = 0; selectedPoint = 0; polygon = []; await prepareProject(); dirty = false; status(() => (t("proyecto_abierto_puedes_continuar_editando")));
   });
   const packField = field => window.PaintCodec.pack(field);
-  $('exportButton').onclick = () => { $('exportBackground').value = project.presentation.background; $('exportColor').value = project.presentation.color; $('exportColorField').hidden = project.presentation.background !== 'color'; $('exportDialog').showModal(); };
+  $('exportButton').onclick = () => { $('exportLanguage').value = i18n.language; $('exportBackground').value = project.presentation.background; $('exportColor').value = project.presentation.color; $('exportColorField').hidden = project.presentation.background !== 'color'; $('exportDialog').showModal(); };
   $('exportBackground').onchange = () => { $('exportColorField').hidden = $('exportBackground').value !== 'color'; };
   $('cancelExport').onclick = () => $('exportDialog').close();
   $('confirmExport').onclick = () => action(async () => {
     const settings = normalizePresentation({ background: $('exportBackground').value, color: $('exportColor').value });
     if (JSON.stringify(settings) !== JSON.stringify(project.presentation)) { project.presentation = settings; dirty = true; }
     $('exportDialog').close();
-    const fields = await calculateFields(); player?.pause(); status('Empaquetando la presentación sin conexión…'); await waitFrame();
-    const data = { width: prepared.width, height: prepared.height, presentation: project.presentation, initialView: project.initialView, base: prepared.baseCanvas.toDataURL('image/png'), final: prepared.finalCanvas.toDataURL('image/png'), fields: fields.filter(f => !f.skipped).map(packField) };
-    download('presentacion-tinta-y-color.html', buildPresentation(data), 'text/html;charset=utf-8'); status('Presentación descargada: un solo HTML con imágenes y animaciones incluidas. Se abre sin conexión.');
+    const fields = await calculateFields(); player?.pause(); status(() => (t("empaquetando_la_presentacion_sin_conexion"))); await waitFrame();
+    const data = { language: $('exportLanguage').value, width: prepared.width, height: prepared.height, presentation: project.presentation, initialView: project.initialView, base: prepared.baseCanvas.toDataURL('image/png'), final: prepared.finalCanvas.toDataURL('image/png'), fields: fields.filter(f => !f.skipped).map(packField) };
+    download('presentacion-tinta-y-color.html', buildPresentation(data), 'text/html;charset=utf-8'); status(() => (t("presentacion_descargada_un_solo_html_con_imagenes_y_animac")));
   });
   const buildPresentation = data => window.PaintPresentation.build(data);
   async function loadDemo() {
-    if (!window.PAINT_DEMO) throw new Error('No se encontró el ejemplo. Puedes cargar tus imágenes con el botón Imágenes.');
+    if (!window.PAINT_DEMO) throw new Error(t("no_se_encontro_el_ejemplo_puedes_cargar_tus_imagenes_con_e"));
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
@@ -668,13 +675,57 @@
       engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 }),
       engine.normalizeStage({ name: 'Una última mirada', points: [], cameraDuration: 1, hold: .6, zoom: 0, frame: { x: .06, y: .29, width: .91, height: .38 }, highlightEnabled: true, outside: 'transparent' })
     ] };
-    generalDraft = {}; selectionDraft = {}; stageSelection = new Set([project.stages[0]]); $('includeInitial').checked = false; decoded = decodedDemo; selected = 0; selectedPoint = 0; polygon = []; status('Alineando las imágenes del ejemplo…'); await waitFrame(); project.alignment = PaintPreparation.autoAlign(decoded.final, decoded.initial);
-    await prepareProject(); dirty = false; status('Ejemplo listo · Marca un origen, ajusta los parámetros y pulsa reproducir.');
+    generalDraft = {}; selectionDraft = {}; stageSelection = new Set([project.stages[0]]); $('includeInitial').checked = false; decoded = decodedDemo; selected = 0; selectedPoint = 0; polygon = []; status(() => (t("alineando_las_imagenes_del_ejemplo"))); await waitFrame(); project.alignment = PaintPreparation.autoAlign(decoded.final, decoded.initial);
+    await prepareProject(); dirty = false; status(() => (t("ejemplo_listo_marca_un_origen_ajusta_los_parametros_y_puls")));
   }
   $('exampleButton').onclick = () => action(loadDemo);
   window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
   new ResizeObserver(fitCanvas).observe($('canvasArea'));
   // Interfaz de diagnóstico local, útil para comprobar exportaciones sin dependencias.
   window.TintaColor = { getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision, getBasePreviewState: () => ({ complete: basePreviewGenerated, revision: previewRevision, view: { ...comparison.view }, state: $('basePreviewIndicator').dataset.state }) };
+
+  function refreshLanguage() {
+    // Keep unfinished numeric edits and their invalid state across language changes.
+    const invalid = new Set(generalInvalid), values = new Map([...document.querySelectorAll('#generalParameters input[type=number]')].map(input => [input.id, input.value]));
+    i18n.apply(document); document.querySelectorAll('[data-language-select]').forEach(select => select.value = i18n.language);
+    renderStages(); updateInspector();
+    if (isBulk()) {
+      for (const key of invalid) {
+        generalInvalid.add(key); const parameter = general.parameters.find(p => p.key === key), row = document.querySelector('[data-parameter="' + key + '"]');
+        if (!row) continue; const number = row.querySelector('input[type=number]'); number.value = values.get(number.id) ?? ''; number.setAttribute('aria-invalid', 'true');
+        row.querySelector('output').textContent = t('introduce_un_valor_entre_value_y_value', { p0: parameter.min, p1: parameter.max });
+      }
+      updateGeneralPending();
+    }
+    if (generalReview && $('generalDialog').open) renderGeneralReview();
+    if (player) playerState(player.getState());
+    else { $('playButton').setAttribute('aria-label', t('reproducir')); $('playStatus').textContent = t('listo_para_explorar'); }
+    if (!isBulk()) {
+      const hints = { point: 'clic_anadir_o_seleccionar_centro_mover_asas_t_m_radios_dob', rect: 'arrastra_para_delimitar_la_zona_de_esta_etapa', polygon: 'clic_para_anadir_vertices_enter_o_doble_clic_para_cerrar_e', path: 'arrastra_para_dibujar_el_recorrido_sustituye_el_recorrido_', camera: 'arrastra_el_rectangulo_de_enfoque_el_acercamiento_se_ajust', highlight: 'ctrl_arrastrar_agregar_clic_seleccionar_arrastra_interior_' };
+      $('toolHint').textContent = t(hints[tool]);
+    }
+    if ($('imagesDialog').open && draft) {
+      syncBaseControls();
+      $('finalName').textContent = draft.images.final?.name || t('sin_imagen');
+      $('initialName').textContent = draft.images.initial?.name || t('no_se_necesita_si_generas_la_base_desde_la_final');
+      $('generateBase').textContent = t(previewStarted ? 'actualizar_vista_previa' : 'generar_vista_previa');
+      const state = $('basePreviewIndicator').dataset.state;
+      $('basePreviewState').textContent = t(({ off:'sin_vista_previa', pending:'actualizando_detalle', detail:'completando_imagen', ready:'actualizada', error:'error_al_actualizar' })[state]);
+      if (state === 'ready') {
+        $('basePreviewIndicator').title = t('toda_la_imagen_corresponde_a_los_ultimos_parametros');
+        const p = previewResult; $('basePreviewStatus').textContent = t('value_value_px_value_pixeles_igualados_compara_antes_de_ap', { p0:p.width, p1:p.height, p2:p.inkMatchPixels });
+      } else if (state === 'pending' || state === 'detail') updatePreviewPhase();
+      else if (state === 'off') { $('basePreviewIndicator').title = t('sin_vista_previa'); $('basePreviewStatus').textContent = t('pulsa_generar_vista_previa_para_ver_la_base_propuesta'); }
+      else if (state === 'error') { $('basePreviewIndicator').title = i18n.error(previewErrorMessage); $('basePreviewStatus').textContent = i18n.error(previewErrorMessage); }
+    }
+    if (lastStatus) status(lastStatus.message, lastStatus.error);
+    drawOverlay();
+  }
+  document.querySelectorAll('[data-language-select], #exportLanguage').forEach(select => {
+    select.replaceChildren(); for (const code of i18n.languages) { const option = document.createElement('option'); option.value = code; option.textContent = i18n.messages(code)._language_name || code; select.append(option); }
+  });
+  document.querySelectorAll('[data-language-select]').forEach(select => { select.value = i18n.language; select.onchange = () => i18n.setLanguage(select.value); });
+  i18n.subscribe(refreshLanguage);
+
   renderStages(); updateInspector(); action(loadDemo);
 })();

@@ -4,7 +4,7 @@
 
 [Volver al proyecto](../README.es.md)
 
-La documentación se mantiene en español e inglés. La interfaz todavía está en español; el sistema de idiomas se incorporará en entregas posteriores. Las capturas y los ejemplos existentes pueden mostrar textos españoles.
+La documentación se mantiene en español e inglés. La interfaz está disponible en español e inglés; francés y alemán se incorporarán después. Las capturas y los ejemplos existentes pueden mostrar textos españoles.
 
 ## Correspondencias
 
@@ -20,6 +20,7 @@ La documentación se mantiene en español e inglés. La interfaz todavía está 
 | [Licencia y recursos](licencia-y-recursos.md) | [License and resources](en/license-and-resources.md) |
 | [Cambios](../CHANGELOG.es.md) | [Changelog](../CHANGELOG.md) |
 | [Galería](../exampleVideos/README.es.md) | [Gallery](../exampleVideos/README.md) |
+| [Idiomas](idiomas.md) | [Languages](en/languages.md) |
 | Esta guía | [Documentation guide](en/documentation.md) |
 
 ## Al modificar una función
@@ -27,7 +28,7 @@ La documentación se mantiene en español e inglés. La interfaz todavía está 
 1. Actualiza las dos versiones de las guías afectadas y sus entradas de cambios en el mismo commit.
 2. Mantén los enlaces de idioma y las referencias internas dentro del idioma correspondiente. Las rutas españolas existentes se conservan.
 3. Conserva identificadores de API, nombres de campos JSON, comandos, rutas y códigos de error. Traduce las explicaciones y los valores de texto de ejemplo sólo cuando no cambien su significado.
-4. Mientras la interfaz siga en español, indica sus etiquetas españolas junto a la explicación inglesa. No documentes como disponible una función de idioma que aún no está implementada.
+4. Usa las etiquetas reales de la interfaz del idioma correspondiente y aclara cuándo una captura muestra otro idioma. No documentes como disponible una función de idioma que aún no está implementada.
 5. Reutiliza capturas y direcciones de vídeo; no dupliques archivos grandes. Aclara el idioma de las capturas y las limitaciones de las grabaciones. Verifica ambas vistas previas de Markdown en GitHub.
 
 La verificación registra pruebas históricas y sus limitaciones; traducirla no significa que se hayan vuelto a ejecutar esas pruebas. El texto legal de MIT se mantiene en el único archivo `LICENSE`.

@@ -6,6 +6,14 @@
 
 This is a translated record of checks performed during the versions below, including their limitations. Translating this record does not mean those tests were rerun. Where old results differ from current behavior, use the newest relevant version's entry.
 
+## v0.12.0 · English and Spanish
+
+- Catalogs/placeholders checked with `node tests/i18n.test.mjs`: matching keys, HTML bindings, regional detection, Spanish fallback, blocked storage, interpolation and self-contained factory/export.
+- 106/106 tests without a DOM and 29/29 automation tests pass. The builder test context now loads its translation dependency.
+- Actual Chrome with `node scripts/ejecutar-pruebas-vista.mjs --i18n`: unchanged project/revision, literal names retained, multi-selection, invalid numeric drafts, open review, switching during base calculation, zoom, paused player and independent export language. English HTML executed in a separate job: initial view, controls, advance, final and restart translated.
+- Chrome regression for Images and multiple highlights: indicator, cancellation, latest settings, complete pixels, intact originals, union, transparency and exported HTML pass.
+- Direct `file://` opening checked in Chrome with an offline context: English detection, switching to Spanish and preference retained on reload. Basic 1440 × 1000 visual review of header/dialog, without page errors or header overflow. This does not replace the complete long-text layout review scheduled for a later delivery.
+
 ## v0.11.0 · Multiple highlights
 
 - 106/106 tests without a DOM and 28/29 automation tests recorded: single-rectangle migration, list precedence, initial/stage/codec persistence, selection, handles, bounds, minimum size, collective linking, list validation and legacy API patching. The [changelog](../../CHANGELOG.md) records 29 automation tests for this version; this historical entry originally recorded 28/29. A fresh run while preparing the bilingual documentation confirmed **29/29 passing** with `node tests/automation.test.mjs`, without code changes. The original result is retained to distinguish the two checks.

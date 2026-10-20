@@ -122,7 +122,7 @@ Para un navegador en una ubicación distinta, añade `"--browser", "/ruta/al/eje
 
 El servidor también ofrece `colorflow://schema/plan` y `colorflow://guide` como recursos. Responde con contenido estructurado y errores de herramienta; admite cancelación de un renderizado y cierra sus trabajos si el cliente desconecta. Sólo implementa transporte local `stdio`, sin endpoint MCP remoto, cuentas ni claves de proveedores.
 
-En esta entrega de documentación, las descripciones de herramientas, los errores y el recurso de ejecución `colorflow://guide` siguen en español; la guía inglesa está en [for-ai.md](en/for-ai.md).
+Las descripciones de herramientas MCP, los errores de automatización y el recurso de ejecución `colorflow://guide` siguen en español; la guía inglesa está en [for-ai.md](en/for-ai.md).
 
 Un pedido de ejemplo, una vez conectado:
 

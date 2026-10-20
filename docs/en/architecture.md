@@ -39,7 +39,7 @@ The application uses HTML, CSS and classic JavaScript, with no external dependen
 5. The player blends base and final images, accumulating revealed color. The view applies highlighting and camera framing. Transitions interpolate rectangles and blend treatments with premultiplied alpha, preserving transparency.
 6. Project saving retains editable data; export embeds prepared images, maps and required functions in one HTML file.
 
-Editor loading order is engine, base generation, project format, preparation, view, player, codec, collective parameters, example images, export, automation and application. Engine, player, view and codec factories must stay self-contained: their functions are embedded in Workers or exported HTML via `toString()`.
+Editor loading order begins with i18n and its catalogs, followed by engine, base generation, project format, preparation, view, player, codec, collective parameters, example images, export, automation and application. Engine, player, view and codec factories must stay self-contained: their functions are embedded in Workers or exported HTML via `toString()`.
 
 ## Color propagation
 
@@ -92,4 +92,10 @@ MCP uses dependency-free JSON-RPC over stdio, seven discoverable tools, schema/g
 
 ## Documentation languages
 
-The English README is the repository entry point; `README.es.md` is its Spanish counterpart. Spanish guides retain their paths, with English counterparts in `docs/en/`. This documentation delivery changes no runtime behavior. See [documentation maintenance](documentation.md) for paired updates and language navigation.
+The English README is the repository entry point; `README.es.md` is its Spanish counterpart. Spanish guides retain their paths, with English counterparts in `docs/en/`. Documentation files do not participate in animation calculation. See [documentation maintenance](documentation.md) for paired updates and language navigation.
+
+## Interface languages
+
+`src/i18n.js` exposes a self-contained factory and the `PaintI18n` instance; `src/locales/es.js` and `en.js` load through classic scripts before the editor. Static text uses `data-i18n` attributes; dynamic text uses keys and variables. Metadata/error translation occurs at the UI boundary: engine behavior, JSON fields and user-authored names retain their meaning. No observer translates arbitrary canvas text.
+
+Language changes refresh controls while retaining invalid drafts and selection; they do not invalidate calculation or restart the player/Worker. Preference is browser-local, outside the project. Export embeds only required keys and the translation factory. Automation without an explicit language retains Spanish. See [languages](languages.md).
