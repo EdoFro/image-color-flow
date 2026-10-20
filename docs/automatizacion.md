@@ -8,13 +8,15 @@ Tinta y color ofrece una API local para Node.js, comandos y un servidor MCP por 
 
 El editor sigue funcionando sin instalar Node.js. El HTML exportado tampoco necesita la automatización para reproducirse.
 
+Obtén el [paquete completo](distribucion.md#paquete-completo) para usar API, CLI o MCP. El ZIP del editor contiene únicamente la aplicación portable.
+
 ## Preparación
 
 1. Para la automatización, instala **Node.js 22 o posterior**; se recomienda [Node.js 24 LTS](https://nodejs.org/en/about/previous-releases).
 2. Para calcular y exportar, ten instalado Chrome, Edge o Chromium. Se buscan en ubicaciones habituales; una instalación diferente se indica con `--browser` y la ruta absoluta al ejecutable.
 3. Guarda las imágenes dentro de la carpeta de trabajo. Los archivos adjuntos en una conversación deben ser accesibles allí para el cliente local.
 
-No hace falta ejecutar `npm install`: no hay paquetes externos. Los comandos siguientes se ejecutan desde la raíz del repositorio. El renderizador inicia un navegador sin ventana con un perfil temporal propio. Sólo sirve el trabajo en `127.0.0.1`, en un puerto efímero y una ruta aleatoria, y lo cierra al terminar. No modifica tu perfil habitual.
+No hace falta ejecutar `npm install`: no hay paquetes externos. Los comandos se ejecutan desde la raíz del repositorio o del paquete completo. Los ejemplos siguientes usan archivos adicionales del repositorio; el ZIP incluye `AUTOMATION.es.md` con instrucciones usando tus propias imágenes. El renderizador inicia un navegador sin ventana con un perfil temporal propio. Sólo sirve el trabajo en `127.0.0.1`, en un puerto efímero y una ruta aleatoria, y lo cierra al terminar. No modifica tu perfil habitual.
 
 ## Prueba con una sola imagen
 

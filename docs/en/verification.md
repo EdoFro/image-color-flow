@@ -6,6 +6,14 @@
 
 This is a translated record of checks performed during the versions below, including their limitations. Translating this record does not mean those tests were rerun. Where old results differ from current behavior, use the newest relevant version's entry.
 
+## v0.15.0 · Portable application and two ZIPs
+
+- 106/106 DOM-free cases, 29/29 automation tests, 11 preference tests and 461 translation keys per language. Chrome language/export, New/preferences, image preparation and highlight scenarios work using `app/`.
+- `node tests/distribution.test.mjs`: two reproducible ZIPs, CRC32, file reconstruction, safe archive paths, included HTML resources, locally linked documentation, MIT/notices, 29 editor files and 46 complete-package files. Both contain identical `app/` files; API, CLI and the MCP resource work after extraction without the original repository.
+- Additional extraction with Python's standard ZIP library: both archives pass integrity checks. Fixed timestamps and SHA256 sums; `dist/` contains both ZIPs and `SHA256SUMS.txt`.
+- Additional test with both ZIPs actually extracted outside the repository: eight offline Chrome openings (two packages × four languages), embedded example and no HTTP resources. Both packages loaded a user image, generated L in a Worker, played/exported HTML and opened that HTML separately. Editor screenshot reviewed.
+- From the extracted complete package: actual API (`create`, `prepare`, `render`), CLI (`validate`, `inspect`) and MCP over a stdio process (`initialize`, guide, seven tools and rendering). Compatibility `index.html` reaches `app/index.html`. These additional tests used a local harness and did not publish ZIPs to GitHub.
+
 ## v0.14.0 · New project and preferences
 
 - 11 DOM-free preference tests: factory values, independent objects, ranges/increments/types/colors/thresholds, JSON, damaged/blocked storage, new projects/stages, explicitly permitted empty drafts and unchanged engine/existing files.

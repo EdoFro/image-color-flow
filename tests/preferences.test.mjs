@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createContext,runInContext} from 'node:vm';
 const context=createContext({console});
-for(const name of ['engine','base-generation','project','general','preferences'])runInContext(await readFile(new URL('../src/'+name+'.js',import.meta.url),'utf8'),context,{filename:name+'.js'});
+for(const name of ['engine','base-generation','project','general','preferences'])runInContext(await readFile(new URL('../app/src/'+name+'.js',import.meta.url),'utf8'),context,{filename:name+'.js'});
 const {PaintPreferences:p,PaintEngine:engine,PaintProject:projects}=context,copy=value=>JSON.parse(JSON.stringify(value));
 let count=0;const test=(name,fn)=>{try{fn();count++;}catch(e){throw new Error(name,{cause:e});}};
 test('Factory uses the introductory example, empty geometry and editor defaults',()=>{

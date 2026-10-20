@@ -16,12 +16,12 @@ File dialogs and other native system messages depend on the browser and operatin
 
 ## Catalogs and additional languages
 
-`src/i18n.js` provides `PaintI18n`. Catalogs are independent local scripts in `src/locales/`; no translation service or JSON request is used. Direct local opening and offline operation are preserved.
+`app/src/i18n.js` provides `PaintI18n`. Catalogs are independent local scripts in `app/src/locales/`; no translation service or JSON request is used. Direct local opening and offline operation are preserved.
 
 To add a language:
 
 1. Copy a catalog, retain its keys and brace-delimited variables, translate values and change the `PaintI18n.register` language code. `_language_name` is the language's native name.
-2. Load it before `src/app.js` in `index.html` and before the presentation builder in `automation/runner.html`.
+2. Load it before `app/src/app.js` in `app/index.html` and before the presentation builder in `automation/runner.html`.
 3. Add the resource to the `automation/browser.mjs` allowlist and files copied by `scripts/ejecutar-pruebas-vista.mjs`. The server still exposes only enumerated assets.
 4. Extend catalog, detection and browser checks. Selectors are built from registered catalogs, so no hand-written selector options are needed.
 5. Review labels, help, accessibility, dialogs and exported HTML. Missing translations fall back to Spanish; this keeps the app usable but does not replace completing the catalog.

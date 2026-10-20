@@ -14,7 +14,7 @@ Los títulos, las herramientas y los diálogos se distribuyen en varias líneas 
 
 ## Abrir
 
-Abre [index.html](../index.html) en Chrome o Edge. Conserva la estructura completa de carpetas al copiar o descomprimir el editor. El ejemplo se incluye en `examples/demo-data.js` para no tener que leer imágenes locales mediante peticiones web.
+Abre [app/index.html](../app/index.html) en Chrome o Edge. Basta copiar completa la carpeta `app/` o descomprimir el ZIP del editor; consulta las [dos distribuciones](distribucion.md). El ejemplo se incluye en `app/demo/demo-data.js` para no tener que leer imágenes locales mediante peticiones web.
 
 1. En **Imágenes**, carga la versión coloreada y opcionalmente la inicial.
 2. Elige entre neutralizar el papel del archivo inicial o generar una base de tinta sobre papel desde la final. Genera la vista previa y ajusta la transformación antes de aplicar. Con dos imágenes puedes alinear automáticamente sus contornos y afinar posición, escalas y giro con una superposición de referencia.

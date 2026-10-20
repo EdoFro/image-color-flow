@@ -22,6 +22,8 @@ Documentation is maintained in English and Spanish. The interface supports Engli
 | [Gallery](../../exampleVideos/README.md) | [Galería](../../exampleVideos/README.es.md) |
 | [Languages](languages.md) | [Idiomas](../idiomas.md) |
 | [Ideas and pending tasks](roadmap.md) | [Ideas y tareas pendientes](../pendientes.md) |
+| [Distribution](distribution.md) | [Distribución](../distribucion.md) |
+| [Portable editor](../../app/README.md) | [Editor portable](../../app/README.es.md) |
 | This guide | [Guía de documentación](../documentacion.md) |
 
 ## When changing a feature

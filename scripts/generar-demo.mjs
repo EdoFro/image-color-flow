@@ -12,5 +12,5 @@ const images = Object.fromEntries(await Promise.all(definitions.map(async ([key,
 })));
 const script = '// Generado por scripts/generar-demo.mjs a partir de examples/images/. No editar a mano.\n' +
   `window.PAINT_DEMO = ${JSON.stringify(images)};\n`;
-await writeFile(new URL('demo-data.js', examples), script, 'utf8');
-console.log('Actualizado examples/demo-data.js con las dos imágenes originales.');
+await writeFile(new URL('../app/demo/demo-data.js', import.meta.url), script, 'utf8');
+console.log('Actualizado app/demo/demo-data.js con las dos imágenes originales.');

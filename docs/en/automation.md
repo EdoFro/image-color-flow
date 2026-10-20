@@ -8,13 +8,15 @@ Tinta y color provides a local Node.js API, CLI commands and an MCP server over 
 
 The editor still works without Node.js. Exported HTML does not need automation to play.
 
+Get the [complete package](distribution.md#complete-package) for API, CLI or MCP. The editor ZIP contains only the portable application.
+
 ## Setup
 
 1. Install **Node.js 22 or later** for automation. [Node.js 24 LTS](https://nodejs.org/en/about/previous-releases) is recommended.
 2. Install Chrome, Edge or Chromium for calculation and export. Common installation locations are detected; use `--browser` with an absolute executable path for another location.
 3. Keep images in the working directory. Conversation attachments must be accessible there to the local client.
 
-No `npm install` is required: there are no external packages. Run the commands below from the repository root. The renderer starts a headless browser with its own temporary profile. It serves only the job on `127.0.0.1`, using an ephemeral port and random path, then shuts down. Your regular browser profile is unchanged.
+No `npm install` is required: there are no external packages. Run commands from the repository or complete-package root. The examples below use additional repository files; the ZIP includes `AUTOMATION.md` with instructions using your own images. The renderer starts a headless browser with its own temporary profile. It serves only the job on `127.0.0.1`, using an ephemeral port and random path, then shuts down. Your regular browser profile is unchanged.
 
 ## Try a single image
 

@@ -14,12 +14,19 @@ The videos were recorded in small windows to keep file sizes down. Their resolut
 
 ![Editor showing starting points and propagation radii; interface currently in Spanish](docs/images/vista-editor.png)
 
+## Choose a package
+
+- **[Portable editor](docs/en/distribution.md#portable-editor):** only `app/`, with example and instructions; open `app/index.html`.
+- **[Editor + API, CLI and MCP](docs/en/distribution.md#complete-package):** adds local automation, schemas and bilingual guides.
+
+Version ZIPs are published through [GitHub Releases](https://github.com/EdoFro/image-color-flow/releases). You can also [build both locally](docs/en/distribution.md#build-both-zips). Building packages does not publish them automatically.
+
 ## Get started
 
 The interface supports **English, Spanish, French and German**. Use the language selector in the header or Images dialog; your choice is remembered locally. On first use, a supported browser language is selected, falling back to Spanish. Switching languages preserves the project and playback. See [language support](docs/en/languages.md).
 
-1. Download or copy the complete project, keeping its folder structure.
-2. Open [index.html](index.html) in Chrome or Edge. No installation, server or connection is needed.
+1. Download the editor ZIP or copy the complete `app/` folder.
+2. Open [app/index.html](app/index.html) in Chrome or Edge. No installation, server or connection is needed.
 3. Try the included example or load your images through **Imágenes** (Images).
 4. Define stages, regions, points and brush paths; adjust propagation and play the animation.
 5. Use **Guardar proyecto** (Save project) to continue editing later, and **Exportar HTML** (Export HTML) to present it.
@@ -45,6 +52,7 @@ See the [automation and MCP setup guide](docs/en/automation.md), [plan schema](s
 ## Documentation and examples
 
 - [User guide](docs/en/user-guide.md): tools, timing, radii, camera, highlighting and presentation.
+- [Distribution and the two ZIPs](docs/en/distribution.md).
 - [Architecture and development](docs/en/architecture.md): modules, algorithm and optional commands.
 - [Project format](docs/en/project-format.md): saved data and compatibility.
 - [Verification](docs/en/verification.md): checks performed and their limits.
@@ -57,17 +65,18 @@ See the [automation and MCP setup guide](docs/en/automation.md), [plan schema](s
 ## Layout
 
 ```text
-index.html       Editor entry point
-src/             JavaScript source
-assets/          Editor styles
-automation/      Local API, CLI, MCP server and renderer
+app/             Complete portable editor: index.html, src/, assets/ and demo/
+automation/      Local API, CLI, MCP and renderer; reuse app/src/
 schemas/         Automation plan contract
-examples/        Images, embedded data, project and presentation
-exampleVideos/   Video recordings and bilingual gallery
-tests/           Browser and automation tests
-docs/            Spanish guides, references, screenshots and coloring prompt
+packaging/       Instructions included in the complete package
+docs/            Spanish guides, references and screenshots
 docs/en/         English guides and references
-scripts/         Optional development utilities
+examples/        Source images, projects and additional presentations
+exampleVideos/   Recordings and bilingual gallery
+tests/           Browser and automation tests
+scripts/         Development tests, example generation and packaging
+dist/            Generated ZIPs and SHA256SUMS.txt; not tracked
+index.html       Compatibility entry redirecting to app/index.html
 ```
 
 No external libraries or build steps are needed. Open [tests/index.html](tests/index.html) to run browser tests. With Node.js 22 or later, run the cases that do not need a DOM:

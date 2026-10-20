@@ -76,7 +76,7 @@ Without a highlight rectangle, the full page is used. Outside settings only appl
 
 ## Compatibility and validation
 
-Opening normalizes data using `PaintProject.normalize` in `src/project.js` and functions in `src/engine.js`. The editor limits counts/ranges, validates embedded images and rejects unknown versions. Changing `version` alone cannot convert a future format.
+Opening normalizes data using `PaintProject.normalize` in `app/src/project.js` and functions in `app/src/engine.js`. The editor limits counts/ranges, validates embedded images and rejects unknown versions. Changing `version` alone cannot convert a future format.
 
 Format-2 files retain points, timing, radii, hue resistance and camera frames. Missing format-3 fields default to a full-page initial view, highlighting disabled, linked rectangles and inherited radii. Missing older fields, including in format 1, receive engine defaults: for example, simultaneous enabled points, zero hue resistance and maximum radius 1.5 times image width.
 
@@ -111,7 +111,7 @@ In `grayscale`, only paper selection applies; other controls are retained but in
 
 ## Exported presentation
 
-Self-contained HTML is a different output. It embeds prepared images, quantized timing maps, faint contributions and the player. It retains neither editing tools nor all editable project data. Maps are packed in `src/codec.js`; keep the JSON to continue editing.
+Self-contained HTML is a different output. It embeds prepared images, quantized timing maps, faint contributions and the player. It retains neither editing tools nor all editable project data. Maps are packed in `app/src/codec.js`; keep the JSON to continue editing.
 
 ## Automation plans
 

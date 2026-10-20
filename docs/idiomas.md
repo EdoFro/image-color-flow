@@ -16,12 +16,12 @@ Los cuadros de archivo y otros mensajes nativos del sistema dependen del navegad
 
 ## Catálogos y nuevos idiomas
 
-`src/i18n.js` proporciona `PaintI18n`. Los catálogos son scripts locales independientes en `src/locales/`; no se descargan servicios de traducción ni archivos JSON mediante peticiones. Esto conserva la apertura directa y el funcionamiento sin conexión.
+`app/src/i18n.js` proporciona `PaintI18n`. Los catálogos son scripts locales independientes en `app/src/locales/`; no se descargan servicios de traducción ni archivos JSON mediante peticiones. Esto conserva la apertura directa y el funcionamiento sin conexión.
 
 Para añadir un idioma:
 
 1. Copia un catálogo, conserva sus claves y variables entre llaves, traduce los valores y cambia el código de `PaintI18n.register`. `_language_name` contiene el nombre nativo del idioma.
-2. Carga el catálogo antes de `src/app.js` en `index.html` y antes del constructor de presentación en `automation/runner.html`.
+2. Carga el catálogo antes de `app/src/app.js` en `app/index.html` y antes del constructor de presentación en `automation/runner.html`.
 3. Añade ese recurso a la lista permitida de `automation/browser.mjs` y a los archivos copiados por `scripts/ejecutar-pruebas-vista.mjs`. El servidor sigue exponiendo sólo archivos enumerados.
 4. Amplía las comprobaciones de catálogos, detección y navegador. Los selectores se construyen a partir de los catálogos registrados, por lo que no necesitan nuevas opciones escritas a mano.
 5. Revisa etiquetas, ayudas, accesibilidad, cuadros de diálogo y HTML exportado. Las traducciones que falten utilizan español; eso permite abrir la aplicación, pero no sustituye completar el catálogo.

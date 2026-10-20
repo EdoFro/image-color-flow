@@ -10,27 +10,33 @@ The application uses HTML, CSS and classic JavaScript, with no external dependen
 
 | File | Responsibility |
 | --- | --- |
-| `index.html` | Editor, inspector and image-dialog structure. |
-| `assets/styles.css` | Editor styling and responsive layout. |
-| `src/app.js` | Project state, editor events, canvas tools, files and coordination with shared calculation/export APIs. |
-| `src/preferences.js` | Factory defaults, validation and optional preference storage. |
-| `src/preferences-editor.js` | Preferences dialog, draft and import/export. |
-| `src/project.js` | Shared editable-format and presentation-option normalization. |
-| `src/ink-lines.js` | DOM-free K/L extraction: local median, gradual recovery, fine-detail protection and coherent lines in eight directions. |
-| `src/base-generation.js` | Pure pixel transformation, presets and generation normalization, without a DOM. |
-| `src/presentation.js` | Single standalone-HTML builder, including the final restart control. |
-| `src/automation.js` | Complete preparation, Web Worker calculation, report, frames and storyboard without mounting the editor. |
+| `app/index.html` | Editor, inspector and image-dialog structure. |
+| `app/assets/styles.css` | Editor styling and responsive layout. |
+| `app/src/app.js` | Project state, editor events, canvas tools, files and coordination with shared calculation/export APIs. |
+| `app/src/preferences.js` | Factory defaults, validation and optional preference storage. |
+| `app/src/preferences-editor.js` | Preferences dialog, draft and import/export. |
+| `app/src/project.js` | Shared editable-format and presentation-option normalization. |
+| `app/src/ink-lines.js` | DOM-free K/L extraction: local median, gradual recovery, fine-detail protection and coherent lines in eight directions. |
+| `app/src/base-generation.js` | Pure pixel transformation, presets and generation normalization, without a DOM. |
+| `app/src/presentation.js` | Single standalone-HTML builder, including the final restart control. |
+| `app/src/automation.js` | Complete preparation, Web Worker calculation, report, frames and storyboard without mounting the editor. |
 | `automation/` | Node.js API, CLI, stdio MCP server and local-browser renderer. |
 | `schemas/animation.schema.json` | Strict image-free plan contract for agents and clients. |
-| `src/preparation.js` | Image decoding, paper preparation, configurable base generation and alignment. |
-| `src/engine.js` | Parameter normalization and propagation, independent of the DOM. |
-| `src/player.js` | Timing, pauses, navigation and stage blending. |
-| `src/view.js` | Camera, highlighting and outside treatment. |
-| `src/general.js` | Collective-parameter catalog, summary, validation and application to all stages or a group, without a DOM. |
-| `src/codec.js` | Timing-map and faint-contribution packing/unpacking. |
-| `examples/demo-data.js` | Embedded example images; generated file. |
+| `app/src/preparation.js` | Image decoding, paper preparation, configurable base generation and alignment. |
+| `app/src/engine.js` | Parameter normalization and propagation, independent of the DOM. |
+| `app/src/player.js` | Timing, pauses, navigation and stage blending. |
+| `app/src/view.js` | Camera, highlighting and outside treatment. |
+| `app/src/general.js` | Collective-parameter catalog, summary, validation and application to all stages or a group, without a DOM. |
+| `app/src/codec.js` | Timing-map and faint-contribution packing/unpacking. |
+| `app/demo/demo-data.js` | Embedded example images; generated file. |
 | `tests/` | Shared synthetic cases and browser pixel checks. |
 | `scripts/` | Optional Node.js development utilities. |
+
+## Distribution
+
+`app/` contains the complete editor with scripts, styles, example, license and instructions. Copying that folder is sufficient. Root `index.html` is only a compatibility entry. Automation and tests read the same engine from `app/src/`; the render server retains its virtual `src/*` URLs and resource allowlist.
+
+`scripts/empaquetar.mjs` builds two reproducible ZIPs from allowlisted files: editor and complete. The complete package adds the eight automation files, schema, assistant guide, instructions from `packaging/complete/`, license and a runtime `package.json`. `scripts/lib/zip.mjs` uses deflate and CRC32 with built-in Node modules; ZIP dates are fixed. Git ignores `dist/`. See [distribution](distribution.md).
 
 ## Data flow
 
@@ -45,7 +51,7 @@ Editor loading order begins with i18n and its catalogs, followed by engine, base
 
 ## Startup, project replacement and preferences
 
-`src/preferences.js` validates format-1 preferences, supplies factory values and creates geometry-free projects/stages. It reuses the collective-parameter catalog with consistent ranges and increments. Storage is optional: failure retains values for the session and displays a message. `src/preferences-editor.js` handles the dialog draft, translated notices, import/export and rejection of late imports from a closed dialog session.
+`app/src/preferences.js` validates format-1 preferences, supplies factory values and creates geometry-free projects/stages. It reuses the collective-parameter catalog with consistent ranges and increments. Storage is optional: failure retains values for the session and displays a message. `app/src/preferences-editor.js` handles the dialog draft, translated notices, import/export and rejection of late imports from a closed dialog session.
 
 The application keeps preferences outside the project. Startup uses `startup` (factory value `example`); New always creates an empty project. Replacement buttons share a warning that considers committed changes, collective drafts and unfinished drawings. Downloading does not replace the project: a later confirmation is required. Open validates/decodes before asking for confirmation; preparation completes before clearing current state. Reset cancels the preview/Worker and clears the player, maps, temporary geometry, selections and controls.
 
@@ -82,7 +88,7 @@ node scripts/ejecutar-pruebas.mjs
 node scripts/generar-demo.mjs
 ```
 
-The first runs cases without a DOM and fails if any case fails. The second only regenerates `examples/demo-data.js` from the two images in `examples/images/`; it does not re-export the project or presentation. Both scripts resolve paths relative to themselves. Run automation tests with `node tests/automation.test.mjs`.
+The first runs cases without a DOM and fails if any case fails. The second only regenerates `app/demo/demo-data.js` from the two images in `examples/images/`; it does not re-export the project or presentation. Both scripts resolve paths relative to themselves. Run automation tests with `node tests/automation.test.mjs`.
 
 If example images or settings change, save a new project and export the presentation again. Keep results in `examples/ejemplo.colorflow.json` and `examples/presentacion-ejemplo.html`.
 
@@ -96,9 +102,9 @@ Canvas, decoding, alignment, Workers and frames run in headless Chrome/Edge/Chro
 
 MCP uses dependency-free JSON-RPC over stdio, seven discoverable tools, schema/guide resources, structured results and cancellation. `prepare` decodes/prepares without creating the propagation Worker. It returns the complete base and comparison; `render` adds calculation and presentation. File-root restrictions apply lexically and after resolving links. Structural validation does not guarantee visual interpretation of a request. The AI must inspect base, plan and frames; see [integration](automation.md).
 
-`src/base-preview.js` builds a Blob Worker from engine factories without external imports. It retains global L support, revisions and a queue of 192 px blocks, waiting for acknowledgement between blocks to handle cancellation and viewport changes. `PaintBase.region` keeps a 12 px halo; the Worker adds resampling margins and preserves full-image geometry when reducing through OffscreenCanvas. `src/image-comparison.js` manages one viewport for both views and the thumbnail. Format 9 adds L/M/N; partial states are never exported or saved.
+`app/src/base-preview.js` builds a Blob Worker from engine factories without external imports. It retains global L support, revisions and a queue of 192 px blocks, waiting for acknowledgement between blocks to handle cancellation and viewport changes. `PaintBase.region` keeps a 12 px halo; the Worker adds resampling margins and preserves full-image geometry when reducing through OffscreenCanvas. `app/src/image-comparison.js` manages one viewport for both views and the thumbnail. Format 9 adds L/M/N; partial states are never exported or saved.
 
-`highlightFrames` is format 10's canonical list; `highlightFrame` aliases its first element. `src/highlight-editor.js` provides selection/transforms without a DOM. `PaintView.highlights` resolves active geometry; rendering uses a common union clipping path, preserving previous drawing for a single rectangle. Transitions interpolate equal-length lists or crossfade masks of different lengths. The codec retains the complete list in each exported field.
+`highlightFrames` is format 10's canonical list; `highlightFrame` aliases its first element. `app/src/highlight-editor.js` provides selection/transforms without a DOM. `PaintView.highlights` resolves active geometry; rendering uses a common union clipping path, preserving previous drawing for a single rectangle. Transitions interpolate equal-length lists or crossfade masks of different lengths. The codec retains the complete list in each exported field.
 
 ## Documentation languages
 
@@ -106,6 +112,6 @@ The English README is the repository entry point; `README.es.md` is its Spanish 
 
 ## Interface languages
 
-`src/i18n.js` exposes a self-contained factory and the `PaintI18n` instance; `src/locales/es.js`, `en.js`, `fr.js` and `de.js` load through classic scripts before the editor. Static text uses `data-i18n` attributes; dynamic text uses keys and variables. Metadata/error translation occurs at the UI boundary: engine behavior, JSON fields and user-authored names retain their meaning. No observer translates arbitrary canvas text.
+`app/src/i18n.js` exposes a self-contained factory and the `PaintI18n` instance; `app/src/locales/es.js`, `en.js`, `fr.js` and `de.js` load through classic scripts before the editor. Static text uses `data-i18n` attributes; dynamic text uses keys and variables. Metadata/error translation occurs at the UI boundary: engine behavior, JSON fields and user-authored names retain their meaning. No observer translates arbitrary canvas text.
 
 Language changes refresh controls while retaining invalid drafts and selection; they do not invalidate calculation or restart the player/Worker. Preference is browser-local, outside the project. Export embeds only required keys and the translation factory. Automation without an explicit language retains Spanish. See [languages](languages.md).

@@ -14,12 +14,19 @@ Los vídeos se grabaron en ventanas pequeñas para reducir su peso; su resoluci�
 
 ![Editor con puntos de inicio y radios de propagación](docs/images/vista-editor.png)
 
+## Elegir paquete
+
+- **[Editor portable](docs/distribucion.md#editor-portable):** sólo `app/`, con ejemplo e instrucciones; abre `app/index.html`.
+- **[Editor + API, CLI y MCP](docs/distribucion.md#paquete-completo):** añade automatización local, esquemas y guías bilingües.
+
+Los ZIP de cada versión se publican en [GitHub Releases](https://github.com/EdoFro/image-color-flow/releases). También puedes [generar ambos localmente](docs/distribucion.md#generar-los-dos-zip). Crear los paquetes no los publica automáticamente.
+
 ## Empezar
 
 La interfaz está disponible en **español, inglés, francés y alemán**. Elige el idioma en la cabecera o en Imágenes; se recuerda localmente. La primera vez se utiliza un idioma compatible del navegador, con español como alternativa. Cambiarlo conserva el proyecto y la reproducción. Consulta los [idiomas de la aplicación](docs/idiomas.md).
 
-1. Descarga o copia el proyecto completo, conservando sus carpetas.
-2. Abre [index.html](index.html) en Chrome o Edge. No requiere instalación, servidor ni conexión.
+1. Descarga el ZIP del editor o copia completa la carpeta `app/`.
+2. Abre [app/index.html](app/index.html) en Chrome o Edge. No requiere instalación, servidor ni conexión.
 3. Prueba el ejemplo incluido o pulsa **Nuevo proyecto** y **Cargar imágenes** para empezar desde cero.
 4. Define etapas, zonas, puntos y recorridos; ajusta la propagación y reproduce.
 5. Usa **Guardar proyecto** para seguir editando y **Exportar HTML** para presentar.
@@ -37,6 +44,7 @@ Consulta la [guía de automatización y conexión MCP](docs/automatizacion.md), 
 ## Documentación y ejemplos
 
 - [Guía de uso](docs/guia-de-uso.md): herramientas, tiempos, radios, cámara, destacado y presentación.
+- [Distribución y los dos ZIP](docs/distribucion.md).
 - [Arquitectura y desarrollo](docs/arquitectura.md): responsabilidades, algoritmo y comandos opcionales.
 - [Formato del proyecto](docs/formato-del-proyecto.md): datos guardados y compatibilidad.
 - [Verificación](docs/verificacion.md): comprobaciones realizadas y límites.
@@ -49,17 +57,18 @@ Consulta la [guía de automatización y conexión MCP](docs/automatizacion.md), 
 ## Estructura
 
 ```text
-index.html       Entrada del editor
-src/             Código JavaScript
-assets/          Estilos del editor
-automation/      API local, comandos, servidor MCP y renderizador
+app/             Editor portable completo: index.html, src/, assets/ y demo/
+automation/      API local, CLI, MCP y renderizador; reutilizan app/src/
 schemas/         Contrato de planes para automatización
-examples/        Imágenes, datos incorporados, proyecto y presentación
+packaging/       Instrucciones incluidas en el paquete completo
+docs/            Guías españolas, referencias y capturas
+docs/en/         Guías y referencias inglesas
+examples/        Imágenes fuente, proyectos y presentaciones adicionales
 exampleVideos/   Grabaciones y galería bilingüe
 tests/           Pruebas del navegador y de automatización
-docs/            Guías españolas, referencias, capturas y prompt de coloreado
-docs/en/         Guías y referencias inglesas
-scripts/         Utilidades opcionales para desarrollo
+scripts/         Pruebas, generación de ejemplo y empaquetado de desarrollo
+dist/            ZIP generados y SHA256SUMS.txt; no se versionan
+index.html       Acceso de compatibilidad que redirige a app/index.html
 ```
 
 No se usan bibliotecas externas ni pasos de compilación. Abre [tests/index.html](tests/index.html) para ejecutar las pruebas del navegador. Con Node.js 22 o posterior también puedes ejecutar los casos sin DOM:

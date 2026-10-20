@@ -9,6 +9,13 @@
 - Código y documentación bajo licencia MIT, con archivo LICENSE y metadato en package.json. Las imágenes de ejemplo conservan sus condiciones por separado.
 - Siete grabaciones MP4 de demostración: ejemplo 6 destacado en el README y galería de vídeos adicionales con navegación de ida y vuelta.
 
+## v0.15.0
+
+- `app/` autosuficiente con editor, idiomas, estilos, ejemplo incorporado, instrucciones bilingües, MIT y avisos de recursos. El acceso anterior redirige a `app/index.html`.
+- Dos ZIP versionados: editor y completo (editor + API, CLI, MCP, esquema y guías), generados con `npm run package` o Node sin dependencias externas. Empaquetado reproducible, archivos permitidos y SHA256SUMS.txt; artefactos en `dist/`, excluidos de Git.
+- Automatización, pruebas y generador de ejemplo actualizados para compartir `app/src/` y `app/demo/demo-data.js`. Documentación e instrucciones de descarga actualizadas en español e inglés.
+- Ambos ZIP comprobados tras extraerlos: editor sin conexión en cuatro idiomas, Worker/base, reproducción, HTML autónomo y API/CLI/MCP reales desde el paquete completo.
+
 ## v0.14.0
 
 - Nuevo proyecto limpia el lienzo, reproducción, selecciones y cálculos; crea Inicio y una etapa sin emisores con los predeterminados personalizados. Permite guardar/reabrir borradores sin imágenes; reproducir y exportar requieren una imagen coloreada.

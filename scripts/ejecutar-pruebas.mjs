@@ -10,7 +10,7 @@ const context = createContext({
   requestAnimationFrame: () => 1,
   cancelAnimationFrame: () => {}
 });
-for (const file of ['src/engine.js', 'src/ink-lines.js', 'src/base-generation.js', 'src/project.js', 'src/view.js', 'src/highlight-editor.js', 'src/player.js', 'src/codec.js', 'src/general.js', 'tests/ink-fixture.js', 'tests/tests.js']) {
+for (const file of ['app/src/engine.js', 'app/src/ink-lines.js', 'app/src/base-generation.js', 'app/src/project.js', 'app/src/view.js', 'app/src/highlight-editor.js', 'app/src/player.js', 'app/src/codec.js', 'app/src/general.js', 'tests/ink-fixture.js', 'tests/tests.js']) {
   runInContext(await readFile(new URL(`../${file}`, import.meta.url), 'utf8'), context, { filename: file });
 }
 const results = context.PAINT_TEST_RESULTS;

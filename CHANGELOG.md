@@ -8,6 +8,13 @@
 - Code and documentation under MIT, with LICENSE and package.json metadata. Example images retain separate conditions.
 - Seven MP4 recordings: example 6 featured in the README and a gallery of additional videos with links back to the project.
 
+## v0.15.0
+
+- Self-contained `app/` with editor, languages, styles, embedded example, bilingual instructions, MIT and resource notices. The previous entry redirects to `app/index.html`.
+- Two versioned ZIPs: editor and complete (editor + API, CLI, MCP, schema and guides), built with `npm run package` or Node without external dependencies. Reproducible allowlisted packaging and SHA256SUMS.txt; ignored artifacts in `dist/`.
+- Automation, tests and example generator updated to share `app/src/` and `app/demo/demo-data.js`. English/Spanish documentation and download instructions updated.
+- Both ZIPs verified after extraction: offline editor in four languages, Worker/base, playback, standalone HTML and actual API/CLI/MCP from the complete package.
+
 ## v0.14.0
 
 - New project clears canvas, playback, selections and calculations; creates an initial view and an emitter-free stage using personal defaults. Image-free drafts can be saved/reopened; playback and export require a colored image.

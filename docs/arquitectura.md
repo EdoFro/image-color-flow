@@ -10,27 +10,33 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 
 | Archivo | Responsabilidad |
 | --- | --- |
-| `index.html` | Estructura del editor, inspector y diálogo de imágenes. |
-| `assets/styles.css` | Presentación del editor y adaptación al tamaño de pantalla. |
-| `src/app.js` | Estado del proyecto, eventos del editor, herramientas del lienzo, archivos y coordinación con las APIs compartidas de cálculo y exportación. |
-| `src/preferences.js` | Valores de fábrica, validación y persistencia opcional de preferencias. |
-| `src/preferences-editor.js` | Diálogo de preferencias, borrador e importación/exportación. |
-| `src/project.js` | Normalización compartida del formato editable y opciones de presentación. |
-| `src/ink-lines.js` | Extracción K/L sin DOM: mediana local, recuperación gradual, protección fina y líneas coherentes en ocho direcciones. |
-| `src/base-generation.js` | Transformación pura de píxeles, presets y normalización de la generación de base, sin DOM. |
-| `src/presentation.js` | Constructor único del HTML autónomo, incluido el reinicio final. |
-| `src/automation.js` | Preparación completa, cálculo en Web Worker, informe, fotogramas y hoja de secuencia sin montar el editor. |
+| `app/index.html` | Estructura del editor, inspector y diálogo de imágenes. |
+| `app/assets/styles.css` | Presentación del editor y adaptación al tamaño de pantalla. |
+| `app/src/app.js` | Estado del proyecto, eventos del editor, herramientas del lienzo, archivos y coordinación con las APIs compartidas de cálculo y exportación. |
+| `app/src/preferences.js` | Valores de fábrica, validación y persistencia opcional de preferencias. |
+| `app/src/preferences-editor.js` | Diálogo de preferencias, borrador e importación/exportación. |
+| `app/src/project.js` | Normalización compartida del formato editable y opciones de presentación. |
+| `app/src/ink-lines.js` | Extracción K/L sin DOM: mediana local, recuperación gradual, protección fina y líneas coherentes en ocho direcciones. |
+| `app/src/base-generation.js` | Transformación pura de píxeles, presets y normalización de la generación de base, sin DOM. |
+| `app/src/presentation.js` | Constructor único del HTML autónomo, incluido el reinicio final. |
+| `app/src/automation.js` | Preparación completa, cálculo en Web Worker, informe, fotogramas y hoja de secuencia sin montar el editor. |
 | `automation/` | API de Node.js, CLI, servidor MCP stdio y renderizador mediante navegador local. |
 | `schemas/animation.schema.json` | Contrato estricto de planes sin imágenes para agentes y clientes. |
-| `src/preparation.js` | Decodificación de imágenes, preparación del papel, generación de base configurable y alineación. |
-| `src/engine.js` | Normalización de parámetros y propagación, independiente del DOM. |
-| `src/player.js` | Tiempo, pausas, navegación y mezcla de las etapas. |
-| `src/view.js` | Cámara, destacado y tratamiento del exterior. |
-| `src/general.js` | Catálogo, resumen, validación y aplicación de parámetros colectivos a toda la presentación o a un grupo de etapas, sin dependencia del DOM. |
-| `src/codec.js` | Empaquetado y lectura de los mapas temporales y contribuciones tenues. |
-| `examples/demo-data.js` | Imágenes del ejemplo incorporadas como datos locales; archivo generado. |
+| `app/src/preparation.js` | Decodificación de imágenes, preparación del papel, generación de base configurable y alineación. |
+| `app/src/engine.js` | Normalización de parámetros y propagación, independiente del DOM. |
+| `app/src/player.js` | Tiempo, pausas, navegación y mezcla de las etapas. |
+| `app/src/view.js` | Cámara, destacado y tratamiento del exterior. |
+| `app/src/general.js` | Catálogo, resumen, validación y aplicación de parámetros colectivos a toda la presentación o a un grupo de etapas, sin dependencia del DOM. |
+| `app/src/codec.js` | Empaquetado y lectura de los mapas temporales y contribuciones tenues. |
+| `app/demo/demo-data.js` | Imágenes del ejemplo incorporadas como datos locales; archivo generado. |
 | `tests/` | Casos sintéticos compartidos y comprobaciones de píxeles en navegador. |
 | `scripts/` | Herramientas opcionales de desarrollo para Node.js. |
+
+## Distribución
+
+`app/` contiene el editor completo con scripts, estilos, ejemplo, licencia e instrucciones. Basta copiar esa carpeta. El `index.html` de la raíz es sólo un acceso de compatibilidad. Automatización y pruebas leen el mismo motor desde `app/src/`; el servidor de renderizado conserva sus URL virtuales `src/*` y su enumeración de recursos.
+
+`scripts/empaquetar.mjs` genera dos ZIP reproducibles con una lista de archivos permitidos: editor y completo. El completo añade los ocho archivos de automatización, esquema, guía para asistentes, instrucciones de `packaging/complete/`, licencia y un `package.json` de ejecución. `scripts/lib/zip.mjs` usa deflate y CRC32 con módulos integrados de Node; las fechas del ZIP son fijas. `dist/` está excluido de Git. Consulta [distribución](distribucion.md).
 
 ## Flujo de datos
 
@@ -45,7 +51,7 @@ El orden de carga del editor comienza con i18n y sus catálogos, seguidos por mo
 
 ## Inicio, reemplazo de proyecto y preferencias
 
-`src/preferences.js` valida preferencias de formato 1, proporciona valores de fábrica y crea proyectos/etapas sin geometría. Reutiliza el catálogo de parámetros generales, con rangos y pasos consistentes. El almacenamiento es opcional: si falla, conserva los valores en la sesión y avisa. `src/preferences-editor.js` mantiene el borrador del diálogo, los mensajes traducidos, importación/exportación y descarte de importaciones tardías de una sesión cerrada.
+`app/src/preferences.js` valida preferencias de formato 1, proporciona valores de fábrica y crea proyectos/etapas sin geometría. Reutiliza el catálogo de parámetros generales, con rangos y pasos consistentes. El almacenamiento es opcional: si falla, conserva los valores en la sesión y avisa. `app/src/preferences-editor.js` mantiene el borrador del diálogo, los mensajes traducidos, importación/exportación y descarte de importaciones tardías de una sesión cerrada.
 
 La aplicación mantiene las preferencias fuera del proyecto. Al abrir, utiliza `startup` (de fábrica `example`); Nuevo siempre crea un proyecto vacío. Los botones de reemplazo comparten una advertencia que considera cambios confirmados, borradores colectivos y dibujos incompletos. Descargar no ejecuta el reemplazo: requiere una confirmación posterior. Abrir valida y decodifica antes de pedir confirmación; la preparación se completa antes de limpiar el estado actual. El reinicio cancela la vista previa/Worker y limpia reproductor, mapas, geometría temporal, selecciones y controles.
 
@@ -82,7 +88,7 @@ node scripts/ejecutar-pruebas.mjs
 node scripts/generar-demo.mjs
 ```
 
-El primer comando ejecuta los casos sin DOM y termina con error si alguno falla. El segundo regenera exclusivamente `examples/demo-data.js` desde las dos imágenes de `examples/images/`; no reexporta el proyecto ni la presentación. Ambos scripts resuelven rutas respecto a su propio archivo. Las pruebas de automatización se ejecutan con `node tests/automation.test.mjs`.
+El primer comando ejecuta los casos sin DOM y termina con error si alguno falla. El segundo regenera exclusivamente `app/demo/demo-data.js` desde las dos imágenes de `examples/images/`; no reexporta el proyecto ni la presentación. Ambos scripts resuelven rutas respecto a su propio archivo. Las pruebas de automatización se ejecutan con `node tests/automation.test.mjs`.
 
 Si se cambian las imágenes o la configuración del ejemplo, guarda un nuevo proyecto y exporta de nuevo la presentación desde el editor. Conserva los resultados en `examples/ejemplo.colorflow.json` y `examples/presentacion-ejemplo.html`.
 
@@ -96,9 +102,9 @@ Canvas, decodificación, alineación, Web Worker y fotogramas se ejecutan en Chr
 
 MCP utiliza JSON-RPC por stdio, sin dependencias, con descubrimiento de siete herramientas, esquema y guía como recursos, resultados estructurados y cancelación. `prepare` ejecuta decodificación y preparación sin instanciar el trabajador de propagación. Produce la base completa y una comparación; `render` añade cálculo y presentación. La raíz de archivos se limita tanto léxicamente como al resolver enlaces. La validación de estructura no pretende garantizar la interpretación visual del pedido. La IA debe revisar base, plan y fotogramas; consulta la [guía de integración](automatizacion.md).
 
-`src/base-preview.js` construye un Worker Blob con las fábricas del motor, sin importaciones externas. Mantiene soporte global de L, revisiones y cola de bloques de 192 px; espera confirmación entre bloques para atender cancelaciones/encuadres. `PaintBase.region` conserva 12 px de margen; el Worker agrega margen de remuestreo y conserva la geometría completa al reducir con OffscreenCanvas. `src/image-comparison.js` gestiona un único encuadre para ambas vistas y la miniatura. El formato 9 añade L/M/N; los estados parciales nunca se exportan ni se guardan.
+`app/src/base-preview.js` construye un Worker Blob con las fábricas del motor, sin importaciones externas. Mantiene soporte global de L, revisiones y cola de bloques de 192 px; espera confirmación entre bloques para atender cancelaciones/encuadres. `PaintBase.region` conserva 12 px de margen; el Worker agrega margen de remuestreo y conserva la geometría completa al reducir con OffscreenCanvas. `app/src/image-comparison.js` gestiona un único encuadre para ambas vistas y la miniatura. El formato 9 añade L/M/N; los estados parciales nunca se exportan ni se guardan.
 
-`highlightFrames` es la lista canónica del formato 10; `highlightFrame` es el alias del primero. `src/highlight-editor.js` contiene selección y transformaciones sin DOM. `PaintView.highlights` resuelve la geometría activa; el renderizador usa una ruta de recorte común para la unión, conservando el dibujo anterior para un único rectángulo. Las transiciones interpolan listas de igual longitud o funden máscaras de cantidades distintas. El codec incluye la lista completa en cada campo exportado.
+`highlightFrames` es la lista canónica del formato 10; `highlightFrame` es el alias del primero. `app/src/highlight-editor.js` contiene selección y transformaciones sin DOM. `PaintView.highlights` resuelve la geometría activa; el renderizador usa una ruta de recorte común para la unión, conservando el dibujo anterior para un único rectángulo. Las transiciones interpolan listas de igual longitud o funden máscaras de cantidades distintas. El codec incluye la lista completa en cada campo exportado.
 
 ## Idiomas de la documentación
 
@@ -106,6 +112,6 @@ El README inglés es la portada del repositorio; `README.es.md` es su equivalent
 
 ## Idiomas de la interfaz
 
-`src/i18n.js` expone una fábrica autocontenida y la instancia `PaintI18n`; los catálogos `src/locales/es.js`, `en.js`, `fr.js` y `de.js` se cargan antes del editor mediante scripts clásicos. Los textos estáticos usan atributos `data-i18n`; los dinámicos usan claves y variables. La traducción de metadatos y errores ocurre en la interfaz: el motor, los campos JSON y los nombres del usuario conservan su significado. No se emplean observadores que traduzcan texto arbitrario del lienzo.
+`app/src/i18n.js` expone una fábrica autocontenida y la instancia `PaintI18n`; los catálogos `app/src/locales/es.js`, `en.js`, `fr.js` y `de.js` se cargan antes del editor mediante scripts clásicos. Los textos estáticos usan atributos `data-i18n`; los dinámicos usan claves y variables. La traducción de metadatos y errores ocurre en la interfaz: el motor, los campos JSON y los nombres del usuario conservan su significado. No se emplean observadores que traduzcan texto arbitrario del lienzo.
 
 El cambio de idioma refresca controles conservando los borradores inválidos y la selección; no llama a invalidate ni reinicia el reproductor o el Worker. La preferencia es local al navegador, fuera del proyecto. Exportar incorpora únicamente las claves necesarias y la fábrica de traducción en el HTML. La automatización sin idioma explícito conserva el español. Consulta [idiomas](idiomas.md).

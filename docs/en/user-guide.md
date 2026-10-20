@@ -16,7 +16,7 @@ Headings, tools and dialogs wrap when space is limited. If a selected value does
 
 ## Open the editor
 
-Open [index.html](../../index.html) in Chrome or Edge. Keep the full folder structure when copying or extracting the editor. The example is embedded in `examples/demo-data.js` so loading it does not require web requests for local images.
+Open [app/index.html](../../app/index.html) in Chrome or Edge. Copy the complete `app/` folder or extract the editor ZIP; see the [two distributions](distribution.md). The example is embedded in `app/demo/demo-data.js` so loading it does not require web requests for local images.
 
 1. In **Imágenes** (Images), load the colored image and, optionally, an initial image.
 2. Choose whether to neutralize the uploaded initial image's paper or generate an ink-on-paper base from the final image. Generate a preview and adjust the transformation before applying it. With two images, automatically align their contours and refine position, per-axis scale and rotation using an overlay reference.

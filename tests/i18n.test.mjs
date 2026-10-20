@@ -3,7 +3,7 @@ import { createContext, runInContext, Script } from 'node:vm';
 import assert from 'node:assert/strict';
 
 const root = new URL('../', import.meta.url), context = createContext({ console });
-for (const file of ['src/i18n.js','src/locales/es.js','src/locales/en.js','src/locales/fr.js','src/locales/de.js','src/engine.js','src/project.js','src/player.js','src/codec.js','src/view.js','src/presentation.js']) runInContext(await readFile(new URL(file,root),'utf8'),context,{filename:file});
+for (const file of ['app/src/i18n.js','app/src/locales/es.js','app/src/locales/en.js','app/src/locales/fr.js','app/src/locales/de.js','app/src/engine.js','app/src/project.js','app/src/player.js','app/src/codec.js','app/src/view.js','app/src/presentation.js']) runInContext(await readFile(new URL(file,root),'utf8'),context,{filename:file});
 const i = context.PaintI18n;
 const es = i.catalog('es'), en = i.catalog('en');
 assert.deepEqual(Array.from(i.languages).sort(), ['de','en','es','fr']);
@@ -16,7 +16,7 @@ for (const language of i.languages) {
     for (const name of value.match(/\{\w+\}/g) || []) assert.ok(original.has(name), `${key}: unknown placeholder ${name}`);
   }
 }
-const html = await readFile(new URL('index.html',root),'utf8');
+const html = await readFile(new URL('app/index.html',root),'utf8');
 const scripts=[...html.matchAll(/<script src="([^"]+)"/g)].map(match=>match[1]);
 assert.equal(new Set(scripts).size,scripts.length,'Editor scripts must load once');
 for (const [,key] of html.matchAll(/data-i18n(?:-title|-aria-label|-placeholder)?="([^"]+)"/g)) assert.ok(Object.hasOwn(es,key),key);

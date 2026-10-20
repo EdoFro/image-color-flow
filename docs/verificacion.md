@@ -6,6 +6,14 @@
 
 Este documento registra comprobaciones históricas y sus limitaciones. Su traducción no significa que se hayan repetido esas pruebas. Si un resultado antiguo difiere del comportamiento actual, consulta la versión más reciente correspondiente.
 
+## v0.15.0 · Aplicación portable y dos ZIP
+
+- 106/106 casos sin DOM, 29/29 de automatización, 11 pruebas de preferencias y 461 claves de traducción por idioma. Los escenarios Chrome de idiomas/exportación, Nuevo/preferencias, preparación de imágenes y destacados funcionan usando `app/`.
+- `node tests/distribution.test.mjs`: dos ZIP reproducibles, CRC32, reconstrucción de archivos, rutas de archivo seguras, recursos del HTML incluidos, documentación con enlaces locales válidos, MIT/avisos, 29 archivos del editor y 46 del completo. `app/` es idéntica en ambos; API, CLI y recurso MCP funcionan después de extraer sin el repositorio original.
+- Extracción adicional con la biblioteca estándar ZIP de Python: integridad de ambos archivos correcta. Fechas fijas y sumas SHA256; `dist/` contiene ambos ZIP y `SHA256SUMS.txt`.
+- Prueba adicional con ambos ZIP realmente extraídos fuera del repositorio: ocho aperturas sin conexión en Chrome (dos paquetes × cuatro idiomas), ejemplo incorporado y ningún recurso HTTP. En ambos paquetes se cargó una imagen propia, se generó L con Worker, se reprodujo y exportó HTML, y se abrió ese HTML por separado. Captura del editor revisada.
+- Desde el completo extraído se ejecutaron API real (`create`, `prepare`, `render`), CLI real (`validate`, `inspect`) y MCP por proceso stdio (`initialize`, guía, siete herramientas y renderizado). La apertura del `index.html` de compatibilidad llega a `app/index.html`. Estas pruebas adicionales usaron un arnés local y no publicaron los ZIP en GitHub.
+
 ## v0.14.0 · Nuevo proyecto y preferencias
 
 - 11 pruebas de preferencias sin DOM: valores de fábrica, independencia de objetos, rangos/pasos/tipos/colores/umbrales, JSON, almacenamiento dañado/bloqueado, nuevos proyectos/etapas, borradores vacíos con permiso explícito y motor/archivos existentes sin alterar.

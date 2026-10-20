@@ -19,6 +19,6 @@ The images are retained as test material supplied during development:
 
 The coloring reference text is in [instrucciones-color.txt](../prompts/instrucciones-color.txt), in Spanish. The project owner has stated that they do not hold the rights to the example images. Their inclusion for demonstration does not grant permission to reuse them. The code's MIT License does not grant rights to these resources.
 
-The images are also embedded in `examples/demo-data.js`, the example project and presentation, and screenshots in `docs/images/`. Replacing them for redistribution requires updating those copies and screenshots too.
+The images are also embedded in `app/demo/demo-data.js`, the example project and presentation, and screenshots in `docs/images/`. Replacing them for redistribution requires updating those copies and screenshots too.
 
 Videos in `exampleVideos/` and attachments linked from the READMEs show demonstration images. The MIT License does not grant rights to the images appearing in those recordings either.

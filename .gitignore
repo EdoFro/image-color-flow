@@ -1,6 +1,7 @@
 # Archivos locales y temporales; los ejemplos entregados sí se versionan.
 node_modules/
 output/
+dist/
 .cache/
 coverage/
 *.log

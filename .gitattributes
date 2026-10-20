@@ -10,6 +10,6 @@
 *.png binary
 
 # Estos ejemplos incorporan imágenes base64; evitar diffs enormes.
-examples/demo-data.js -diff
+app/demo/demo-data.js -diff
 examples/ejemplo.colorflow.json -diff
 examples/presentacion-ejemplo.html -diff

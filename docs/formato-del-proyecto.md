@@ -76,7 +76,7 @@ Sin rectángulo de destacado se utiliza la página completa. Los ajustes del ext
 
 ## Compatibilidad y validación
 
-La apertura normaliza los datos mediante `PaintProject.normalize` en `src/project.js` y las funciones de `src/engine.js`. El editor limita cantidades y rangos, valida las imágenes incorporadas y rechaza versiones desconocidas. No basta con cambiar `version` para convertir un formato futuro.
+La apertura normaliza los datos mediante `PaintProject.normalize` en `app/src/project.js` y las funciones de `app/src/engine.js`. El editor limita cantidades y rangos, valida las imágenes incorporadas y rechaza versiones desconocidas. No basta con cambiar `version` para convertir un formato futuro.
 
 Los archivos de formato 2 conservan sus puntos, tiempos, radios, tono y encuadres. Al faltar los campos de formato 3 reciben Inicio de página completa, destacado desactivado, rectángulos vinculados y radios heredados. Los campos antiguos que falten, también en formato 1, reciben los valores del motor: por ejemplo, puntos activos simultáneos, resistencia al tono cero y radio máximo de 1,5 veces el ancho.
 
@@ -111,7 +111,7 @@ En `grayscale` sólo actúa la selección de papel; los demás controles se cons
 
 ## Presentación exportada
 
-El HTML autónomo es un producto distinto. Incorpora imágenes preparadas, mapas temporales cuantizados, contribuciones tenues y el reproductor. No conserva las herramientas ni todos los datos necesarios para editar el proyecto. Sus mapas se empaquetan en `src/codec.js`; conserva siempre el JSON si necesitas continuar editando.
+El HTML autónomo es un producto distinto. Incorpora imágenes preparadas, mapas temporales cuantizados, contribuciones tenues y el reproductor. No conserva las herramientas ni todos los datos necesarios para editar el proyecto. Sus mapas se empaquetan en `app/src/codec.js`; conserva siempre el JSON si necesitas continuar editando.
 
 ## Planes para automatización
 
