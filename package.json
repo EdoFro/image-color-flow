@@ -2,6 +2,7 @@
   "name": "image-color-flow",
   "version": "0.11.0",
   "private": true,
+  "license": "MIT",
   "description": "Editor offline y automatizaciÃ³n local para animar la apariciÃ³n del color",
   "engines": {
     "node": ">=22"

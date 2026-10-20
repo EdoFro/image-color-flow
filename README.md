@@ -2,6 +2,14 @@
 
 Editor local para animar la aparición del color en dibujos con tinta, acuarela y otras técnicas. Parte de una imagen inicial y otra coloreada; permite dirigir la propagación y exportar una presentación web que funciona sin conexión.
 
+## Ver una animación
+
+[▶ Ver demostración de Tinta y color — ejemplo 6 (MP4)](exampleVideos/colorFlow%20example%2006.mp4)
+
+[Ver más ejemplos de animaciones](exampleVideos/README.md)
+
+<!-- Al publicar en GitHub, arrastrar exampleVideos/colorFlow example 06.mp4 al editor web del README y sustituir el enlace anterior por la URL del adjunto, sola en un párrafo, para mostrar el reproductor. -->
+
 ![Editor con puntos de inicio y radios de propagación](docs/images/vista-editor.png)
 
 ## Empezar
@@ -52,7 +60,7 @@ node scripts/ejecutar-pruebas.mjs
 
 ## Licencia y recursos
 
-La licencia del código está pendiente de elección. Las imágenes de ejemplo tienen su procedencia documentada por separado en [licencia y recursos](docs/licencia-y-recursos.md).
+El código se distribuye bajo la [licencia MIT](LICENSE). Las imágenes de ejemplo no están cubiertas por esta licencia; su procedencia y condiciones se documentan por separado en [licencia y recursos](docs/licencia-y-recursos.md).
 
 La preparación de imágenes ofrece Oscurecer (M) y Multiplicar (N), comparación con zoom/posición compartidos, miniatura navegable y recálculo por bloques que prioriza el detalle visible. Una luz con texto indica cuándo el detalle o toda la imagen están actualizados. Los proyectos anteriores conservan su método.
 

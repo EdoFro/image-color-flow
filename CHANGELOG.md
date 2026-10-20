@@ -1,5 +1,10 @@
 # Cambios
 
+## Sin publicar
+
+- Código y documentación bajo licencia MIT, con archivo LICENSE y metadato en package.json. Las imágenes de ejemplo conservan sus condiciones por separado.
+- Siete grabaciones MP4 de demostración: ejemplo 6 destacado en el README y galería de ejemplos 0–5 con navegación de ida y vuelta.
+
 ## v0.11.0
 
 - Varios rectángulos de destacado separado por etapa y en Inicio. Ctrl + arrastrar agrega; dibujo en área libre reemplaza; selección, movimiento, ocho asas y lista con eliminación. Borrar el último deshabilita el destacado.
