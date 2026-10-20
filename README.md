@@ -4,7 +4,11 @@ Editor local para animar la aparición del color en dibujos con tinta, acuarela 
 
 ## Ver una animación
 
-[▶ Ver demostración de Tinta y color — ejemplo 6 (MP4)](exampleVideos/colorFlow%20example%2006.mp4)
+
+
+https://github.com/user-attachments/assets/471e49d0-e96d-4b8b-8240-7e7ae76120ce
+
+
 
 [Ver más ejemplos de animaciones](exampleVideos/README.md)
 
