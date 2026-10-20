@@ -40,6 +40,7 @@ Consulta la [guía de automatización y conexión MCP](docs/automatizacion.md), 
 - [Verificación](docs/verificacion.md): comprobaciones realizadas y límites.
 - [Cómo mantener la documentación bilingüe](docs/documentacion.md).
 - [Cambios por versión](CHANGELOG.es.md).
+- [Ideas y tareas pendientes](docs/pendientes.md).
 - [Proyecto editable de ejemplo](examples/ejemplo.colorflow.json): ábrelo desde **Abrir proyecto**.
 - [Presentación de ejemplo](examples/presentacion-ejemplo.html): un único HTML con las imágenes y el reproductor incorporados.
 

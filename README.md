@@ -48,6 +48,7 @@ See the [automation and MCP setup guide](docs/en/automation.md), [plan schema](s
 - [Verification](docs/en/verification.md): checks performed and their limits.
 - [Maintaining bilingual documentation](docs/en/documentation.md).
 - [Changelog](CHANGELOG.md).
+- [Ideas and pending tasks](docs/en/roadmap.md).
 - [Editable example project](examples/ejemplo.colorflow.json): open it with **Abrir proyecto** (Open project).
 - [Example presentation](examples/presentacion-ejemplo.html): one HTML file with images and the player embedded.
 
