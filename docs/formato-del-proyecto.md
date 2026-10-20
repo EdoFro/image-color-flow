@@ -1,6 +1,8 @@
 # Formato del proyecto
 
-[Volver al proyecto](../README.md)
+[English](en/project-format.md) | **Español**
+
+[Volver al proyecto](../README.es.md)
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
@@ -11,7 +13,7 @@ El formato actual es **10**. Su número es independiente de la versión de la ap
 | Campo | Contenido |
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
-| `version` | Versión del formato: se guarda `8`; se leen formatos `1` a `8`. |
+| `version` | Versión del formato: se guarda `10`; se leen formatos `1` a `10`. |
 | `images.final` | Imagen coloreada obligatoria, con `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
 | `baseMode` | `uploaded` para preparar la inicial o `derived` para generarla desde la final. Sin inicial se utiliza `derived`. |

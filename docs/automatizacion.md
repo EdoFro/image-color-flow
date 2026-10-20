@@ -1,6 +1,8 @@
 # Automatización e integración con IA
 
-[Volver al proyecto](../README.md)
+[English](en/automation.md) | **Español**
+
+[Volver al proyecto](../README.es.md)
 
 Tinta y color ofrece una API local para Node.js, comandos y un servidor MCP por `stdio`. Los tres utilizan el mismo formato, motor, preparación de imágenes y constructor de HTML que el editor. No incluyen un modelo de IA: un asistente con visión interpreta el pedido y utiliza estas operaciones para realizarlo.
 
@@ -83,7 +85,7 @@ El tiempo máximo de renderizado es 120 segundos; puede ajustarse de 1000 a 6000
 
 ## Conectar un asistente por MCP
 
-Para nuevas bases se recomienda `baseGeneration.method: "coherent"` (L). La preparación analiza el original hasta 1600 px de lado mayor antes de reducir el resultado a la resolución de animación; el informe incluye `baseSourceSize`. No se necesitan bibliotecas adicionales ni un servicio de imágenes.
+Para nuevas bases se recomienda `baseGeneration.method: "protected"` (L). La preparación analiza el original hasta 1600 px de lado mayor antes de reducir el resultado a la resolución de animación; el informe incluye `baseSourceSize`. No se necesitan bibliotecas adicionales ni un servicio de imágenes.
 
 El servidor usa [MCP stdio](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports). Necesitas un cliente que pueda iniciar procesos locales y leer imágenes; no todos los asistentes web ofrecen esa conexión.
 
@@ -119,6 +121,8 @@ Para un navegador en una ubicación distinta, añade `"--browser", "/ruta/al/eje
 | `colorflow_read_image` | Entregar una fuente o vista previa como imagen al modelo. |
 
 El servidor también ofrece `colorflow://schema/plan` y `colorflow://guide` como recursos. Responde con contenido estructurado y errores de herramienta; admite cancelación de un renderizado y cierra sus trabajos si el cliente desconecta. Sólo implementa transporte local `stdio`, sin endpoint MCP remoto, cuentas ni claves de proveedores.
+
+En esta entrega de documentación, las descripciones de herramientas, los errores y el recurso de ejecución `colorflow://guide` siguen en español; la guía inglesa está en [for-ai.md](en/for-ai.md).
 
 Un pedido de ejemplo, una vez conectado:
 

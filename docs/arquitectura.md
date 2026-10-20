@@ -1,6 +1,8 @@
 # Arquitectura
 
-[Volver al proyecto](../README.md)
+[English](en/architecture.md) | **Español**
+
+[Volver al proyecto](../README.es.md)
 
 ## Organización
 
@@ -61,7 +63,7 @@ Los tiempos exportados se cuantizan a 16 bits por etapa; su precisión es la dur
 
 ## Desarrollo y comprobaciones
 
-No hace falta instalar paquetes. Abre [las pruebas](../tests/index.html) en Chrome o Edge para ejecutar 88 casos, incluidos ocho que necesitan el lienzo real del navegador.
+No hace falta instalar paquetes. Abre [las pruebas](../tests/index.html) en Chrome o Edge para ejecutar los casos compartidos y las comprobaciones que necesitan el lienzo real del navegador.
 
 Opcionalmente, con Node.js 22 o posterior, desde la raíz:
 
@@ -70,7 +72,7 @@ node scripts/ejecutar-pruebas.mjs
 node scripts/generar-demo.mjs
 ```
 
-El primer comando ejecuta los 80 casos sin DOM y termina con error si alguno falla. El segundo regenera exclusivamente `examples/demo-data.js` desde las dos imágenes de `examples/images/`; no reexporta el proyecto ni la presentación. Ambos scripts resuelven rutas respecto a su propio archivo. Las 24 pruebas de automatización se ejecutan con `node tests/automation.test.mjs`.
+El primer comando ejecuta los casos sin DOM y termina con error si alguno falla. El segundo regenera exclusivamente `examples/demo-data.js` desde las dos imágenes de `examples/images/`; no reexporta el proyecto ni la presentación. Ambos scripts resuelven rutas respecto a su propio archivo. Las pruebas de automatización se ejecutan con `node tests/automation.test.mjs`.
 
 Si se cambian las imágenes o la configuración del ejemplo, guarda un nuevo proyecto y exporta de nuevo la presentación desde el editor. Conserva los resultados en `examples/ejemplo.colorflow.json` y `examples/presentacion-ejemplo.html`.
 
@@ -78,7 +80,7 @@ También se puede usar cualquier servidor estático local para desarrollo. El se
 
 ## Automatización opcional
 
-La API de Node.js usa el mismo normalizador que el editor, junto con un contrato estricto de planes que rechaza errores antes de aplicar valores predeterminados. Utiliza el formato editable 8. Lee formatos 1 a 6 conservando su desaturación anterior, y formato 7 conservando su filtro de tinta y parámetros. Los comandos y MCP son adaptadores de esta API; no duplican la propagación ni el constructor HTML.
+La API de Node.js usa el mismo normalizador que el editor, junto con un contrato estricto de planes que rechaza errores antes de aplicar valores predeterminados. Utiliza el formato editable 10. Lee formatos 1 a 9: los formatos 1 a 6 conservan su desaturación anterior, el formato 7 conserva su filtro de tinta y parámetros, y el formato 8 conserva K. Los campos explícitos de los formatos anteriores se mantienen. Los comandos y MCP son adaptadores de esta API; no duplican la propagación ni el constructor HTML.
 
 Canvas, decodificación, alineación, Web Worker y fotogramas se ejecutan en Chrome/Edge/Chromium sin ventana con un perfil temporal aislado. El proceso de Node sirve exclusivamente recursos enumerados y el trabajo actual en loopback, mediante una ruta aleatoria. El resultado regresa por HTTP local; el servidor, navegador y perfil se cierran al finalizar, cancelar o fallar. El renderizador admite una sesión de navegador externa para las pruebas visuales del mismo trabajo.
 
@@ -87,3 +89,7 @@ MCP utiliza JSON-RPC por stdio, sin dependencias, con descubrimiento de siete he
 `src/base-preview.js` construye un Worker Blob con las fábricas del motor, sin importaciones externas. Mantiene soporte global de L, revisiones y cola de bloques de 192 px; espera confirmación entre bloques para atender cancelaciones/encuadres. `PaintBase.region` conserva 12 px de margen; el Worker agrega margen de remuestreo y conserva la geometría completa al reducir con OffscreenCanvas. `src/image-comparison.js` gestiona un único encuadre para ambas vistas y la miniatura. El formato 9 añade L/M/N; los estados parciales nunca se exportan ni se guardan.
 
 `highlightFrames` es la lista canónica del formato 10; `highlightFrame` es el alias del primero. `src/highlight-editor.js` contiene selección y transformaciones sin DOM. `PaintView.highlights` resuelve la geometría activa; el renderizador usa una ruta de recorte común para la unión, conservando el dibujo anterior para un único rectángulo. Las transiciones interpolan listas de igual longitud o funden máscaras de cantidades distintas. El codec incluye la lista completa en cada campo exportado.
+
+## Idiomas de la documentación
+
+El README inglés es la portada del repositorio; `README.es.md` es su equivalente español. Las guías españolas conservan sus rutas, con versiones inglesas en `docs/en/`. Esta entrega de documentación no cambia el funcionamiento de la aplicación. Consulta el [mantenimiento de documentación](documentacion.md) para las actualizaciones por pares y la navegación de idioma.

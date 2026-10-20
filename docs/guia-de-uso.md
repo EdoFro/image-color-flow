@@ -1,6 +1,8 @@
 # Guía de uso
 
-[Volver al proyecto](../README.md)
+[English](en/user-guide.md) | **Español**
+
+[Volver al proyecto](../README.es.md)
 
 ## Abrir
 

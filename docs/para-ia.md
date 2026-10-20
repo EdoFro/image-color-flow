@@ -1,5 +1,9 @@
 # Guía para asistentes que utilizan Tinta y color
 
+[English](en/for-ai.md) | **Español**
+
+[Volver al proyecto](../README.es.md)
+
 Objetivo: transformar una imagen coloreada y el pedido del usuario en un proyecto editable y un HTML de animación autónomo. Necesitas capacidad de visión para interpretar el contenido. El motor revela colores existentes; no colorea una foto monocroma ni crea dibujos nuevos.
 
 1. Inspecciona la imagen con `colorflow_read_image`. Si ya hay proyecto, utiliza `colorflow_inspect` antes de modificarlo. No vuelques imágenes base64 dentro del texto del plan.
@@ -18,7 +22,7 @@ Objetivo: transformar una imagen coloreada y el pedido del usuario en un proyect
 - El primer punto activo y el pincel comienzan tras `paintDelay`; cámara y destacado comienzan al inicio de la etapa. Los puntos siguientes dependen del anterior activo, según `with`, `after` o `delay`. `pauseAfter` espera interacción del público; `hold` añade una permanencia automática.
 - Cada etapa define su vista completa. Para mantener un enfoque entre dos etapas, repite `frame` y sus ajustes. Un frame omitido usa la página completa. `initialView` configura Inicio sin pintura.
 - `highlightEnabled` está apagado por defecto. Para transparencia exterior, actívalo y define el rectángulo de destacado (vinculado a `frame` por defecto) con `outside: "transparent"`.
-- `baseGeneration` es global y sólo afecta `baseMode: "derived"`. `method: "coherent"` usa K; `ink` conserva el filtro anterior y retira pigmentos; `colorToGray: 0` los lleva al papel y `1` conserva su gris. `sensitivity` controla la detección, `blackPoint`/`whitePoint` los grises y `smoothness` va de 0 a 1 (0–100% en el editor). Los proyectos de formatos 1–6 reciben `method: "grayscale"` al abrirse para mantener su aspecto: cambia explícitamente a `coherent` para usar K. Los archivos de formato 7 conservan ink y sus parámetros. K usa papel blanco, sensitivity .7, blackPoint 0, whitePoint 1 y smoothness 0; es el método ensayado con Calvin y acuarela. Mayor sensibilidad exige más contraste; smoothness añade un suavizado de acabado opcional, con posible pérdida de nitidez. Los métodos son aproximados: no garantizan separar tinta y pigmento oscuro.
+- `baseGeneration` es global y sólo afecta `baseMode: "derived"`. `method: "coherent"` usa K; `ink` conserva el filtro anterior y retira pigmentos; `colorToGray: 0` los lleva al papel y `1` conserva su gris. `sensitivity` controla la detección, `blackPoint`/`whitePoint` los grises y `smoothness` va de 0 a 1 (0–100% en el editor). Los proyectos de formatos 1–6 reciben `method: "grayscale"` al abrirse para mantener su aspecto: cambia explícitamente a `protected` para usar L o a `coherent` para usar K. Los archivos de formato 7 conservan ink y sus parámetros. K usa papel blanco, sensitivity .7, blackPoint 0, whitePoint 1 y smoothness 0; es el método ensayado con Calvin y acuarela. Mayor sensibilidad exige más contraste; smoothness añade un suavizado de acabado opcional, con posible pérdida de nitidez. Los métodos son aproximados: no garantizan separar tinta y pigmento oscuro.
 - `base.png` no tiene cámara ni destacado; `inicio.png` representa la vista Inicio y puede estar recortado o tener transparencia exterior. Revisa la base completa antes de atribuir un defecto a los encuadres. `prepare` entrega además `referencia.png`, `comparacion.png`, informe y proyecto actualizado.
 - En un parche de actualización se conservan los campos omitidos; los objetos y arrays incluidos se reemplazan completos. `stageIndex` comienza en cero. Los números mostrados en `plan.png` comienzan en uno: etapa.punto.
 

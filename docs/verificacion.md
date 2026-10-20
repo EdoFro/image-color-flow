@@ -1,6 +1,10 @@
 # Verificación del proyecto
 
-[Volver al proyecto](../README.md)
+[English](en/verification.md) | **Español**
+
+[Volver al proyecto](../README.es.md)
+
+Este documento registra comprobaciones históricas y sus limitaciones. Su traducción no significa que se hayan repetido esas pruebas. Si un resultado antiguo difiere del comportamiento actual, consulta la versión más reciente correspondiente.
 
 ## v0.11.0 · Destacados múltiples
 
@@ -10,6 +14,8 @@
 - HTML autónomo generado y ejecutado en otro trabajo de Chrome: unión transparente de Inicio, unión de etapa con exterior negro y reinicio que recupera Inicio. El fixture permite sus scripts/estilos inline propios; los permisos del servidor de automatización de producción permanecen sin cambios.
 - Exportación real por API con el samurái a 490 × 720: listas de Inicio/etapa conservadas en formato 10, dos interiores opacos y espacio intermedio transparente en inicio.png, exterior negro en final.png y HTML autocontenido. CLI y MCP también crean listas completas, verificadas al inspeccionar sus proyectos.
 - Repetición: `npm test` y `npm run test:highlights` (requiere Chrome/Edge local). Las pruebas de navegador ejecutan los controles y verifican píxeles; no se hizo una revisión estética manual de cada tamaño de pantalla ni se repitió la apertura directa file://.
+
+La entrada histórica anterior registra 28/29 pruebas de automatización, mientras que el historial de cambios registra 29 para esa versión. Una ejecución nueva durante la preparación de la documentación bilingüe confirmó **29/29 correctas** con `node tests/automation.test.mjs`, sin modificar código. Se conserva el resultado histórico para distinguir las dos comprobaciones.
 
 ## v0.10.0 · L, composición y editor progresivo
 
