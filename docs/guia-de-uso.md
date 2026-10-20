@@ -6,7 +6,7 @@
 
 ## Idioma
 
-El selector de la cabecera y el de Imágenes permiten alternar español e inglés. La preferencia se recuerda en este navegador; la primera vez se usa un idioma compatible del navegador o español si no hay coincidencia. Cambiar de idioma conserva el proyecto, la selección, los pendientes, el zoom y la reproducción, sin recalcular los mapas ni regenerar la base. Los nombres escritos por el usuario permanecen intactos.
+El selector de la cabecera y el de Imágenes permiten elegir Español, English, Français o Deutsch. La preferencia se recuerda en este navegador; la primera vez se usa un idioma compatible del navegador o español si no hay coincidencia. Cambiar de idioma conserva el proyecto, la selección, los pendientes, el zoom y la reproducción, sin recalcular los mapas ni regenerar la base. Los nombres escritos por el usuario permanecen intactos.
 
 Al exportar puedes elegir el idioma de la presentación de forma independiente; comienza con el del editor y se incorpora al HTML sin recursos externos. No se guarda como un parámetro de animación. Consulta los [idiomas](idiomas.md).
 

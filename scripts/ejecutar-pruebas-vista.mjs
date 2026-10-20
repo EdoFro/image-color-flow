@@ -9,7 +9,7 @@ const highlights = process.argv.includes('--highlights');
 const i18n = process.argv.includes('--i18n');
 try {
   await mkdir(resolve(temp, 'automation')); await mkdir(resolve(temp, 'src')); await mkdir(resolve(temp, 'src/locales'));
-  const names = ['i18n','locales/es','locales/en','engine','ink-lines','base-generation','project','preparation','view','player','codec','presentation','automation','base-preview','image-comparison','general','app','highlight-editor'];
+  const names = ['i18n','locales/es','locales/en','locales/fr','locales/de','engine','ink-lines','base-generation','project','preparation','view','player','codec','presentation','automation','base-preview','image-comparison','general','app','highlight-editor'];
   for (const name of names) await copyFile(resolve(repo, 'src', name + '.js'), resolve(temp, 'src', name + '.js'));
   let browser = await readFile(resolve(repo, 'automation/browser.mjs'), 'utf8');
   browser = browser.replace("'engine', 'ink-lines'", "'base-preview', 'image-comparison', 'general', 'app', 'highlight-editor', 'engine', 'ink-lines'");
@@ -23,18 +23,23 @@ try {
   let html = await readFile(resolve(repo, editor || highlights || i18n ? 'index.html' : 'automation/runner.html'), 'utf8');
   html = html.replace('<html lang="es">', '<html lang="es" data-language="es">');
   html = editor || highlights || i18n ? html.replace('</body>', '<script src="runner.js"></script></body>') : html.replace('<script src="runner.js">', '<script src="src/base-preview.js"></script><script src="src/image-comparison.js"></script><script src="runner.js">');
-  await writeFile(resolve(temp, 'automation/runner.html'), html); await copyFile(resolve(repo, i18n ? 'tests/i18n-browser.js' : highlights ? 'tests/highlight-browser.js' : editor ? 'tests/editor-browser.js' : 'tests/preview-browser.js'), resolve(temp, 'automation/runner.js'));
+  const runnerSource = await readFile(resolve(repo, i18n ? 'tests/i18n-browser.js' : highlights ? 'tests/highlight-browser.js' : editor ? 'tests/editor-browser.js' : 'tests/preview-browser.js'), 'utf8');
   const { renderInBrowser } = await import(pathToFileURL(resolve(temp, 'automation/browser.mjs')));
   const image = process.argv.slice(2).find(a => !a.startsWith('--')) || resolve(repo, 'examples/images/samurai-final.png');
   const mime = /\.jpe?g$/i.test(image) ? 'image/jpeg' : 'image/png';
   const project = { format: 'tinta-y-color', version: 10, resolution: 720, baseMode: 'derived', images: { final: { name: 'Prueba', data: `data:${mime};base64,${(await readFile(image)).toString('base64')}` } }, stages: [{}] };
-  const result = await renderInBrowser(project, { operation: 'prepare', timeout: 120000 });
-  if (!result.report.passed) throw new Error('No se confirmaron las pruebas');
-  const { exportHTML, ...report } = result.report; console.log(JSON.stringify(report));
-  if (highlights || i18n) {
-    await writeFile(resolve(temp, 'automation/runner.html'), exportHTML.replace('</body>', '<script src="runner.js"></script></body>'));
-    await copyFile(resolve(repo, i18n ? 'tests/i18n-presentation.js' : 'tests/highlight-presentation.js'), resolve(temp, 'automation/runner.js'));
-    const exported = await renderInBrowser(project, { operation: 'prepare', timeout: 30000 }); if (!exported.report.passed) throw new Error('Falló el HTML exportado'); console.log(JSON.stringify(exported.report));
+  for (const language of i18n ? ['es','en','fr','de'] : [null]) {
+    const caseHTML = language ? html.replace('data-language="es"', `data-language="es" data-i18n-test-language="${language}"`) : html;
+    await writeFile(resolve(temp, 'automation/runner.html'), caseHTML);
+    await writeFile(resolve(temp, 'automation/runner.js'), runnerSource);
+    const result = await renderInBrowser(project, { operation: 'prepare', timeout: 120000 });
+    if (!result.report.passed) throw new Error('No se confirmaron las pruebas');
+    const { exportHTML, ...report } = result.report; console.log(JSON.stringify(report));
+    if (highlights || i18n) {
+      await writeFile(resolve(temp, 'automation/runner.html'), exportHTML.replace('</body>', '<script src="runner.js"></script></body>'));
+      await copyFile(resolve(repo, i18n ? 'tests/i18n-presentation.js' : 'tests/highlight-presentation.js'), resolve(temp, 'automation/runner.js'));
+      const exported = await renderInBrowser(project, { operation: 'prepare', timeout: 30000 }); if (!exported.report.passed) throw new Error('Falló el HTML exportado'); console.log(JSON.stringify(exported.report));
+    }
   }
 } finally {
   const path = relative(resolve(repo, 'output'), resolve(temp));

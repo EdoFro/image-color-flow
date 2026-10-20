@@ -4,11 +4,11 @@
 
 [Back to the project](../../README.md)
 
-The editor supports English and Spanish. Use the language selector in the header or Images dialog. This guide includes Spanish button labels as references; the English interface uses their translations. Existing screenshots show the Spanish interface. See [language support](languages.md) for preferences and export language.
+The editor supports English, Spanish, French and German. Use the language selector in the header or Images dialog. This guide includes Spanish button labels as references; the English interface uses their translations. Existing screenshots show the Spanish interface. See [language support](languages.md) for preferences and export language.
 
 ## Language
 
-The header and Images selectors switch between English and Spanish. The choice is remembered in this browser; first use chooses a supported browser language or Spanish. Switching preserves the project, selection, pending edits, zoom and playback, without recalculating maps or regenerating the base. User-authored names remain unchanged.
+The header and Images selectors offer English, Español, Français and Deutsch. The choice is remembered in this browser; first use chooses a supported browser language or Spanish. Switching preserves the project, selection, pending edits, zoom and playback, without recalculating maps or regenerating the base. User-authored names remain unchanged.
 
 Export lets you independently choose the presentation language, initially the editor language. It is embedded in the HTML without external resources, rather than saved as an animation parameter. See [languages](languages.md).
 

@@ -8,6 +8,12 @@
 - Code and documentation under MIT, with LICENSE and package.json metadata. Example images retain separate conditions.
 - Seven MP4 recordings: example 6 featured in the README and a gallery of additional videos with links back to the project.
 
+## v0.13.0
+
+- French and German in the editor and standalone HTML, with 429 complete messages per language: controls, help, errors, accessibility, progress and playback.
+- Regional detection including fr-CA and de-AT; selectors generated from four local catalogs. Repository documentation remains in English and Spanish.
+- Key/placeholder checks for all four languages; complete state-preservation and standalone-export scenarios run per language. Full long-text and screen-size review remains the next delivery.
+
 ## v0.12.0
 
 - English/Spanish editor with local catalogs, browser-language detection, remembered preference and live switching without changing project data, drafts, preview calculation or playback.

@@ -9,6 +9,12 @@
 - Código y documentación bajo licencia MIT, con archivo LICENSE y metadato en package.json. Las imágenes de ejemplo conservan sus condiciones por separado.
 - Siete grabaciones MP4 de demostración: ejemplo 6 destacado en el README y galería de vídeos adicionales con navegación de ida y vuelta.
 
+## v0.13.0
+
+- Francés y alemán en el editor y el HTML autónomo, con 429 mensajes completos por idioma: controles, ayudas, errores, accesibilidad, progreso y reproducción.
+- Detección de variantes regionales como fr-CA y de-AT; selectores generados desde los cuatro catálogos locales. La documentación permanece en español e inglés.
+- Pruebas de claves y variables para los cuatro idiomas; escenario completo de conservación de estado y HTML exportado ejecutado por idioma. La revisión completa de textos largos y tamaños de pantalla queda para la siguiente entrega.
+
 ## v0.12.0
 
 - Editor español/inglés con catálogos locales, detección del navegador, preferencia recordada y cambio en vivo sin alterar proyecto, pendientes, cálculo de la base ni reproducción.

@@ -96,6 +96,6 @@ The English README is the repository entry point; `README.es.md` is its Spanish 
 
 ## Interface languages
 
-`src/i18n.js` exposes a self-contained factory and the `PaintI18n` instance; `src/locales/es.js` and `en.js` load through classic scripts before the editor. Static text uses `data-i18n` attributes; dynamic text uses keys and variables. Metadata/error translation occurs at the UI boundary: engine behavior, JSON fields and user-authored names retain their meaning. No observer translates arbitrary canvas text.
+`src/i18n.js` exposes a self-contained factory and the `PaintI18n` instance; `src/locales/es.js`, `en.js`, `fr.js` and `de.js` load through classic scripts before the editor. Static text uses `data-i18n` attributes; dynamic text uses keys and variables. Metadata/error translation occurs at the UI boundary: engine behavior, JSON fields and user-authored names retain their meaning. No observer translates arbitrary canvas text.
 
 Language changes refresh controls while retaining invalid drafts and selection; they do not invalidate calculation or restart the player/Worker. Preference is browser-local, outside the project. Export embeds only required keys and the translation factory. Automation without an explicit language retains Spanish. See [languages](languages.md).

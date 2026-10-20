@@ -4,7 +4,7 @@
 
 [Volver al proyecto](../README.es.md)
 
-La documentación se mantiene en español e inglés. La interfaz está disponible en español e inglés; francés y alemán se incorporarán después. Las capturas y los ejemplos existentes pueden mostrar textos españoles.
+La documentación se mantiene en español e inglés. La interfaz está disponible en español, inglés, francés y alemán; la documentación del repositorio sigue siendo bilingüe español/inglés. Las capturas y los ejemplos existentes pueden mostrar textos españoles.
 
 ## Correspondencias
 

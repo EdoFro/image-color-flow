@@ -6,7 +6,7 @@
 
 ## Choose a language
 
-The editor offers **English** and **Español** in the header and Images dialog. A saved preference takes priority; otherwise it looks for a supported browser language, including regional variants such as `en-GB`. With no match it uses Spanish. The choice is remembered in `localStorage` when allowed; blocking storage does not prevent using the editor or switching languages during the session.
+The editor offers **English**, **Español**, **Français** and **Deutsch** in the header and Images dialog. A saved preference takes priority; otherwise it looks for a supported browser language, including regional variants such as `en-GB`, `fr-CA` and `de-AT`. With no match it uses Spanish. The choice is remembered in `localStorage` when allowed; blocking storage does not prevent using the editor or switching languages during the session.
 
 Switching preserves the project, stage/file names, selection, pending edits, comparison viewport and playback. It changes no parameters and invalidates no calculation. Included example names are project content and remain in Spanish too.
 

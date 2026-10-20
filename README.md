@@ -16,7 +16,7 @@ The videos were recorded in small windows to keep file sizes down. Their resolut
 
 ## Get started
 
-The interface supports **English and Spanish**. Use the language selector in the header or Images dialog; your choice is remembered locally. On first use, a supported browser language is selected, falling back to Spanish. Switching languages preserves the project and playback. French and German will follow in a separate change. See [language support](docs/en/languages.md).
+The interface supports **English, Spanish, French and German**. Use the language selector in the header or Images dialog; your choice is remembered locally. On first use, a supported browser language is selected, falling back to Spanish. Switching languages preserves the project and playback. See [language support](docs/en/languages.md).
 
 1. Download or copy the complete project, keeping its folder structure.
 2. Open [index.html](index.html) in Chrome or Edge. No installation, server or connection is needed.

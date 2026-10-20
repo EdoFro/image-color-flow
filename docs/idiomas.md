@@ -6,7 +6,7 @@
 
 ## Elegir un idioma
 
-El editor ofrece **Español** e **English** en la cabecera y en el diálogo Imágenes. Primero se usa una preferencia guardada; si no existe, se busca un idioma compatible entre los del navegador, incluidas variantes como `en-GB`. Si no hay coincidencia se usa español. La elección se recuerda en `localStorage` cuando el navegador lo permite; bloquear ese almacenamiento no impide usar el editor ni cambiar de idioma durante la sesión.
+El editor ofrece **Español**, **English**, **Français** y **Deutsch** en la cabecera y en el diálogo Imágenes. Primero se usa una preferencia guardada; si no existe, se busca un idioma compatible entre los del navegador, incluidas variantes como `en-GB`, `fr-CA` y `de-AT`. Si no hay coincidencia se usa español. La elección se recuerda en `localStorage` cuando el navegador lo permite; bloquear ese almacenamiento no impide usar el editor ni cambiar de idioma durante la sesión.
 
 Cambiar de idioma conserva el proyecto, los nombres de etapas y archivos, la selección, los cambios pendientes, el encuadre de comparación y la reproducción. No modifica parámetros ni invalida el cálculo. Los nombres del ejemplo incluido también son contenido del proyecto y permanecen en español.
 

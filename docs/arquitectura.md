@@ -96,6 +96,6 @@ El README inglés es la portada del repositorio; `README.es.md` es su equivalent
 
 ## Idiomas de la interfaz
 
-`src/i18n.js` expone una fábrica autocontenida y la instancia `PaintI18n`; los catálogos `src/locales/es.js` y `en.js` se cargan antes del editor mediante scripts clásicos. Los textos estáticos usan atributos `data-i18n`; los dinámicos usan claves y variables. La traducción de metadatos y errores ocurre en la interfaz: el motor, los campos JSON y los nombres del usuario conservan su significado. No se emplean observadores que traduzcan texto arbitrario del lienzo.
+`src/i18n.js` expone una fábrica autocontenida y la instancia `PaintI18n`; los catálogos `src/locales/es.js`, `en.js`, `fr.js` y `de.js` se cargan antes del editor mediante scripts clásicos. Los textos estáticos usan atributos `data-i18n`; los dinámicos usan claves y variables. La traducción de metadatos y errores ocurre en la interfaz: el motor, los campos JSON y los nombres del usuario conservan su significado. No se emplean observadores que traduzcan texto arbitrario del lienzo.
 
 El cambio de idioma refresca controles conservando los borradores inválidos y la selección; no llama a invalidate ni reinicia el reproductor o el Worker. La preferencia es local al navegador, fuera del proyecto. Exportar incorpora únicamente las claves necesarias y la fábrica de traducción en el HTML. La automatización sin idioma explícito conserva el español. Consulta [idiomas](idiomas.md).

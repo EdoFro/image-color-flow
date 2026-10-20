@@ -4,7 +4,7 @@
 
 [Back to the project](../../README.md)
 
-Documentation is maintained in English and Spanish. The interface supports English and Spanish; French and German will follow later. Existing screenshots and examples may contain Spanish text.
+Documentation is maintained in English and Spanish. The interface supports English, Spanish, French and German; repository documentation remains bilingual in English and Spanish. Existing screenshots and examples may contain Spanish text.
 
 ## Document pairs
 

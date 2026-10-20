@@ -10,7 +10,7 @@ const assets = new Map([
   ['runner.html', new URL('./runner.html', import.meta.url)],
   ['runner.js', new URL('./runner.js', import.meta.url)],
   ['runner.css', new URL('./runner.css', import.meta.url)],
-  ...['i18n', 'locales/es', 'locales/en', 'engine', 'ink-lines', 'base-generation', 'project', 'preparation', 'view', 'player', 'codec', 'presentation', 'automation'].map(name => [`src/${name}.js`, new URL(`../src/${name}.js`, import.meta.url)])
+  ...['i18n', 'locales/es', 'locales/en', 'locales/fr', 'locales/de', 'engine', 'ink-lines', 'base-generation', 'project', 'preparation', 'view', 'player', 'codec', 'presentation', 'automation'].map(name => [`src/${name}.js`, new URL(`../src/${name}.js`, import.meta.url)])
 ]);
 
 // Transporte efímero para el renderizador: sólo loopback, ruta aleatoria y recursos enumerados.

@@ -6,6 +6,14 @@
 
 Este documento registra comprobaciones históricas y sus limitaciones. Su traducción no significa que se hayan repetido esas pruebas. Si un resultado antiguo difiere del comportamiento actual, consulta la versión más reciente correspondiente.
 
+## v0.13.0 · Francés y alemán
+
+- Cuatro catálogos completos con 429 claves cada uno. Las pruebas comparan los catálogos sin alternativa automática y verifican variables, atributos HTML, código exportado y detección de variantes regionales.
+- `node scripts/ejecutar-pruebas-vista.mjs --i18n` ejecutado en Chrome por separado para es, en, fr y de. En los cuatro casos se conserva proyecto, revisión, selección múltiple, pendientes inválidos, encuadre de comparación y reproductor al cambiar de idioma, también durante el cálculo de la base.
+- Cuatro HTML autónomos ejecutados en trabajos distintos: idioma de salida independiente del editor, controles, inicio, final y reinicio correctos.
+- Apertura directa sin conexión comprobada en Chrome con fr-CA y de-AT: selecciona Français y Deutsch respectivamente. La selección manual del otro idioma se conserva al recargar; sin errores de página.
+- 106/106 pruebas sin DOM y 29/29 de automatización. La documentación permanece en español e inglés. La revisión completa de textos largos y tamaños de pantalla se realizará en la siguiente entrega; estas pruebas verifican traducción e interacciones, no esa revisión estética completa.
+
 ## v0.12.0 · Español e inglés
 
 - Catálogos y variables verificados con `node tests/i18n.test.mjs`: claves equivalentes, enlaces de texto HTML, detección regional, alternativa española, almacenamiento bloqueado, interpolación y fábrica/exportación autocontenidas.

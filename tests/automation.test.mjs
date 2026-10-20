@@ -182,7 +182,7 @@ try {
     } finally { await job.close(); }
   });
   await test('El constructor compartido produce JavaScript válido y escapa texto HTML', async () => {
-    const context = createContext({}); for (const name of ['i18n','locales/es','locales/en','engine','base-generation','project','view','player','codec','presentation']) runInContext(await readFile(new URL(`../src/${name}.js`,import.meta.url),'utf8'),context);
+    const context = createContext({}); for (const name of ['i18n','locales/es','locales/en','locales/fr','locales/de','engine','base-generation','project','view','player','codec','presentation']) runInContext(await readFile(new URL(`../src/${name}.js`,import.meta.url),'utf8'),context);
     const html = context.PaintPresentation.build({width:2,height:2,base:'data:image/png;base64,AA',final:'data:image/png;base64,AA',fields:[],name:'</script><script>alert(1)</script>'});
     assert.equal((html.match(/<script>/g)||[]).length,1); new Script(html.match(/<script>([\s\S]*)<\/script>/)[1]); assert.ok(html.includes('finishRestart')); assert.ok(!/<script[^>]+src=/.test(html));
   });

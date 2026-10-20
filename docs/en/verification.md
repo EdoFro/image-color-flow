@@ -6,6 +6,14 @@
 
 This is a translated record of checks performed during the versions below, including their limitations. Translating this record does not mean those tests were rerun. Where old results differ from current behavior, use the newest relevant version's entry.
 
+## v0.13.0 · French and German
+
+- Four complete catalogs with 429 keys each. Tests compare raw catalogs without automatic fallback and check placeholders, HTML attributes, exported code and regional language detection.
+- `node scripts/ejecutar-pruebas-vista.mjs --i18n` run separately in Chrome for es, en, fr and de. All four preserve project, revision, multi-selection, invalid drafts, comparison viewport and player when switching languages, including during base calculation.
+- Four standalone HTML files executed in separate jobs: export language independent of the editor, controls, initial view, final view and restart work correctly.
+- Direct offline opening checked in Chrome with fr-CA and de-AT: selects Français and Deutsch respectively. Manually switching to the other language persists on reload; no page errors.
+- 106/106 tests without a DOM and 29/29 automation tests. Repository documentation remains in English and Spanish. Complete long-text and screen-size review is the next delivery; these tests verify translation and interactions rather than that full aesthetic review.
+
 ## v0.12.0 · English and Spanish
 
 - Catalogs/placeholders checked with `node tests/i18n.test.mjs`: matching keys, HTML bindings, regional detection, Spanish fallback, blocked storage, interpolation and self-contained factory/export.
