@@ -14,7 +14,7 @@ The current format is **10**. Its number is independent of the application versi
 | --- | --- |
 | `format` | Fixed identifier `tinta-y-color`. |
 | `version` | Format version: saves `10`; reads formats `1`–`10`. |
-| `images.final` | Required colored image, with `name` and `data` (image data URL). |
+| `images.final` | Colored image required for preparation/playback/export; may only be omitted in an empty editor draft. Contains `name` and `data` (image data URL). |
 | `images.initial` | Optional initial image, with the same structure. |
 | `baseMode` | `uploaded` prepares the initial image; `derived` generates one from the final image. Without an initial image, `derived` is used. |
 | `baseGeneration` | Global base-generation method and parameters; only affect `derived`. |
@@ -25,6 +25,14 @@ The current format is **10**. Its number is independent of the application versi
 | `stages` | Ordered list of 1–64 stages. |
 
 Point, region and rectangle `x`/`y` coordinates are fractions from 0 to 1 of the corresponding image dimensions. Radii and speeds are relative to **width**. Alignment rotation and wind direction are degrees. Times are seconds.
+
+## Image-free drafts and local preferences
+
+Starting with application 0.14.0, the editor can save a format-10 draft with `images: {}` and at least one stage. A lone initial image is not accepted in that state; playback and export are disabled. The editor opens it using `PaintProject.normalize(data, { allowEmpty: true })`. Shared normalization still requires a colored image by default, including API/CLI/MCP; load images in the editor before automating that draft. Earlier editors may reject image-free drafts.
+
+Preferences are not embedded in the project or exported HTML: each project stores the actual values it uses. The separate preferences file contains `format: "tinta-y-color-preferences"`, `version: 1`, `startup`, `resolution`, `baseMode`, `baseGeneration`, `presentation`, `stage` and `point`. Fields and ranges/increments are validated before import. `stage` contains parameters without geometry; `point` only contains enabled state, start mode and delay. There are no images, names, rectangles or language preference.
+
+They are stored locally under `colorflow.preferences`; language keeps its independent key. Preferences do not change engine/API/CLI/MCP defaults or normalization of existing files. `baseMode: "uploaded"` can be retained in an empty draft; existing preparation rules still apply when images are present.
 
 ## Stages and emitters
 

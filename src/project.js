@@ -4,8 +4,9 @@
   const engine = root.PaintEngine;
   const zeroAlignment = () => ({ x: 0, y: 0, sx: 1, sy: 1, angle: 0 });
   function normalizePresentation(value = {}) { return { background: ['hatch', 'color', 'transparent'].includes(value?.background) ? value.background : 'hatch', color: /^#[0-9a-f]{6}$/i.test(value?.color || '') ? value.color : '#e5e7e3' }; }
-  function validateProject(data) {
-    if (!data || data.format !== 'tinta-y-color' || ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(data.version) || !data.images?.final?.data || !Array.isArray(data.stages) || !data.stages.length || data.stages.length > 64) throw new Error('El archivo no es un proyecto compatible de Tinta y color.');
+  function validateProject(data, { allowEmpty = false } = {}) {
+    const empty = allowEmpty && data?.images && typeof data.images === 'object' && !Array.isArray(data.images) && Object.keys(data.images).length === 0;
+    if (!data || data.format !== 'tinta-y-color' || ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(data.version) || (!data.images?.final?.data && !empty) || !Array.isArray(data.stages) || !data.stages.length || data.stages.length > 64) throw new Error('El archivo no es un proyecto compatible de Tinta y color.');
     const images = {};
     for (const kind of ['final', 'initial']) if (data.images[kind]) {
       const image = data.images[kind]; if (typeof image.data !== 'string' || image.data.length > 60000000 || !/^data:image\/(png|jpeg|webp|gif|bmp|avif);base64,/.test(image.data)) throw new Error('El proyecto contiene una imagen no compatible.');
@@ -14,7 +15,7 @@
     const alignment = zeroAlignment(), a = data.alignment || {};
     for (const key of Object.keys(alignment)) { const n = +a[key]; if (Number.isFinite(n)) alignment[key] = key === 'sx' || key === 'sy' ? Math.max(.7, Math.min(1.3, n)) : key === 'angle' ? Math.max(-10, Math.min(10, n)) : Math.max(-.3, Math.min(.3, n)); }
     const baseGeneration = root.PaintBase.normalize(data.version < 7 ? { method: 'grayscale' } : data.version === 7 ? { method: 'ink', ...data.baseGeneration } : data.version === 8 ? { method: 'coherent', ...data.baseGeneration } : data.baseGeneration);
-    return { format: 'tinta-y-color', version: 10, baseGeneration, presentation: normalizePresentation(data.presentation), initialView: engine.normalizeView(data.initialView), images, alignment, baseMode: data.baseMode === 'uploaded' && images.initial ? 'uploaded' : 'derived', resolution: [720, 1080, 1440].includes(data.resolution) ? data.resolution : 1080, stages: data.stages.map(engine.normalizeStage) };
+    return { format: 'tinta-y-color', version: 10, baseGeneration, presentation: normalizePresentation(data.presentation), initialView: engine.normalizeView(data.initialView), images, alignment, baseMode: data.baseMode === 'uploaded' && (images.initial || empty) ? 'uploaded' : 'derived', resolution: [720, 1080, 1440].includes(data.resolution) ? data.resolution : 1080, stages: data.stages.map(engine.normalizeStage) };
   }
   root.PaintProject = { normalize: validateProject, normalizePresentation, zeroAlignment };
 })(typeof window === 'undefined' ? globalThis : window);

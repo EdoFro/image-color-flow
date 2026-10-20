@@ -4,15 +4,17 @@
 
 [Volver al proyecto](../README.es.md)
 
-Este documento registra decisiones y propuestas para futuras versiones. Las funciones descritas aquí todavía no están implementadas.
+Este documento registra decisiones y propuestas para futuras versiones. Cada sección indica si está implementada o pendiente.
 
-## Nuevo proyecto y preferencias
+## Nuevo proyecto y preferencias · implementado en 0.14.0
 
-- Incorporar «Nuevo proyecto» para empezar sin imágenes y con los parámetros predeterminados, protegiendo los cambios sin guardar.
-- Permitir personalizar los valores predeterminados desde Preferencias.
-- Añadir la preferencia **«Al abrir el editor»**, con las opciones **«Cargar ejemplo»** y **«Proyecto vacío»**.
-- **La opción de fábrica será «Cargar ejemplo»**. El ejemplo funciona como presentación introductoria para quienes conocen la herramienta por primera vez. La preferencia se conservará localmente en el navegador.
-- «Nuevo proyecto» siempre creará un proyecto vacío; la preferencia anterior sólo determinará qué se carga al abrir el editor.
+- Disponible «Nuevo proyecto» para empezar sin imágenes y con los parámetros predeterminados, protegiendo los cambios sin guardar.
+- Se pueden personalizar los valores predeterminados desde Preferencias.
+- Disponible la preferencia **«Al abrir el editor»**, con las opciones **«Cargar ejemplo»** y **«Proyecto vacío»**.
+- **La opción de fábrica es «Cargar ejemplo»**. El ejemplo funciona como presentación introductoria para quienes conocen la herramienta por primera vez. La preferencia se conserva localmente en el navegador.
+- «Nuevo proyecto» siempre crea un proyecto vacío; la preferencia anterior sólo determina qué se carga al abrir el editor.
+
+Consulta el [manual de uso](guia-de-uso.md#nuevo-proyecto-y-preferencias).
 
 ## Más adelante: ejemplo como tutorial
 

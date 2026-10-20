@@ -9,6 +9,13 @@
 - Código y documentación bajo licencia MIT, con archivo LICENSE y metadato en package.json. Las imágenes de ejemplo conservan sus condiciones por separado.
 - Siete grabaciones MP4 de demostración: ejemplo 6 destacado en el README y galería de vídeos adicionales con navegación de ida y vuelta.
 
+## v0.14.0
+
+- Nuevo proyecto limpia el lienzo, reproducción, selecciones y cálculos; crea Inicio y una etapa sin emisores con los predeterminados personalizados. Permite guardar/reabrir borradores sin imágenes; reproducir y exportar requieren una imagen coloreada.
+- Advertencia compartida para Nuevo, Abrir y recargar el ejemplo. Cancelar conserva el trabajo; descargar mantiene abierto el diálogo para confirmar después. Se protegen pendientes colectivos y trazos incompletos. Archivos inválidos y fallos de preparación conservan el proyecto anterior.
+- Preferencias locales de inicio, imágenes/base, propagación, puntos, enfoque/destacado, tiempos y fondo. Ejemplo por defecto, proyecto vacío opcional; guardar/cancelar, restauración de fábrica pendiente de confirmar e importación/exportación JSON. Los proyectos existentes, el ejemplo y la automatización conservan sus valores.
+- Cuatro idiomas con 461 claves cada uno. Pruebas de preferencias, flujos de reemplazo y borradores; revisión sin conexión, almacenamiento bloqueado y 192 casos de diseño. Manual y referencias bilingües actualizados; tutorial explicativo conservado como idea futura.
+
 ## v0.13.1
 
 - Revisión de diseño en español, inglés, francés y alemán: títulos, controles y diálogos adaptables, herramientas con texto en ventanas estrechas, lienzos de comparación alineados y valor completo debajo del selector cuando no cabe.

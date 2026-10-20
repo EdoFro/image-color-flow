@@ -21,6 +21,7 @@ La documentación se mantiene en español e inglés. La interfaz está disponibl
 | [Cambios](../CHANGELOG.es.md) | [Changelog](../CHANGELOG.md) |
 | [Galería](../exampleVideos/README.es.md) | [Gallery](../exampleVideos/README.md) |
 | [Idiomas](idiomas.md) | [Languages](en/languages.md) |
+| [Ideas y tareas pendientes](pendientes.md) | [Ideas and pending tasks](en/roadmap.md) |
 | Esta guía | [Documentation guide](en/documentation.md) |
 
 ## Al modificar una función

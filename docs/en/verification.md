@@ -6,6 +6,13 @@
 
 This is a translated record of checks performed during the versions below, including their limitations. Translating this record does not mean those tests were rerun. Where old results differ from current behavior, use the newest relevant version's entry.
 
+## v0.14.0 · New project and preferences
+
+- 11 DOM-free preference tests: factory values, independent objects, ranges/increments/types/colors/thresholds, JSON, damaged/blocked storage, new projects/stages, explicitly permitted empty drafts and unchanged engine/existing files.
+- `node scripts/ejecutar-pruebas-vista.mjs --projects` run in Chrome for es/en/fr/de: introductory example, empty New project, image-free save/reopen, cancel/download/confirm replacement, protected invalid drafts, preferences without project mutation, language switching with a draft, import/export and rejection of invalid files/late imports, new stages/points with inherited radii, Open/example protection and preservation after preparation failure.
+- Additional offline headless Chrome and `file://` review: 192 cases (four languages, twelve viewports, example/empty/preferences/warning), no horizontal overflow or page errors; Escape retains work. Empty startup/reload, remembered values, return to the example's own settings and blocked storage verified. German screenshots reviewed. This matrix uses a local review harness, separate from repository commands.
+- Regressions: 106/106 DOM-free engine/player cases, 29/29 automation tests, 461 complete keys per language; language/standalone HTML, image preparation and highlight scenarios pass. Other browser engines and physical devices were not reviewed.
+
 ## v0.13.1 · Long text and layout
 
 - Additional headless Chrome review, direct `file://` opening and offline context: 384 cases, four languages (es/en/fr/de), eight screens per size: stage, initial view, General, change review, alignment, generated comparison, export dialog and standalone HTML.

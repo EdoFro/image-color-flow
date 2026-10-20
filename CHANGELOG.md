@@ -8,6 +8,13 @@
 - Code and documentation under MIT, with LICENSE and package.json metadata. Example images retain separate conditions.
 - Seven MP4 recordings: example 6 featured in the README and a gallery of additional videos with links back to the project.
 
+## v0.14.0
+
+- New project clears canvas, playback, selections and calculations; creates an initial view and an emitter-free stage using personal defaults. Image-free drafts can be saved/reopened; playback and export require a colored image.
+- Shared warning for New, Open and example reload. Cancel retains work; downloading keeps the dialog open for later confirmation. Collective drafts and unfinished drawings are protected. Invalid files and preparation failures retain the previous project.
+- Local preferences for startup, images/base, propagation, points, camera/highlight, timing and background. Example by default, optional empty startup; save/cancel, factory reset requiring confirmation and JSON import/export. Existing projects, example and automation retain their values.
+- Four languages with 461 keys each. Preference, replacement and draft tests; offline review, blocked storage and 192 layout cases. Bilingual manual/references updated; explanatory tutorial retained as a future idea.
+
 ## v0.13.1
 
 - Layout review for Spanish, English, French and German: wrapping headings, controls and dialogs, readable tool labels at narrow widths, aligned comparison canvases and full selected values below selectors when needed.

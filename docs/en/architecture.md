@@ -13,6 +13,8 @@ The application uses HTML, CSS and classic JavaScript, with no external dependen
 | `index.html` | Editor, inspector and image-dialog structure. |
 | `assets/styles.css` | Editor styling and responsive layout. |
 | `src/app.js` | Project state, editor events, canvas tools, files and coordination with shared calculation/export APIs. |
+| `src/preferences.js` | Factory defaults, validation and optional preference storage. |
+| `src/preferences-editor.js` | Preferences dialog, draft and import/export. |
 | `src/project.js` | Shared editable-format and presentation-option normalization. |
 | `src/ink-lines.js` | DOM-free K/L extraction: local median, gradual recovery, fine-detail protection and coherent lines in eight directions. |
 | `src/base-generation.js` | Pure pixel transformation, presets and generation normalization, without a DOM. |
@@ -39,7 +41,15 @@ The application uses HTML, CSS and classic JavaScript, with no external dependen
 5. The player blends base and final images, accumulating revealed color. The view applies highlighting and camera framing. Transitions interpolate rectangles and blend treatments with premultiplied alpha, preserving transparency.
 6. Project saving retains editable data; export embeds prepared images, maps and required functions in one HTML file.
 
-Editor loading order begins with i18n and its catalogs, followed by engine, base generation, project format, preparation, view, player, codec, collective parameters, example images, export, automation and application. Engine, player, view and codec factories must stay self-contained: their functions are embedded in Workers or exported HTML via `toString()`.
+Editor loading order begins with i18n and its catalogs, followed by engine, base generation, project format, preparation, view, player, codec, collective parameters, preferences and their dialog, example images, export, automation and application. Engine, player, view and codec factories must stay self-contained: their functions are embedded in Workers or exported HTML via `toString()`.
+
+## Startup, project replacement and preferences
+
+`src/preferences.js` validates format-1 preferences, supplies factory values and creates geometry-free projects/stages. It reuses the collective-parameter catalog with consistent ranges and increments. Storage is optional: failure retains values for the session and displays a message. `src/preferences-editor.js` handles the dialog draft, translated notices, import/export and rejection of late imports from a closed dialog session.
+
+The application keeps preferences outside the project. Startup uses `startup` (factory value `example`); New always creates an empty project. Replacement buttons share a warning that considers committed changes, collective drafts and unfinished drawings. Downloading does not replace the project: a later confirmation is required. Open validates/decodes before asking for confirmation; preparation completes before clearing current state. Reset cancels the preview/Worker and clears the player, maps, temporary geometry, selections and controls.
+
+Empty drafts use the explicit `allowEmpty` option only in the editor. The API and renderer retain strict normalization and engine defaults. Existing projects and the example do not receive personal preferences when opened. New tests run with `node tests/preferences.test.mjs` and `node scripts/ejecutar-pruebas-vista.mjs --projects`.
 
 ## Color propagation
 

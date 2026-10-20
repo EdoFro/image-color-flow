@@ -31,6 +31,28 @@ Open [index.html](../../index.html) in Chrome or Edge. Keep the full folder stru
 
 In **Editar** (Edit), the canvas displays the final image with guides on top. **Imagen inicial** (Initial image) shows the prepared base. Playback starts from that base.
 
+## New project and preferences
+
+The editor loads its introductory example on opening. In **Preferences → On opening the editor**, choose **Load example** (factory setting) or **Empty project**. Saving this choice affects the next opening while retaining your current work.
+
+**New project**, in the header, always creates a project without images, with an initial view and one empty stage. It clears points, paths, regions, rectangles, selection, playback and previous calculations. It uses saved defaults and keeps your language. Click **Load images** on the canvas to continue. You can adjust parameters, add stages and save/reopen the draft before loading images; playback and export require a colored image.
+
+If there are unsaved changes, **New project**, **Open project** and **Reload example** show a warning. **Cancel** or Escape retain the project. **Download current project** requests its download and keeps the dialog open; check that you have the file, then click **Continue**. **Discard changes and continue** replaces it without downloading. An incompatible file or image-preparation failure retains the previous project. Closing or reloading the tab uses the browser's own warning.
+
+Pending General/selection settings and unfinished drawings are protected too. Apply or discard those settings and finish or cancel the drawing before downloading. Saving shows an explanation if anything remains unresolved. Image changes become part of the project with **Apply and return to canvas**; closing that dialog discards its draft.
+
+In **Preferences**, customize:
+
+- Resolution, base source, algorithm, pigment, thresholds, softness, paper and ink matching.
+- Propagation, both radii, wind, brush, timing and pauses for new stages.
+- Enabled state, start mode and delay for new points; their radii inherit from their stage.
+- Zoom, highlighting and outside treatment, without storing actual rectangles. A new initial view uses these camera/highlight values.
+- Background and color for new presentations.
+
+**Save preferences** confirms the draft. **Cancel** or × discard it; **Restore factory defaults** only prepares a change and requires saving. Defaults affect new projects and stages, without recalculating or changing existing content. Duplicating a stage retains its configuration. Use General or normal controls to change the current project. The introductory example retains its original configuration.
+
+**Export preferences** downloads the valid draft as `tinta-y-color.preferences.json`. **Import preferences** loads it for review and requires **Save preferences** to use it. It contains no images or geometry and does not change your language. Values are kept in this browser; exporting lets you move them to another browser or computer. If storage is blocked, the app explains that the values apply only to the current session. Damaged or incompatible saved preferences fall back to factory defaults on opening.
+
 ## Generate the initial image
 
 In **Imágenes**, choose **Generar imagen inicial desde la imagen final** (Generate initial image from the final image), then **Generar vista previa** (Generate preview). The reference and proposed base appear side by side. Once generated, changing controls updates the comparison automatically. **Ampliación** (Zoom) and the fit/−/+ buttons affect both views. Dragging either view pans both; its wheel zooms both. Click the thumbnail to center the views or drag its viewport rectangle. Regeneration preserves the view.

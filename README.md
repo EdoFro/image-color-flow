@@ -34,6 +34,8 @@ Separate highlighting supports multiple rectangles in a stage or the initial vie
 
 Export with a hatched, solid or transparent background, without a border or shadow around the artwork. Presentation controls start hidden; show them using the logo or H. Clicking the artwork starts or advances playback; Space pauses or resumes it. A high-contrast restart button appears at the end.
 
+The editor opens its example by default. **Preferences** lets you choose startup behavior, customize defaults for new projects/stages and export/import them. **New project** protects unsaved changes and lets you save drafts before loading images. See [new project and preferences](docs/en/user-guide.md#new-project-and-preferences).
+
 ## Use with an AI assistant
 
 Optional automation provides a local API, CLI commands and an MCP server with seven tools. A vision-capable assistant can create projects from images and JSON plans, prepare and inspect the initial image without calculating propagation, and export HTML. Preparation and rendering require Node.js 22 or later and Chrome/Edge/Chromium; there are no external package dependencies. The editor still opens directly without installation.

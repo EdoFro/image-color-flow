@@ -83,3 +83,20 @@ dialog{overflow-wrap:anywhere}
   .dialog-footer>span{flex-basis:auto}
   .base-actions label{flex-basis:100%}
 }
+
+
+/* Project lifecycle and local preferences. */
+#emptyState{text-align:center;max-width:420px;line-height:1.6;padding:16px}
+#emptyState button{margin-top:18px}
+#preferencesDialog{max-width:900px;scroll-padding-block:16px 160px}
+#preferencesHelp,#replaceMessage,#replacePending,#pendingSaveDialog>p{margin-top:16px}
+.preferences-transfer{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}
+.preferences-transfer button{max-width:100%;overflow-wrap:anywhere}
+.preferences-group{border-top:1px solid var(--line);padding:18px 0}
+.preferences-group h3{font-size:14px;margin:0 0 12px}
+.preferences-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 22px}
+.preferences-fields .field{margin:9px 0;scroll-margin-block:16px 160px}
+.preferences-fields input[type=color]{height:40px;padding:3px}
+.preferences-footer{position:sticky;bottom:-26px;background:var(--panel);padding:15px 0}
+.replacement-actions{justify-content:flex-end}
+@media(max-width:600px){.preferences-fields{grid-template-columns:minmax(0,1fr)}}

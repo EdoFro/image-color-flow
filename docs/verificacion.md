@@ -6,6 +6,13 @@
 
 Este documento registra comprobaciones históricas y sus limitaciones. Su traducción no significa que se hayan repetido esas pruebas. Si un resultado antiguo difiere del comportamiento actual, consulta la versión más reciente correspondiente.
 
+## v0.14.0 · Nuevo proyecto y preferencias
+
+- 11 pruebas de preferencias sin DOM: valores de fábrica, independencia de objetos, rangos/pasos/tipos/colores/umbrales, JSON, almacenamiento dañado/bloqueado, nuevos proyectos/etapas, borradores vacíos con permiso explícito y motor/archivos existentes sin alterar.
+- `node scripts/ejecutar-pruebas-vista.mjs --projects` ejecutado en Chrome para es/en/fr/de: ejemplo inicial, Nuevo vacío, guardar/reabrir sin imágenes, cancelar/descargar/confirmar reemplazo, pendientes inválidos protegidos, preferencias sin mutación del proyecto, idioma durante un borrador, importación/exportación y rechazo de archivos inválidos/importaciones tardías, nuevas etapas y puntos con radios heredados, protección de Abrir/ejemplo y conservación ante fallo de preparación.
+- Revisión adicional Chrome headless sin conexión y `file://`: 192 casos (cuatro idiomas, doce ventanas, ejemplo/vacío/preferencias/advertencia), sin desbordamientos horizontales ni errores de página; Escape conserva el trabajo. Cambio de inicio a vacío, recarga, valores recordados, retorno al ejemplo con sus valores propios y almacenamiento bloqueado comprobados. Capturas alemanas revisadas. Esta matriz usa un arnés local de revisión, separado de los comandos del repositorio.
+- Regresiones: 106/106 casos de motor/reproductor sin DOM, 29/29 de automatización, 461 claves completas por idioma; escenarios de idiomas/HTML autónomo, preparación de imágenes y destacados correctos. No se revisaron otros motores de navegador ni dispositivos físicos.
+
 ## v0.13.1 · Textos largos y distribución
 
 - Revisión adicional en Chrome headless, apertura directa `file://` y contexto sin conexión: 384 casos, cuatro idiomas (es/en/fr/de), ocho pantallas por tamaño: etapa, Inicio, General, revisión de cambios, alineación, comparación generada, diálogo de exportación y HTML autónomo.

@@ -13,6 +13,8 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 | `index.html` | Estructura del editor, inspector y diálogo de imágenes. |
 | `assets/styles.css` | Presentación del editor y adaptación al tamaño de pantalla. |
 | `src/app.js` | Estado del proyecto, eventos del editor, herramientas del lienzo, archivos y coordinación con las APIs compartidas de cálculo y exportación. |
+| `src/preferences.js` | Valores de fábrica, validación y persistencia opcional de preferencias. |
+| `src/preferences-editor.js` | Diálogo de preferencias, borrador e importación/exportación. |
 | `src/project.js` | Normalización compartida del formato editable y opciones de presentación. |
 | `src/ink-lines.js` | Extracción K/L sin DOM: mediana local, recuperación gradual, protección fina y líneas coherentes en ocho direcciones. |
 | `src/base-generation.js` | Transformación pura de píxeles, presets y normalización de la generación de base, sin DOM. |
@@ -39,7 +41,15 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 5. El reproductor mezcla la base con la imagen final y acumula el color revelado. La vista aplica el destacado y la cámara. Durante una transición interpola el rectángulo y combina los estilos en alfa premultiplicada, conservando la transparencia.
 6. El guardado de proyecto conserva datos editables; la exportación incorpora imágenes preparadas, mapas y funciones necesarias en un único HTML.
 
-El orden de carga del editor comienza con i18n y sus catálogos, seguidos por motor, generación de base, formato de proyecto, preparación, vista, reproductor, códec, parámetros generales, imágenes de ejemplo, exportación, automatización y aplicación. Las fábricas del motor, reproductor, vista y códec deben seguir siendo autocontenidas: sus funciones se incorporan al trabajador o al HTML exportado mediante `toString()`.
+El orden de carga del editor comienza con i18n y sus catálogos, seguidos por motor, generación de base, formato de proyecto, preparación, vista, reproductor, códec, parámetros generales, preferencias y su diálogo, imágenes de ejemplo, exportación, automatización y aplicación. Las fábricas del motor, reproductor, vista y códec deben seguir siendo autocontenidas: sus funciones se incorporan al trabajador o al HTML exportado mediante `toString()`.
+
+## Inicio, reemplazo de proyecto y preferencias
+
+`src/preferences.js` valida preferencias de formato 1, proporciona valores de fábrica y crea proyectos/etapas sin geometría. Reutiliza el catálogo de parámetros generales, con rangos y pasos consistentes. El almacenamiento es opcional: si falla, conserva los valores en la sesión y avisa. `src/preferences-editor.js` mantiene el borrador del diálogo, los mensajes traducidos, importación/exportación y descarte de importaciones tardías de una sesión cerrada.
+
+La aplicación mantiene las preferencias fuera del proyecto. Al abrir, utiliza `startup` (de fábrica `example`); Nuevo siempre crea un proyecto vacío. Los botones de reemplazo comparten una advertencia que considera cambios confirmados, borradores colectivos y dibujos incompletos. Descargar no ejecuta el reemplazo: requiere una confirmación posterior. Abrir valida y decodifica antes de pedir confirmación; la preparación se completa antes de limpiar el estado actual. El reinicio cancela la vista previa/Worker y limpia reproductor, mapas, geometría temporal, selecciones y controles.
+
+Los borradores vacíos utilizan la opción explícita `allowEmpty` sólo en el editor. La API y el renderizador conservan la normalización estricta y los valores de fábrica del motor. Los proyectos existentes y el ejemplo no reciben preferencias personales al abrirse. Las pruebas nuevas se ejecutan con `node tests/preferences.test.mjs` y `node scripts/ejecutar-pruebas-vista.mjs --projects`.
 
 ## Cómo se propaga el color
 

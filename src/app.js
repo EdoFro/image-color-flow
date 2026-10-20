@@ -8,7 +8,9 @@
   const zeroAlignment = () => ({ x: 0, y: 0, sx: 1, sy: 1, angle: 0 });
   const presentationDefaults = () => ({ background: 'hatch', color: '#e5e7e3' });
   const normalizePresentation = value => window.PaintProject.normalizePresentation(value);
-  let project = { format: 'tinta-y-color', version: 10, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), images: {}, stages: [engine.normalizeStage({ maxRadius: .4 })] };
+  let preferenceStorage; try { preferenceStorage = localStorage; } catch (_) {}
+  const loadedPreferences = PaintPreferences.load(preferenceStorage); let preferences = loadedPreferences.value;
+  let project = PaintPreferences.project(preferences, t('etapa_value', { p0: 1 }));
   let decoded = {}, prepared = null, selected = 0, tool = 'point', draft = null, draftDecoded = null;
   let selectedPoint = 0, radiusHandles = [], selectedHighlight = 0;
   let generalDraft = {}, generalReview = null;
@@ -39,9 +41,9 @@
   function status(message, error = false) { lastStatus = { message, error }; $('status').textContent = i18n.error(typeof message === 'function' ? message() : message); $('status').classList.toggle('error', error); }
   function timeLabel(seconds) { if (!Number.isFinite(seconds)) return '—'; const s = Math.round(seconds); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
   function report(error) { console.error(error); status(() => (error.message || String(error)), true); }
-  async function action(fn) { if (busy) return; busy = true; document.body.classList.add('busy'); const controls = [...document.querySelectorAll('button,input,select')].map(e => [e, e.disabled]); controls.forEach(([e]) => e.disabled = true); try { await fn(); } catch (error) { report(error); } finally { busy = false; document.body.classList.remove('busy'); controls.forEach(([e, disabled]) => e.disabled = disabled); if ($('imagesDialog').open) { syncBaseControls(); $('downloadBase').disabled = !basePreviewGenerated; } if (player) playerState(player.getState()); } }
+  async function action(fn) { if (busy) return; busy = true; document.body.classList.add('busy'); const controls = [...document.querySelectorAll('button,input,select')].map(e => [e, e.disabled]); controls.forEach(([e]) => e.disabled = true); try { await fn(); } catch (error) { report(error); } finally { busy = false; document.body.classList.remove('busy'); controls.forEach(([e, disabled]) => e.disabled = disabled); if ($('imagesDialog').open) { syncBaseControls(); $('downloadBase').disabled = !basePreviewGenerated; } if (player) playerState(player.getState()); syncAvailability(); } }
   function destroyPlayer() { if (player) player.destroy(); player = null; }
-  function enterEdit() { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); $('viewMode').value = 'edit'; $('playButton').textContent = '▶'; $('playButton').setAttribute('aria-label', t("reproducir")); $('playStatus').textContent = t("listo_para_explorar"); $('playButton').disabled = false; $('nextButton').disabled = false; drawEditor(); }
+  function enterEdit() { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); $('viewMode').value = 'edit'; $('playButton').textContent = '▶'; $('playButton').setAttribute('aria-label', t("reproducir")); $('playStatus').textContent = t("listo_para_explorar"); $('playButton').disabled = false; $('nextButton').disabled = false; drawEditor(); syncAvailability(); }
   function invalidate() { revision++; cached = null; dirty = true; $('estimate').textContent = t("por_calcular"); $('timeLabel').textContent = '0:00 / —'; $('timeline').value = 0; enterEdit(); }
   function fitCanvas() {
     if (!prepared) return;
@@ -367,7 +369,7 @@
         Object.assign(point, radii, { inheritRadii: false }); renderPoints(); drawOverlay(); return;
       }
       const r = overlay.getBoundingClientRect(); let index = current().points.findIndex(q => Math.hypot((q.x - p.x) * r.width, (q.y - p.y) * r.height) < 16);
-      if (index === -1) { if (current().points.length >= 64) { status(() => (t("maximo_de_64_puntos_por_etapa")), true); return; } index = current().points.push(engine.normalizeStage({ points: [p] }).points[0]) - 1; }
+      if (index === -1) { if (current().points.length >= 64) { status(() => (t("maximo_de_64_puntos_por_etapa")), true); return; } index = current().points.push(engine.normalizeStage({ points: [{ ...preferences.point, ...p }] }).points[0]) - 1; }
       gesture = { kind: 'point', index, original: { ...current().points[index] } }; Object.assign(current().points[index], p);
       selectedPoint = index; renderPoints();
     }
@@ -425,7 +427,7 @@
   for (const [id, [key, multiplier]] of Object.entries(params)) $(id).addEventListener('input', () => { current()[key] = +$(id).value / multiplier; invalidate(); updateInspector(); });
   $('stageName').addEventListener('input', () => { current().name = $('stageName').value || t("etapa_value", { p0: selected + 1 }); invalidate(); renderStages(); });
   $('pauseAfter').onchange = () => { current().pauseAfter = $('pauseAfter').checked; invalidate(); renderStages(); };
-  $('addStage').onclick = () => { if (project.stages.length >= 64) { status(() => (t("maximo_de_64_etapas_por_proyecto")), true); return; } project.stages.push(engine.normalizeStage({ maxRadius: .4, points: [] }, project.stages.length)); selected = project.stages.length - 1; selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
+  $('addStage').onclick = () => { if (project.stages.length >= 64) { status(() => (t("maximo_de_64_etapas_por_proyecto")), true); return; } project.stages.push(PaintPreferences.stage(preferences, project.stages.length, t('etapa_value', { p0: project.stages.length + 1 }))); selected = project.stages.length - 1; selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
   $('duplicateStage').onclick = () => { if (project.stages.length >= 64) return; project.stages.splice(selected + 1, 0, engine.normalizeStage({ ...structuredClone(current()), name: t('copied_name', { name: current().name }) })); selected++; selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
   $('deleteStage').onclick = () => { if (project.stages.length === 1) { status(() => (t("el_proyecto_necesita_al_menos_una_etapa"))); return; } project.stages.splice(selected, 1); selected = Math.min(selected, project.stages.length - 1); selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
   $('viewMode').onchange = () => { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); drawEditor(); };
@@ -445,7 +447,7 @@
     if (!decoded.final) throw new Error(t("carga_primero_una_imagen_final_coloreada"));
     await waitFrame(); prepared = ready || PaintPreparation.prepare(decoded.final, decoded.initial, project);
     canvas.width = overlay.width = prepared.width; canvas.height = overlay.height = prepared.height;
-    $('dimensions').textContent = `${prepared.width} × ${prepared.height} px`; $('emptyState').hidden = true;
+    $('dimensions').textContent = `${prepared.width} × ${prepared.height} px`; $('emptyState').hidden = true; $('canvasWrap').hidden = false;
     invalidate(); fitCanvas(); renderStages(); updateInspector(); drawEditor();
   }
   async function calculateFields() {
@@ -643,16 +645,77 @@
   function download(name, content, type) {
     const url = URL.createObjectURL(new Blob([content], { type })), a = document.createElement('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
   }
-  $('saveButton').onclick = () => { if (!prepared) return; download('proyecto-tinta-y-color.colorflow.json', JSON.stringify(project), 'application/json'); dirty = false; status(() => (t("proyecto_descargado_conserva_este_archivo_para_seguir_edit"))); };
+  function syncAvailability() {
+    const available = !!prepared && !busy;
+    $('exportButton').disabled = !available;
+    $('playButton').disabled = $('nextButton').disabled = !available || !!player?.getState().empty;
+    $('restartButton').disabled = $('timeline').disabled = !available;
+  }
+  function hasPendingDrafts() {
+    return !!(Object.keys(generalDraft).length || Object.keys(selectionDraft).length || generalInvalid.size || polygon.length || gesture ||
+      ($('imagesDialog').open && draft && JSON.stringify(draft) !== JSON.stringify(project)));
+  }
+  const hasUnsavedChanges = () => dirty || hasPendingDrafts();
+  function saveProject() {
+    if (hasPendingDrafts()) return false;
+    download('proyecto-tinta-y-color.colorflow.json', JSON.stringify(project), 'application/json');
+    dirty = false; status(() => t('proyecto_descargado_conserva_este_archivo_para_seguir_edit')); return true;
+  }
+  $('saveButton').onclick = () => { if (!saveProject()) $('pendingSaveDialog').showModal(); };
+  $('closePendingSave').onclick = () => $('pendingSaveDialog').close();
+  let replacement = null;
+  function refreshReplacement() {
+    $('replaceTitle').textContent = t(replacement?.title || 'replace_title');
+    $('replaceMessage').textContent = t(hasUnsavedChanges() ? 'replace_message' : 'replace_downloaded');
+    $('replacePending').hidden = !hasPendingDrafts(); $('downloadBeforeReplace').disabled = hasPendingDrafts();
+    $('confirmReplace').textContent = t(hasUnsavedChanges() ? 'discard_continue' : 'continuar');
+  }
+  function requestReplacement(title, run) {
+    if (busy) return;
+    if (!hasUnsavedChanges()) return action(run);
+    player?.pause(); replacement = { title, run }; refreshReplacement(); $('replaceDialog').showModal();
+    $('cancelReplace').focus();
+  }
+  $('cancelReplace').onclick = () => $('replaceDialog').close();
+  $('replaceDialog').addEventListener('close', () => { replacement = null; });
+  $('downloadBeforeReplace').onclick = () => { if (saveProject()) refreshReplacement(); };
+  $('confirmReplace').onclick = () => { const run = replacement?.run; replacement = null; $('replaceDialog').close(); if (run) action(run); };
+  function clearSession(next, images) {
+    destroyPlayer(); resetBasePreview(); cached = null; prepared = null; revision++;
+    project = next; decoded = images; draft = draftDecoded = null;
+    generalDraft = {}; selectionDraft = {}; generalReview = null; generalInvalid.clear();
+    stageSelection = new Set([project.stages[0]]); selected = 0; selectedPoint = selectedHighlight = 0;
+    polygon = []; gesture = null; radiusHandles = []; $('includeInitial').checked = false; $('showAllRadii').checked = false;
+    $('viewMode').value = 'edit'; $('timeline').value = 0; $('timeLabel').textContent = '0:00 / —';
+    $('canvasWrap').classList.remove('transparent'); canvas.width = canvas.height = overlay.width = overlay.height = 1;
+    $('canvasWrap').hidden = true; $('emptyState').hidden = false; $('dimensions').textContent = '—';
+    renderStages(); updateInspector(); setTool('point'); $('estimate').textContent = t('por_calcular');
+  }
+  async function installProject(next, images) {
+    // Finish image preparation before replacing any of the current editable state.
+    const ready = images.final ? PaintPreparation.prepare(images.final, images.initial, next) : null;
+    clearSession(next, images); if (ready) await prepareProject(ready); dirty = false; syncAvailability();
+  }
+  async function newProject() {
+    await installProject(PaintPreferences.project(preferences, t('etapa_value', { p0: 1 })), {});
+    status(() => t('new_project_ready'));
+  }
+  $('newButton').onclick = () => requestReplacement('new_project', newProject);
+  $('emptyImagesButton').onclick = () => $('imagesButton').click();
   $('openButton').onclick = () => $('projectFile').click();
-  const validateProject = data => window.PaintProject.normalize(data);
-  $('projectFile').onchange = () => action(async () => {
+  const validateProject = data => window.PaintProject.normalize(data, { allowEmpty: true });
+  $('projectFile').onchange = async () => {
     const file = $('projectFile').files[0]; $('projectFile').value = ''; if (!file) return;
-    if (file.size > 150000000) throw new Error(t("el_archivo_de_proyecto_es_demasiado_grande_maximo_150_mb"));
-    const next = validateProject(JSON.parse(await file.text())), images = { final: await PaintPreparation.loadImage(next.images.final.data) };
-    if (next.images.initial) images.initial = await PaintPreparation.loadImage(next.images.initial.data);
-    project = next; generalDraft = {}; selectionDraft = {}; stageSelection = new Set([project.stages[0]]); $('includeInitial').checked = false; decoded = images; selected = 0; selectedPoint = 0; polygon = []; await prepareProject(); dirty = false; status(() => (t("proyecto_abierto_puedes_continuar_editando")));
-  });
+    let candidate;
+    await action(async () => {
+      if (file.size > 150000000) throw new Error(t('el_archivo_de_proyecto_es_demasiado_grande_maximo_150_mb'));
+      const next = validateProject(JSON.parse(await file.text())), images = {};
+      if (next.images.final) images.final = await PaintPreparation.loadImage(next.images.final.data);
+      if (next.images.initial) images.initial = await PaintPreparation.loadImage(next.images.initial.data);
+      candidate = { next, images };
+    });
+    if (candidate) requestReplacement('abrir_proyecto', async () => { await installProject(candidate.next, candidate.images); status(() => t('proyecto_abierto_puedes_continuar_editando')); });
+  };
   const packField = field => window.PaintCodec.pack(field);
   $('exportButton').onclick = () => { $('exportLanguage').value = i18n.language; $('exportBackground').value = project.presentation.background; $('exportColor').value = project.presentation.color; $('exportColorField').hidden = project.presentation.background !== 'color'; $('exportDialog').showModal(); };
   $('exportBackground').onchange = () => { $('exportColorField').hidden = $('exportBackground').value !== 'color'; };
@@ -671,17 +734,17 @@
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
-    project = { format: 'tinta-y-color', version: 10, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
+    const exampleProject = { format: 'tinta-y-color', version: 10, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
       engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17, startMode: 'delay', delay: .7 }, { x: .16, y: .17, startMode: 'delay', delay: .7 }], radius: .22, maxRadius: .4, speed: .13, hueResistance: 8, paintDelay: 1.2, cameraDuration: .8, pauseAfter: true, frame: { x: .53, y: .03, width: .44, height: .27 } }),
       engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5, startMode: 'after' }], radius: .35, maxRadius: .5, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true, frame: { x: .06, y: .29, width: .91, height: .38 } }),
       engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 }),
       engine.normalizeStage({ name: 'Una última mirada', points: [], cameraDuration: 1, hold: .6, zoom: 0, frame: { x: .06, y: .29, width: .91, height: .38 }, highlightEnabled: true, outside: 'transparent' })
     ] };
-    generalDraft = {}; selectionDraft = {}; stageSelection = new Set([project.stages[0]]); $('includeInitial').checked = false; decoded = decodedDemo; selected = 0; selectedPoint = 0; polygon = []; status(() => (t("alineando_las_imagenes_del_ejemplo"))); await waitFrame(); project.alignment = PaintPreparation.autoAlign(decoded.final, decoded.initial);
-    await prepareProject(); dirty = false; status(() => (t("ejemplo_listo_marca_un_origen_ajusta_los_parametros_y_puls")));
+    status(() => t('alineando_las_imagenes_del_ejemplo')); await waitFrame(); exampleProject.alignment = PaintPreparation.autoAlign(decodedDemo.final, decodedDemo.initial);
+    await installProject(exampleProject, decodedDemo); status(() => t('ejemplo_listo_marca_un_origen_ajusta_los_parametros_y_puls'));
   }
-  $('exampleButton').onclick = () => action(loadDemo);
-  window.addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+  $('exampleButton').onclick = () => requestReplacement('preferences_load_example', loadDemo);
+  window.addEventListener('beforeunload', e => { if (hasUnsavedChanges()) { e.preventDefault(); e.returnValue = ''; } });
   new ResizeObserver(fitCanvas).observe($('canvasArea'));
   // Native selectors remain keyboard accessible; show their full value if it is clipped.
   const selectLabels = new WeakMap(), observedSelects = new Set(), selectMetrics = document.createElement('canvas').getContext('2d');
@@ -710,8 +773,11 @@
     });
   }
   document.addEventListener('change', event => { if (event.target.matches('select')) scheduleSelectLabels(); }, true);
+  const preferencesEditor = PaintPreferencesEditor.create({ getValue: () => preferences, download, onLayout: scheduleSelectLabels,
+    onSave: value => { const saved = PaintPreferences.save(preferenceStorage, value); preferences = saved.value; status(() => t(saved.stored ? 'preferences_saved' : 'preferences_session_only')); }
+  });
   // Interfaz de diagnóstico local, útil para comprobar exportaciones sin dependencias.
-  window.TintaColor = { getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision, getBasePreviewState: () => ({ complete: basePreviewGenerated, revision: previewRevision, view: { ...comparison.view }, state: $('basePreviewIndicator').dataset.state }) };
+  window.TintaColor = { hasUnsavedChanges, getPreferences: () => structuredClone(preferences), getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision, getBasePreviewState: () => ({ complete: basePreviewGenerated, revision: previewRevision, view: { ...comparison.view }, state: $('basePreviewIndicator').dataset.state }) };
 
   function refreshLanguage() {
     // Keep unfinished numeric edits and their invalid state across language changes.
@@ -748,6 +814,7 @@
       else if (state === 'error') { $('basePreviewIndicator').title = i18n.error(previewErrorMessage); $('basePreviewStatus').textContent = i18n.error(previewErrorMessage); }
     }
     if (lastStatus) status(lastStatus.message, lastStatus.error);
+    preferencesEditor.refreshLanguage(); if ($('replaceDialog').open) refreshReplacement();
     scheduleSelectLabels(); drawOverlay();
   }
   document.querySelectorAll('[data-language-select], #exportLanguage').forEach(select => {
@@ -756,5 +823,7 @@
   document.querySelectorAll('[data-language-select]').forEach(select => { select.value = i18n.language; select.onchange = () => i18n.setLanguage(select.value); });
   i18n.subscribe(refreshLanguage);
 
-  renderStages(); updateInspector(); scheduleSelectLabels(); action(loadDemo);
+  renderStages(); updateInspector(); scheduleSelectLabels();
+  const startup = document.documentElement.dataset.startup || preferences.startup;
+  action(startup === 'empty' ? newProject : loadDemo).then(() => { if (loadedPreferences.reset && !$('status').classList.contains('error')) status(() => t('preferences_recovered')); });
 })();

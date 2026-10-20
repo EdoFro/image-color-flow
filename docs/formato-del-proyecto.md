@@ -14,7 +14,7 @@ El formato actual es **10**. Su número es independiente de la versión de la ap
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
 | `version` | Versión del formato: se guarda `10`; se leen formatos `1` a `10`. |
-| `images.final` | Imagen coloreada obligatoria, con `name` y `data` (URL de datos de imagen). |
+| `images.final` | Imagen coloreada obligatoria para preparar/reproducir/exportar; puede omitirse sólo en un borrador vacío del editor. Contiene `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
 | `baseMode` | `uploaded` para preparar la inicial o `derived` para generarla desde la final. Sin inicial se utiliza `derived`. |
 | `baseGeneration` | Método y parámetros globales para generar la base; sólo actúan en `derived`. |
@@ -25,6 +25,14 @@ El formato actual es **10**. Su número es independiente de la versión de la ap
 | `stages` | Lista ordenada de 1 a 64 etapas. |
 
 Las coordenadas `x` e `y` de puntos, zonas y rectángulos son fracciones de las dimensiones correspondientes de la imagen, entre 0 y 1. Los radios y velocidades se expresan respecto al **ancho**. El giro de alineación y la dirección del viento usan grados. Los tiempos usan segundos.
+
+## Borradores sin imágenes y preferencias locales
+
+Desde la aplicación 0.14.0, el editor puede guardar un borrador de formato 10 con `images: {}` y al menos una etapa. En ese estado no admite una imagen inicial aislada; se deshabilitan reproducción y exportación. El editor lo abre con `PaintProject.normalize(data, { allowEmpty: true })`. La normalización compartida sigue exigiendo una imagen coloreada por defecto, también en API/CLI/MCP; carga las imágenes en el editor antes de automatizar ese borrador. Los editores anteriores pueden rechazar los borradores sin imágenes.
+
+Las preferencias no se incorporan al proyecto ni al HTML exportado: cada proyecto guarda los valores concretos que utiliza. El archivo separado de preferencias lleva `format: "tinta-y-color-preferences"`, `version: 1`, `startup`, `resolution`, `baseMode`, `baseGeneration`, `presentation`, `stage` y `point`. Sus campos y rangos/pasos se validan antes de importar. `stage` contiene parámetros sin geometría; `point` sólo activación, modo de inicio y demora. No contiene imágenes, nombres, rectángulos ni idioma.
+
+Se guardan localmente con la clave `colorflow.preferences`; el idioma continúa usando su clave independiente. Las preferencias no cambian los valores predeterminados del motor, API, CLI o MCP, ni la normalización de archivos existentes. La opción `baseMode: "uploaded"` puede conservarse en un borrador vacío; con imágenes se mantienen las reglas de preparación anteriores.
 
 ## Etapas y emisores
 

@@ -20,11 +20,13 @@ La interfaz está disponible en **español, inglés, francés y alemán**. Elige
 
 1. Descarga o copia el proyecto completo, conservando sus carpetas.
 2. Abre [index.html](index.html) en Chrome o Edge. No requiere instalación, servidor ni conexión.
-3. Prueba el ejemplo incluido o carga tus imágenes desde **Imágenes**.
+3. Prueba el ejemplo incluido o pulsa **Nuevo proyecto** y **Cargar imágenes** para empezar desde cero.
 4. Define etapas, zonas, puntos y recorridos; ajusta la propagación y reproduce.
 5. Usa **Guardar proyecto** para seguir editando y **Exportar HTML** para presentar.
 
 El editor prepara y alinea las imágenes. También puede generar una base desde la versión coloreada con **Tinta y líneas (L)**, que combina fondo robusto, protección de trazos finos y recuperación de líneas, con controles para retirar pigmentos, ajustar grises y comparar el resultado antes de aplicarlo. Los puntos admiten orden, activación, demoras y radios propios. Las etapas pueden pintar o cambiar únicamente el enfoque y el destacado, con transiciones graduales, desfase inicial de pintura y permanencia. **General** permite revisar y unificar parámetros de toda la presentación antes de aplicarlos. Puedes deshabilitar etapas y usar Ctrl + clic para editar un grupo de ellas. La exportación ofrece fondo achurado, liso o transparente, sin marco ni sombra alrededor del dibujo. Sus controles comienzan ocultos y se muestran con el logo o la tecla H. Un clic en el dibujo inicia o avanza la presentación; Espacio permite pausar y continuar. Al terminar, un botón de reinicio con alto contraste permite regresar a Inicio.
+
+El editor abre el ejemplo por defecto. **Preferencias** permite elegir el inicio, personalizar los parámetros de proyectos/etapas nuevos y exportar/importar esos valores. **Nuevo proyecto** protege los cambios sin guardar y permite guardar borradores todavía sin imágenes. Consulta [nuevo proyecto y preferencias](docs/guia-de-uso.md#nuevo-proyecto-y-preferencias).
 
 ## Uso desde una IA
 

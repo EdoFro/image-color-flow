@@ -29,6 +29,28 @@ Abre [index.html](../index.html) en Chrome o Edge. Conserva la estructura comple
 
 En **Editar**, el lienzo muestra la imagen final como referencia con las guías encima; **Imagen inicial** permite revisar la base preparada. La reproducción comienza desde esa base.
 
+## Nuevo proyecto y preferencias
+
+El editor carga el ejemplo introductorio al abrirse. En **Preferencias → Al abrir el editor** puedes elegir **Cargar ejemplo** (valor de fábrica) o **Proyecto vacío**. Guardar esta elección afecta a la próxima apertura; conserva lo que estás editando ahora.
+
+**Nuevo proyecto**, en la cabecera, siempre crea un proyecto sin imágenes, con Inicio y una primera etapa vacía. Limpia puntos, recorridos, zonas, rectángulos, selección, reproducción y cálculos anteriores. Usa los valores predeterminados guardados y conserva el idioma. Pulsa **Cargar imágenes** en el lienzo para continuar. Puedes ajustar parámetros, añadir etapas y guardar/reabrir el borrador antes de cargar imágenes; reproducir y exportar requieren una imagen coloreada.
+
+Si hay cambios sin guardar, **Nuevo proyecto**, **Abrir proyecto** y **Volver a cargar el ejemplo** muestran una advertencia. **Cancelar** o Escape mantienen el proyecto. **Descargar proyecto actual** solicita su descarga y mantiene abierto el diálogo; comprueba que conservas el archivo y pulsa **Continuar**. **Descartar cambios y continuar** permite reemplazarlo sin descargar. Un archivo incompatible o un fallo al preparar la imagen conserva el proyecto anterior. Cerrar o recargar la pestaña usa la advertencia propia del navegador.
+
+Los pendientes de General o de la selección y los trazos sin terminar también están protegidos. Para descargar, aplica o descarta esos ajustes y termina o cancela el trazo. El guardado muestra una indicación si todavía falta resolverlos. Los cambios de Imágenes se incorporan al proyecto con **Aplicar y volver al lienzo**; cerrar ese diálogo descarta su borrador.
+
+En **Preferencias** puedes personalizar:
+
+- Resolución, origen de la base, algoritmo, pigmento, umbrales, suavidad, papel e igualación de trazos.
+- Propagación, ambos radios, viento, pincel, tiempos y pausas de las etapas nuevas.
+- Activación, modo de inicio y demora de puntos nuevos; sus radios heredan los de la etapa.
+- Acercamiento, destacado y tratamiento exterior, sin guardar rectángulos concretos. Una nueva vista Inicio usa esos valores de enfoque y destacado.
+- Fondo y color de las presentaciones nuevas.
+
+**Guardar preferencias** confirma el borrador. **Cancelar** o × lo descartan; **Restaurar valores de fábrica** sólo prepara el cambio y requiere guardarlo. Los predeterminados afectan a proyectos y etapas nuevos, no recalculan ni modifican lo existente. Duplicar una etapa conserva su configuración. Para cambiar el proyecto actual utiliza General o sus controles normales. El ejemplo introductorio conserva su configuración original.
+
+**Exportar preferencias** descarga el borrador válido como `tinta-y-color.preferences.json`. **Importar preferencias** lo carga para revisión y requiere **Guardar preferencias** para usarlo. No contiene imágenes ni geometría y no cambia el idioma. Los valores se conservan en este navegador; exportarlos permite trasladarlos a otro navegador o equipo. Si el almacenamiento está bloqueado, la aplicación avisa y los usa sólo durante la sesión. Las preferencias dañadas o incompatibles se sustituyen por los valores de fábrica al abrir.
+
 ## Generar la imagen inicial
 
 En **Imágenes**, elige **Generar imagen inicial desde la imagen final** y pulsa **Generar vista previa**. El panel muestra la referencia y la base propuesta una junto a otra, sin superponerlas. Una vez generada, los controles actualizan la comparación automáticamente. **Ampliación** y los botones Ajustar/−/+ afectan ambas vistas. Arrastrar cualquiera o usar su rueda mueve o amplía las dos; la miniatura permite centrar con clic o arrastrar el rectángulo. El encuadre se conserva al regenerar.

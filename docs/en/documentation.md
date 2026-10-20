@@ -21,6 +21,7 @@ Documentation is maintained in English and Spanish. The interface supports Engli
 | [Changelog](../../CHANGELOG.md) | [Cambios](../../CHANGELOG.es.md) |
 | [Gallery](../../exampleVideos/README.md) | [Galería](../../exampleVideos/README.es.md) |
 | [Languages](languages.md) | [Idiomas](../idiomas.md) |
+| [Ideas and pending tasks](roadmap.md) | [Ideas y tareas pendientes](../pendientes.md) |
 | This guide | [Guía de documentación](../documentacion.md) |
 
 ## When changing a feature
