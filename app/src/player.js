@@ -100,17 +100,22 @@
       for (let i = 0; i <= index; i++) commit(fields[i]);
       time = fields[index].duration; atStart = false; ended = index === fields.length - 1; waiting = !ended; render();
     }
-    function advance(animate = true) {
+    function advance(animate = true, waitWhilePlaying = false) {
       if (!fields.length || ended && !atStart) return { consumed: false, completed: true, state: state() };
-      if (animate && playing) return { consumed: true, accepted: false, reason: 'busy', state: state() };
-      if (animate) play();
+      if (animate && playing && waitWhilePlaying) return { consumed: true, accepted: false, reason: 'busy', state: state() };
+      if (animate) {
+        // Match the original forward gesture: finish this stage and start the next.
+        // Explicit checkpoints preserve zero-duration stages instead of seeking past them.
+        if (playing) showEnd(index);
+        if (!ended) play();
+      }
       else showEnd(atStart ? 0 : waiting ? index + 1 : index);
       return { consumed: true, accepted: true, state: state() };
     }
     function back() { if (atStart) return; showEnd(index - 1); }
     function finish() { showEnd(fields.length - 1); }
     render();
-    return { play, pause, restart, seek, next, previous, advance, back, finish, toggle: () => playing ? pause() : play(), getState: state, destroy() { destroyed = true; stop(); } };
+    return { play, pause, restart, seek, next, previous, advance, advanceWhenIdle: () => advance(true, true), back, finish, toggle: () => playing ? pause() : play(), getState: state, destroy() { destroyed = true; stop(); } };
   }
   root.createPaintPlayer = createPaintPlayer;
 })(typeof window === 'undefined' ? globalThis : window);

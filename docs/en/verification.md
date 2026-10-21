@@ -6,6 +6,14 @@
 
 This is a translated record of checks performed during the versions below, including their limitations. Translating this record does not mean those tests were rerun. Where old results differ from current behavior, use the newest relevant version's entry.
 
+## v0.17.0 · Advancement while painting
+
+- 106/106 existing engine/player tests and 29/29 automation tests. Updated integration checks cover completing the current stage and playing the next, `skip` as a stopped checkpoint, and the `advanceWhenIdle` alternative. Original indices, accumulated paint, zero-duration stages and consuming the final stage before host advancement are checked.
+- Chrome offline and local HTTP scenario: parent-page right arrow, image click and keyboard focus inside the iframe advance while painting. The last stage stops at its end without also revealing the next host element. `advance-wait` works through the controller and direct commands. The integrated HTML opened without a host supports the same gestures.
+- Back, hover restart, two animations, intermediate explanation/slide change, source/channel validation, initialization errors and NOT_READY without later execution remain checked. Real API rendering generates updated helpers; both ZIPs remain reproducible and work after extraction.
+- The user's real presentation was not changed or rehearsed; re-export its animations, update the controller and remove any host-side painting-state input guards.
+
+
 ## v0.16.0 · Drafts and embedding
 
 - Existing checks: 106/106 engine/player tests, 29/29 automation tests, 11 preference tests and 467 keys in four languages. Focused integration tests cover manual checkpoints, skip/back/restart/finish, zero duration, ZIP CRC/Unicode, escaped self-contained editor JSON, file roots, API/CLI/MCP review and helper delivery.

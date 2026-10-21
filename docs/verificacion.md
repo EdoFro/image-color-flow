@@ -6,6 +6,14 @@
 
 Este documento registra comprobaciones históricas y sus limitaciones. Su traducción no significa que se hayan repetido esas pruebas. Si un resultado antiguo difiere del comportamiento actual, consulta la versión más reciente correspondiente.
 
+## v0.17.0 · Avance durante la pintura
+
+- 106/106 pruebas existentes del motor/reproductor y 29/29 de automatización. Pruebas de integración actualizadas para completar la etapa actual y arrancar la siguiente, conservar `skip` como cierre detenido y mantener `advanceWhenIdle` como alternativa. Verificados índices originales, color acumulado, etapas de duración cero y final consumido antes de continuar al contenedor.
+- Escenario Chrome sin conexión y por HTTP local: flecha derecha desde la página principal, clic dentro de la imagen y flecha con el foco dentro del iframe adelantan mientras pinta. La última etapa queda en el final sin revelar también el elemento siguiente. `advance-wait` funciona tanto mediante el controlador como por comando directo. HTML integrado abierto sin contenedor comprobado con los mismos gestos.
+- Se mantienen retroceso, reinicio por hover, dos animaciones, explicación y cambio de lámina, comprobación de emisor/canal, error de carga y NOT_READY sin ejecución posterior. API real genera los auxiliares actualizados y ambos ZIP siguen siendo reproducibles y verificables tras extracción.
+- No se modificó ni ensayó la presentación real del usuario; debe reexportar sus animaciones, actualizar el controlador y retirar bloqueos propios del contenedor si los hubiera.
+
+
 ## v0.16.0 · Borrador e integración
 
 - 106/106 pruebas de motor/reproductor existentes; 29/29 de automatización, 11 de preferencias y 467 claves completas en cuatro idiomas. Las pruebas específicas de integración comprueban cierres manuales, salto/retroceso/reinicio/final, duración cero, ZIP con CRC y Unicode, editor autocontenido con JSON escapado, raíz de archivos, revisión API/CLI/MCP y entrega de auxiliares.

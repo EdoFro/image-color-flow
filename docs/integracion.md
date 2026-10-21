@@ -4,7 +4,7 @@
 
 [Volver al proyecto](../README.es.md)
 
-Disponible desde 0.16.0. Este flujo no conecta al asistente con una sesión abierta del editor: el usuario termina la edición y entrega la exportación al agente que integra la presentación.
+Disponible desde 0.16.0; avance predeterminado actualizado en 0.17.0. Este flujo no conecta al asistente con una sesión abierta del editor: el usuario termina la edición y entrega la exportación al agente que integra la presentación.
 
 ## A. Abrir un borrador para corregirlo
 
@@ -66,7 +66,8 @@ Las funciones de mostrar/ocultar son las de tu presentación; sustituye ese paso
 
 | Operación de la conexión | Resultado |
 | --- | --- |
-| `advance()` | Reproduce una etapa o reanuda la que se pausó. Si está reproduciéndose, descarta el avance. |
+| `advance()` | Predeterminado: inicia una etapa; si está pintándose, completa su cierre e inicia la siguiente. Durante la última, muestra el final y queda detenido. Si está pausada manualmente, la reanuda. |
+| `advanceWhenIdle()` | Alternativa: inicia o reanuda una etapa; mientras pinta, descarta la orden (`reason: "busy"`). |
 | `advance(true)` | Durante una etapa, muestra su cierre; esperando en un cierre, muestra el cierre siguiente. |
 | `back()` | Muestra detenido el cierre anterior; desde la primera etapa vuelve a Inicio. |
 | `restart()` | Vuelve a Inicio sin reproducción automática. |
@@ -74,9 +75,9 @@ Las funciones de mostrar/ocultar son las de tu presentación; sustituye ese paso
 | `pause()` | Pausa la etapa actual. `advance()` la reanuda. |
 | `command('state')` | Consulta explícita, sin modificar reproducción. |
 
-Las operaciones devuelven promesas con `state`. Avanzar después del final devuelve `consumed:false, completed:true`; la secuencia utiliza esa misma pulsación para el siguiente elemento. No se acumulan pulsaciones durante una etapa. Una orden antes de estar disponible devuelve `NOT_READY` y no queda pendiente. El cierre incluye pintura acumulada, enfoque y destacado finales, también para etapas de duración cero. Retroceder no reproduce al revés.
+Las operaciones devuelven promesas con `state`. Avanzar después del final devuelve `consumed:false, completed:true`; la secuencia utiliza esa misma pulsación para el siguiente elemento. Flecha derecha y clic usan `advance()`: permiten adelantar al momento siguiente sin esperar a que termine el actual. La pulsación que completa la última etapa no avanza también la lámina; otra pulsación continúa la secuencia. `advanceWhenIdle()` conserva el comportamiento anterior de ignorar avances durante la pintura. La repetición automática de una tecla mantenida sigue deshabilitada. Una orden antes de estar disponible devuelve `NOT_READY` y no queda pendiente. El cierre incluye pintura acumulada, enfoque y destacado finales, también para etapas de duración cero. Retroceder no reproduce al revés.
 
-`sequence.advance(true)` salta el momento; `sequence.back()` retrocede; `sequence.input('restart')` reinicia la imagen actual y `sequence.input('finish')` la lleva al final. **`sequence.restart()` reinicia el ejemplo o secuencia completa**, deshaciendo los pasos con `undo`; es distinto del reinicio de una imagen.
+`sequence.advanceWhenIdle()` aplica la alternativa de espera a la secuencia; `sequence.input('advance-wait')` es su equivalente por acción. `sequence.advance(true)` salta el momento; `sequence.back()` retrocede; `sequence.input('restart')` reinicia la imagen actual y `sequence.input('finish')` la lleva al final. **`sequence.restart()` reinicia el ejemplo o secuencia completa**, deshaciendo los pasos con `undo`; es distinto del reinicio de una imagen.
 
 Al terminar una animación, su botón ↻ Reiniciar aparece al pasar el mouse y permite acceso por teclado. Ese clic vuelve a Inicio, avisa al contenedor y recupera el lugar de esa imagen en la secuencia sin empezar a pintar. Si otra imagen está pintando, el retorno queda para cuando termine su momento; no se inician dos a la vez. La secuencia puede repetir después sus elementos posteriores, por lo que sus funciones `run` deberían poder ejecutarse nuevamente sin duplicaciones.
 
@@ -84,7 +85,7 @@ Al terminar una animación, su botón ↻ Reiniciar aparece al pasar el mouse y 
 
 El controlador utiliza `postMessage`, comprueba la ventana exacta, el origen y un canal aleatorio por iframe. El canal y el origen del padre se pasan en el fragmento de la URL; se mantiene apertura `file://` mediante comprobación de ventana y canal, sin confiar sólo en el origen `null`. No se admiten instrucciones de código arbitrario.
 
-Los mensajes llevan `protocol: "tinta-color"`, `version: 1`, `channel` y `kind`. `connect` establece conexión; `command` lleva `id` y uno de `advance`, `skip`, `back`, `restart`, `finish`, `pause`, `state`. `reply` devuelve el resultado y el mismo `id`. `event` informa `loading`, `ready`, `state`, `restart`, `error`. `input` comunica la acción del usuario al contenedor. El controlador recomendado administra este protocolo; no hace falta construir mensajes a mano.
+Los mensajes llevan `protocol: "tinta-color"`, `version: 1`, `channel` y `kind`. `connect` establece conexión; `command` lleva `id` y uno de `advance`, `advance-wait`, `skip`, `back`, `restart`, `finish`, `pause`, `state`. `reply` devuelve el resultado y el mismo `id`. `event` informa `loading`, `ready`, `state`, `restart`, `error`. `input` comunica la acción del usuario al contenedor. El controlador recomendado administra este protocolo; no hace falta construir mensajes a mano.
 
 El estado contiene `index` (índice original desde cero), `position` (posición entre etapas habilitadas), `stageCount`, `name`, `phase` (`initial`, `playing`, `waiting`, `paused`, `completed`), `time`, `elapsed`, `total`, `atStart`, `playing`, `waiting`, `ended`, `empty` y vista. Los avisos de estado se envían al cambiar fase o etapa, no en cada fotograma; consulta `state` para el tiempo actual. En el propio HTML, `window.TintaColorPlayer` expone `command` y `getState`; el contenedor debe usar el controlador para no depender del acceso directo entre archivos locales.
 
@@ -92,4 +93,6 @@ Mantén el ejemplo y animaciones bajo el mismo esquema: todos locales o servidos
 
 ## Comprobación antes de integrar
 
-Prueba dos animaciones con un texto intermedio y otra lámina: teclas rápidas durante la pintura, salto explícito, retroceso, final, reinicio por hover y teclado dentro/fuera del iframe. Comprueba una apertura local sin conexión. La integración con tu presentación real debe conectar su sistema de avance y ensayarse por separado.
+Para actualizar una presentación existente, vuelve a exportar las animaciones y reemplaza también `tinta-color-host.js`; los HTML antiguos conservan su reproductor incorporado. Mantén un único controlador actualizado si compartes el archivo entre varias imágenes. Si la presentación real tiene un bloqueo propio durante la pintura, el agente debe retirarlo para este avance; los controles de versiones anteriores podían ignorar la orden antes de enviarla.
+
+Prueba dos animaciones con un texto intermedio y otra lámina: avance durante la pintura, alternativa de espera, salto explícito, retroceso, final, reinicio por hover y teclado dentro/fuera del iframe. Comprueba una apertura local sin conexión. La integración con tu presentación real debe conectar su sistema de avance y ensayarse por separado.

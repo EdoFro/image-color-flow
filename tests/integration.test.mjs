@@ -18,7 +18,7 @@ const canvas={getContext:()=>({createImageData:()=>({data:new Uint8ClampedArray(
 const fields=[0,1,2].map(index=>({stageIndex:index*2,duration:1,fade:.1,times:new Float32Array([0]),pauseAfter:false,name:'Stage '+index}));
 const player=context.createPaintPlayer(canvas,{width:1,height:1,base:[255,255,255,255],final:[255,0,0,255],fields,manual:true});
 assert.equal(player.getState().atStart,true);
-player.advance(); assert.equal(player.advance().reason,'busy'); tick();
+player.advance(); assert.equal(player.advanceWhenIdle().reason,'busy'); tick();
 assert.equal(player.getState().waiting,true); assert.equal(player.getState().position,0); assert.equal(player.getState().index,0);
 player.advance(); player.advance(false); assert.equal(player.getState().position,1); assert.equal(player.getState().waiting,true); assert.equal(pixel[1],0);
 player.back(); assert.equal(player.getState().position,0); assert.equal(player.getState().time,1); assert.equal(player.getState().playing,false);
@@ -29,8 +29,18 @@ player.restart(); assert.equal(player.getState().atStart,true); assert.equal(pla
 player.finish(); assert.equal(player.getState().ended,true); player.back(); assert.equal(player.getState().position,1);
 player.restart(); player.advance(); player.pause(); assert.equal(player.getState().phase,'paused'); player.advance(); assert.equal(player.getState().position,0); player.back(); assert.equal(player.getState().atStart,true);
 player.destroy();
+// Default forward can interrupt: commit current paint, start exactly the next enabled stage.
+const forward=context.createPaintPlayer(canvas,{width:1,height:1,base:[255,255,255,255],final:[255,0,0,255],fields,manual:true});
+forward.advance(); assert.equal(forward.getState().position,0);
+forward.advance(); assert.equal(forward.getState().position,1); assert.equal(forward.getState().index,2); assert.equal(forward.getState().time,0); assert.equal(forward.getState().playing,true); assert.equal(pixel[1],0);
+assert.equal(forward.advanceWhenIdle().reason,'busy'); assert.equal(forward.getState().position,1);
+forward.advance(false); assert.equal(forward.getState().position,1); assert.equal(forward.getState().playing,false); assert.equal(forward.getState().waiting,true);
+forward.advance(); assert.equal(forward.getState().position,2); assert.equal(forward.getState().playing,true);
+assert.equal(forward.advance().consumed,true); assert.equal(forward.getState().ended,true); assert.equal(forward.getState().playing,false);
+assert.equal(forward.advance().consumed,false); assert.equal(forward.getState().ended,true); forward.destroy();
 // Zero-duration stages must remain separate manual checkpoints.
 const zero=context.createPaintPlayer(canvas,{width:1,height:1,base:[255,255,255,255],final:[255,0,0,255],fields:fields.map(f=>({...f,duration:0})),manual:true});
+zero.advance(); zero.advance(); assert.equal(zero.getState().position,1); zero.advance(); assert.equal(zero.getState().position,2); zero.restart();
 zero.advance(false); assert.equal(zero.getState().position,0); zero.advance(false); assert.equal(zero.getState().position,1); zero.finish(); assert.equal(zero.getState().ended,true); zero.destroy();
 const zip=new Uint8Array(await context.PaintIntegration.zip({'one.txt':'áβ', 'two.html':'<h1>Test</h1>'}).arrayBuffer());
 const view=new DataView(zip.buffer); let at=0;
@@ -54,5 +64,5 @@ try {
  const handler=createHandler(api);await handler.handle({jsonrpc:'2.0',id:1,method:'initialize'});await handler.handle({jsonrpc:'2.0',method:'notifications/initialized'});
  const result=await handler.handle({jsonrpc:'2.0',id:2,method:'tools/call',params:{name:'colorflow_review',arguments:{project:'draft.json',output:'mcp-editor.html',open:false}}});assert.equal(result.result.structuredContent.opened,false);
  let out='';const code=await cli(['review','--root',temp,'--project','draft.json','--out','cli-editor.html'],{stdout:{write:t=>out+=t},stderr:{write:t=>out+=t}});assert.equal(code,0,out);assert.equal(JSON.parse(out).opened,false);
- console.log('Integration: manual checkpoints, busy/skip/back/restart/end, zero-duration stages, ZIP CRC/Unicode, standalone editor escaping, file roots, API/CLI/MCP review and integration delivery passed.');
+ console.log('Integration: interrupting default advance, optional wait, skip/back/restart/end, zero-duration stages, ZIP CRC/Unicode, standalone editor escaping, file roots, API/CLI/MCP review and integration delivery passed.');
 } finally { if(!/^test-integration-[^/\\:]+$/.test(relative(resolve(repo,'output'),temp))) throw new Error('Unsafe temporary path');await rm(temp,{recursive:true,force:true}); }

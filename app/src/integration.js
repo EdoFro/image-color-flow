@@ -23,7 +23,7 @@
           if (m.result?.state) { state = m.result.state; changed(); }
           call.resolve(m.result); return;
         }
-        if (m.kind === 'input') { if (['advance','skip','back','restart','finish','pause'].includes(m.action)) onInput(m.action); return; }
+        if (m.kind === 'input') { if (['advance','advance-wait','skip','back','restart','finish','pause'].includes(m.action)) onInput(m.action); return; }
         if (m.kind !== 'event') return;
         if (m.event === 'ready') ready = true;
         if (m.state) { state = m.state; changed(); }
@@ -37,20 +37,20 @@
       async function command(command) {
         if (destroyed) return { accepted: false, error: 'DESTROYED' };
         if (!ready) return { accepted: false, consumed: true, error: error ? 'INITIALIZATION_FAILED' : 'NOT_READY' };
-        if (!['advance','skip','back','restart','finish','pause','state'].includes(command)) return { accepted: false, error: 'UNKNOWN_COMMAND' };
+        if (!['advance','advance-wait','skip','back','restart','finish','pause','state'].includes(command)) return { accepted: false, error: 'UNKNOWN_COMMAND' };
         const id = ++serial;
         return new Promise(resolve => {
           const timer = setTimeout(() => { pending.delete(id); resolve({ accepted: false, error: 'TIMEOUT' }); }, timeoutMs);
           pending.set(id, { resolve, timer }); send({ kind: 'command', id, command });
         });
       }
+      async function advance(skip = false, waitWhilePlaying = false) {
+        if (inFlight || waitWhilePlaying && state?.playing) return { consumed: true, accepted: false, reason: 'busy' };
+        inFlight = true; try { return await command(skip ? 'skip' : waitWhilePlaying ? 'advance-wait' : 'advance'); } finally { inFlight = false; }
+      }
       return {
         iframe, get state() { return state; }, get ready() { return ready; }, get error() { return error; }, get busy() { return inFlight || !!state?.playing; },
-        command,
-        async advance(skip = false) {
-          if (inFlight || !skip && state?.playing) return { consumed: true, accepted: false, reason: 'busy' };
-          inFlight = true; try { return await command(skip ? 'skip' : 'advance'); } finally { inFlight = false; }
-        },
+        command, advance, advanceWhenIdle: () => advance(false, true),
         back: () => command('back'), restart: () => command('restart'), finish: () => command('finish'), pause: () => command('pause'),
         subscribe(fn) { subscribers.add(fn); return () => subscribers.delete(fn); },
         destroy() { destroyed = true; resetPending('DESTROYED'); subscribers.clear(); window.removeEventListener('message', receive); iframe.removeEventListener('load', loaded); }
@@ -69,16 +69,16 @@
           else { index = i; onChange(index); }
         }
       }) : () => {});
-      async function advance(skip = false) {
+      async function advance(skip = false, waitWhilePlaying = false) {
         if (locked) return { consumed: true, reason: 'busy' };
-        if (animation(steps[index]) && steps[index].busy && !skip) return { consumed: true, reason: 'busy' };
+        if (animation(steps[index]) && steps[index].busy && waitWhilePlaying) return { consumed: true, reason: 'busy' };
         if (pendingRestart !== null && !(animation(steps[index]) && steps[index].busy)) { index = pendingRestart; pendingRestart = null; onChange(index); }
         locked = true;
         try {
           while (index < steps.length) {
             const step = steps[index];
             if (animation(step)) {
-              const result = await step.advance(skip);
+              const result = await step.advance(skip, waitWhilePlaying);
               if (result.error) onError(result.error);
               if (result.consumed !== false) return result;
             } else { await step.run(); index++; onChange(index); return { consumed: true }; }
@@ -111,10 +111,10 @@
         event.preventDefault(); event.stopImmediatePropagation(); if (!event.repeat) input(action); return true;
       }
       function input(action) {
-        const result = action === 'advance' ? advance() : action === 'skip' ? advance(true) : action === 'back' ? back() : action === 'restart' ? currentCommand('restart') : action === 'finish' ? currentCommand('finish') : action === 'pause' ? currentCommand('pause') : null;
+        const result = action === 'advance' ? advance() : action === 'advance-wait' ? advance(false, true) : action === 'skip' ? advance(true) : action === 'back' ? back() : action === 'restart' ? currentCommand('restart') : action === 'finish' ? currentCommand('finish') : action === 'pause' ? currentCommand('pause') : null;
         Promise.resolve(result).catch(onError);
       }
-      return { advance, back, restart, input, handleKey, get index() { return index; }, get busy() { return locked || animation(steps[index]) && steps[index].busy; }, destroy() { removers.forEach(fn => fn()); } };
+      return { advance, advanceWhenIdle: () => advance(false, true), back, restart, input, handleKey, get index() { return index; }, get busy() { return locked || animation(steps[index]) && steps[index].busy; }, destroy() { removers.forEach(fn => fn()); } };
     }
     return { version: 1, attach, createSequence };
   }
@@ -135,7 +135,7 @@ document.getElementById('reset').onclick=()=>sequence.restart();
 </script></html>`;
     return {
       'tinta-color-host.js': host, 'ejemplo.html': example,
-      'LEEME.txt': 'Tinta y color · integración / embedding (protocol v1)\n\nDescomprime todo y abre ejemplo.html. Unzip all files and open ejemplo.html. No network required.\n\nES: Integra animacion.html con iframe y tinta-color-host.js. TintaColorHost.attach(iframe,{onInput}) conecta; createSequence([...]) ordena animaciones y pasos {run,undo}. Usa sequence.handleKey como UNICO manejador de avance de tu presentación, retirando/conectando los anteriores. attach recarga el iframe para establecer su canal. Las pulsaciones mientras pinta se descartan. La primera etapa y cada siguiente se reproducen con advance(); advance(true) salta al cierre. back(), restart(), finish() operan sobre la conexión. Reiniciar vuelve a Inicio sin reproducir. No edites el HTML generado. El ejemplo muestra dos animaciones, una explicación y otra lámina. El agente debe adaptar la secuencia a la presentación real.\n\nEN: Embed animacion.html with an iframe and tinta-color-host.js. TintaColorHost.attach(iframe,{onInput}) connects; createSequence([...]) orders animations and {run,undo} steps. Use sequence.handleKey as your presentation\'s SOLE advance handler, removing/connecting existing handlers. attach reloads the iframe to establish its channel. Key presses while painting are discarded. advance() plays one stage; advance(true) skips to its end. back(), restart(), finish() operate on a connection. Restart returns to Initial without autoplay. Do not patch the generated HTML. Adapt the supplied sequence to the real presentation.\n'
+      'LEEME.txt': 'Tinta y color · integración / embedding (protocol v1)\n\nDescomprime todo y abre ejemplo.html. Unzip all files and open ejemplo.html. No network required.\n\nES: Integra animacion.html con iframe y tinta-color-host.js. TintaColorHost.attach(iframe,{onInput}) conecta; createSequence([...]) ordena animaciones y pasos {run,undo}. Usa sequence.handleKey como UNICO manejador de avance de tu presentación, retirando/conectando los anteriores. attach recarga el iframe para establecer su canal. Por defecto, avanzar mientras pinta completa la etapa actual e inicia la siguiente; en la última muestra el final. advanceWhenIdle() conserva la alternativa que descarta avances durante pintura. La primera etapa y cada siguiente se reproducen con advance(); advance(true) salta al cierre. back(), restart(), finish() operan sobre la conexión. Reiniciar vuelve a Inicio sin reproducir. No edites el HTML generado. El ejemplo muestra dos animaciones, una explicación y otra lámina. El agente debe adaptar la secuencia a la presentación real.\n\nEN: Embed animacion.html with an iframe and tinta-color-host.js. TintaColorHost.attach(iframe,{onInput}) connects; createSequence([...]) orders animations and {run,undo} steps. Use sequence.handleKey as your presentation\'s SOLE advance handler, removing/connecting existing handlers. attach reloads the iframe to establish its channel. By default, advancing while painting completes the current stage and starts the next; in the last stage it shows the end. advanceWhenIdle() retains the alternative that discards advances while painting. advance() plays one stage; advance(true) skips to its end. back(), restart(), finish() operate on a connection. Restart returns to Initial without autoplay. Do not patch the generated HTML. Adapt the supplied sequence to the real presentation.\n'
     };
   }
 

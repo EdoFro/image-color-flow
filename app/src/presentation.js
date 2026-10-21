@@ -13,10 +13,11 @@
       if (connection) connection.source.postMessage({ ...protocol, channel: expectedChannel, kind, ...value }, connection.origin === 'null' ? '*' : connection.origin);
     }
     function execute(command) {
-      if (!['advance','skip','back','restart','finish','pause','state'].includes(command)) return { accepted: false, error: 'UNKNOWN_COMMAND' };
+      if (!['advance','advance-wait','skip','back','restart','finish','pause','state'].includes(command)) return { accepted: false, error: 'UNKNOWN_COMMAND' };
       if (!player) return { accepted: false, error: initializationError ? 'INITIALIZATION_FAILED' : 'NOT_READY', ready: false };
       let result = { accepted: true, consumed: true };
       if (command === 'advance' || command === 'skip') result = player.advance(command === 'advance');
+      if (command === 'advance-wait') result = player.advanceWhenIdle();
       if (command === 'back') player.back();
       if (command === 'restart') { player.restart(); send('event', { event: 'restart', state: current }); }
       if (command === 'finish') player.finish();

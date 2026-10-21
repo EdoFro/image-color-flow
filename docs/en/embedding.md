@@ -4,7 +4,7 @@
 
 [Back to the project](../../README.md)
 
-Available since 0.16.0. This workflow does not connect the assistant to a live editor session: the user finishes editing and hands the export to the presentation author.
+Available since 0.16.0; default advancement updated in 0.17.0. This workflow does not connect the assistant to a live editor session: the user finishes editing and hands the export to the presentation author.
 
 ## A. Open an editable draft
 
@@ -64,7 +64,8 @@ Replace show/hide functions with your presentation's behavior. The bundled examp
 
 | Connection operation | Result |
 | --- | --- |
-| `advance()` | Play one stage or resume a paused stage. Discard normal advances while playing. |
+| `advance()` | Default: start a stage; while painting, complete its end and start the next. In the last stage, show the end and stop. Resume a manually paused stage. |
+| `advanceWhenIdle()` | Alternative: start/resume a stage; discard requests while painting (`reason: "busy"`). |
 | `advance(true)` | While playing, show the current stage's end; at a checkpoint, show the next end. |
 | `back()` | Show the previous end, stopped; return to Initial before the first stage. |
 | `restart()` | Return to Initial without autoplay. |
@@ -72,9 +73,9 @@ Replace show/hide functions with your presentation's behavior. The bundled examp
 | `pause()` | Pause; `advance()` resumes. |
 | `command('state')` | Query current status without changing playback. |
 
-Operations return promises containing `state`. Advancing after completion returns `consumed:false, completed:true`; the sequence uses that same input for its next element. Inputs while painting are discarded, not queued. Commands before readiness return `NOT_READY` without later execution. Checkpoints include accumulated paint, camera and highlight ends, including zero-duration stages. Backward navigation does not reverse animation.
+Operations return promises containing `state`. Advancing after completion returns `consumed:false, completed:true`; the sequence uses that same input for its next element. Right arrow and click use `advance()`: they can move to the next moment before the current one finishes. The input completing the last stage does not also advance the slide; another input continues the sequence. `advanceWhenIdle()` retains the previous discard-while-painting behavior. Automatic key repeat remains disabled. Commands before readiness return `NOT_READY` without later execution. Checkpoints include accumulated paint, camera and highlight ends, including zero-duration stages. Backward navigation does not reverse animation.
 
-`sequence.advance(true)` skips a moment; `sequence.back()` moves backward. `sequence.input('restart')` resets the current image and `sequence.input('finish')` completes it. **`sequence.restart()` resets the whole sequence**, calling supplied `undo` functions; this differs from resetting one image.
+`sequence.advanceWhenIdle()` applies the waiting alternative to the sequence; `sequence.input('advance-wait')` is its action equivalent. `sequence.advance(true)` skips a moment; `sequence.back()` moves backward. `sequence.input('restart')` resets the current image and `sequence.input('finish')` completes it. **`sequence.restart()` resets the whole sequence**, calling supplied `undo` functions; this differs from resetting one image.
 
 After completion, the high-contrast ↻ Restart button appears on hover and remains keyboard accessible. Clicking it returns to Initial, informs the host and restores that image's position in the sequence without autoplay. If another animation is playing, the return waits until its current moment ends; two animations are not started together. Subsequent ordinary steps may run again, so their `run` functions should be safe to repeat.
 
@@ -82,7 +83,7 @@ After completion, the high-contrast ↻ Restart button appears on hover and rema
 
 The controller uses `postMessage`, checking the exact source window, origin and a random per-iframe channel. Channel and parent origin travel in the URL fragment. Local `file://` works through source/channel checks without trusting origin `null` alone. Arbitrary code execution commands are not accepted.
 
-Messages carry `protocol:"tinta-color"`, `version:1`, `channel` and `kind`. `connect` establishes a connection; `command` carries `id` and one of `advance`, `skip`, `back`, `restart`, `finish`, `pause`, `state`. `reply` returns the result with the same `id`. Events are `loading`, `ready`, `state`, `restart`, `error`. `input` forwards user actions. Prefer the controller instead of constructing messages manually.
+Messages carry `protocol:"tinta-color"`, `version:1`, `channel` and `kind`. `connect` establishes a connection; `command` carries `id` and one of `advance`, `advance-wait`, `skip`, `back`, `restart`, `finish`, `pause`, `state`. `reply` returns the result with the same `id`. Events are `loading`, `ready`, `state`, `restart`, `error`. `input` forwards user actions. Prefer the controller instead of constructing messages manually.
 
 State includes `index` (original zero-based stage index), `position` (enabled-stage position), `stageCount`, `name`, `phase` (`initial`, `playing`, `waiting`, `paused`, `completed`), `time`, `elapsed`, `total`, `atStart`, `playing`, `waiting`, `ended`, `empty` and view data. State events fire on phase/stage changes rather than every frame; query `state` for current time. Inside the export, `window.TintaColorPlayer` exposes `command` and `getState`. Hosts should use the controller instead of relying on direct cross-file access.
 
@@ -90,4 +91,6 @@ Keep the host and animations under the same scheme: all local files or all HTTP-
 
 ## Acceptance check
 
-Use two animations, an intermediate text reveal and another slide. Check rapid keys while painting, explicit skip, backward navigation, finish, hover restart, and keyboard focus inside/outside the iframe. Open offline from local files. The real presentation's advance system needs its own integration rehearsal.
+To update an existing presentation, re-export the animations and replace `tinta-color-host.js` as well: older HTML keeps its embedded player. Keep one updated controller if several images share it. If the real host has its own playing-state input guard, its author must remove that guard for this advance behavior; older integrations could discard inputs before sending them.
+
+Use two animations, an intermediate text reveal and another slide. Check advancement while painting, the waiting alternative, explicit skip, backward navigation, finish, hover restart, and keyboard focus inside/outside the iframe. Open offline from local files. The real presentation's advance system needs its own integration rehearsal.

@@ -28,9 +28,14 @@ try {
  const page=await context.newPage();await page.goto(pathToFileURL(resolve(dir,'ejemplo.html')).href);await page.waitForFunction(()=>a.ready&&b.ready,{},{timeout:8000}).catch(async e=>{console.log('HOST',await page.evaluate(()=>({aReady:a.ready,bReady:b.ready,aState:a.state,aError:a.error,origin:location.origin})));for(const f of page.frames().slice(1))console.log('FRAME',await f.evaluate(()=>({origin:location.origin,href:location.href,state:window.TintaColorPlayer?.getState()})));throw e;});
  await page.evaluate(()=>{window.stray=0;document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')window.stray++;});});
  const state=()=>page.evaluate(()=>({a:a.state,b:b.state,index:sequence.index,stray:window.stray,text:document.getElementById('text').hidden,slide2:document.getElementById('slide2').hidden}));
- await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>a.state.playing);await page.keyboard.press('ArrowRight');await page.keyboard.press('ArrowRight');assert.equal((await state()).a.position,0);assert.equal((await state()).text,true);
+ await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>a.state.playing);
+ const waitingAdvance=await page.evaluate(()=>a.advanceWhenIdle());assert.equal(waitingAdvance.reason,'busy');assert.equal((await state()).a.position,0);
+ const waitCommand=await page.evaluate(()=>a.command('advance-wait'));assert.equal(waitCommand.reason,'busy');assert.equal((await state()).a.position,0);
+ await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>a.state.position===1&&a.state.playing);assert.equal((await state()).text,true);
  const fa=await page.locator('#a').elementHandle().then(h=>h.contentFrame());const fb=await page.locator('#b').elementHandle().then(h=>h.contentFrame());
- await fa.locator('#painting').focus();await page.keyboard.press('ArrowRight');assert.equal((await state()).index,0);
+ await fa.locator('#painting').click();await page.waitForFunction(()=>a.state.position===2&&a.state.playing);assert.equal((await state()).index,0);
+ await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>a.state.ended);assert.equal((await state()).text,true);assert.equal((await state()).index,0);
+ await page.keyboard.press('Home');await page.waitForFunction(()=>a.state.atStart);await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>a.state.playing);
  await page.waitForFunction(()=>a.state.waiting);await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>a.state.position===1&&a.state.playing);await page.keyboard.press('Shift+ArrowRight');await page.waitForFunction(()=>a.state.waiting);assert.equal((await state()).a.position,1);
  await page.keyboard.press('ArrowLeft');await page.waitForFunction(()=>a.state.position===0&&a.state.waiting);await page.keyboard.press('Home');await page.waitForFunction(()=>a.state.atStart);assert.equal((await state()).a.playing,false);
  // Wrong channel and wrong source (even with A's token) must not change A.
@@ -49,6 +54,12 @@ try {
  await page.waitForFunction(()=>b.state.playing);await page.evaluate(()=>a.restart());
  assert.equal((await state()).index,2);await page.evaluate(()=>sequence.advance(true));await page.waitForFunction(()=>b.state.waiting);
  await page.evaluate(()=>sequence.advance());await page.waitForFunction(()=>a.state.playing&&sequence.index===0);assert.equal((await state()).b.playing,false);
+ // The integrated HTML's own gestures use the same default without a host connection.
+ const bare=await context.newPage();await bare.goto(pathToFileURL(resolve(dir,'animacion.html')).href);await bare.waitForFunction(()=>TintaColorPlayer?.getState().ready);
+ await bare.keyboard.press('ArrowRight');await bare.waitForFunction(()=>TintaColorPlayer.getState().state.playing);
+ await bare.locator('#painting').click();await bare.waitForFunction(()=>TintaColorPlayer.getState().state.position===1&&TintaColorPlayer.getState().state.playing);
+ await bare.keyboard.press('ArrowRight');await bare.waitForFunction(()=>TintaColorPlayer.getState().state.position===2&&TintaColorPlayer.getState().state.playing);
+ await bare.keyboard.press('ArrowRight');await bare.waitForFunction(()=>TintaColorPlayer.getState().state.ended);await bare.close();
  // Real Node renderer also supplies integration companions for an external work root.
  await api.update({project:'draft.colorflow.json',patch:{presentation:{mode:'integrated'}},output:'integrated.colorflow.json',overwrite:true});
  const render=await api.render({project:'integrated.colorflow.json',outputDir:'node-export',overwrite:true});
@@ -67,6 +78,6 @@ try {
   await httpPage.evaluate(()=>{const f=document.createElement('iframe');f.src='bad.html';document.body.append(f);window.bad=TintaColorHost.attach(f,{onError:e=>window.expectedError=e});});
   await httpPage.waitForFunction(()=>bad.error);assert.equal(await httpPage.evaluate(()=>bad.ready),false);assert.equal((await httpPage.evaluate(()=>bad.advance())).error,'INITIALIZATION_FAILED');
  } finally {await online.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
- assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,offline:true,http:true,editor:review.editorUrl,checks:['embedded editable draft','user edits/download','integrated ZIP','all five commands','manual stage boundaries','busy input discard','keyboard inside/outside iframe','two animations + text + slide','hover restart returns sequence','restart during other animation','wrong source/channel ignored','no duplicate keyboard events','not-ready is not queued','initialization error','real Node render'],artifacts:dir}));
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,offline:true,http:true,editor:review.editorUrl,checks:['embedded editable draft','user edits/download','integrated ZIP','all five commands','manual stage boundaries','interrupting default advance and optional wait','keyboard inside/outside iframe','two animations + text + slide','hover restart returns sequence','restart during other animation','wrong source/channel ignored','no duplicate keyboard events','not-ready is not queued','initialization error','real Node render'],artifacts:dir}));
 } finally {await context.close();}
 }

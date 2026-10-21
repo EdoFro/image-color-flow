@@ -2,6 +2,13 @@
 
 **English** | [Español](CHANGELOG.es.md) · [Back to the project](README.md)
 
+## v0.17.0 · Default advancement while painting
+
+- `advance` completes the playing stage and starts the next; in the last stage it shows the end without also advancing the host. Right arrow and click use this behavior.
+- `advanceWhenIdle()` / `advance-wait` retains the discard-while-painting alternative. `skip` still shows an end without playing the next stage.
+- Controller, example, bilingual guides and tests updated. Existing presentations require re-exported HTML and the updated controller.
+
+
 ## v0.16.0 · Editor drafts and embedding
 
 - API/CLI/MCP `review` creates a self-contained, preloaded editor with optional browser opening.

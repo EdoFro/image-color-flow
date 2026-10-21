@@ -2,6 +2,13 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.17.0 · Avance predeterminado durante la pintura
+
+- `advance` completa la etapa que se está animando e inicia la siguiente; en la última muestra el final sin avanzar también el contenedor. Flecha derecha y clic usan este comportamiento.
+- `advanceWhenIdle()` / `advance-wait` conserva la alternativa que ignora avances mientras pinta. `skip` sigue mostrando un cierre sin iniciar la etapa siguiente.
+- Controlador, ejemplo, guías bilingües y pruebas actualizados. Para presentaciones existentes se requiere reexportar HTML y reemplazar el controlador.
+
+
 ## v0.16.0 · Borrador en el editor e integración
 
 - API/CLI/MCP `review` genera un editor autocontenido con el proyecto cargado y apertura opcional.
