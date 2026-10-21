@@ -121,3 +121,7 @@ El cambio de idioma refresca controles conservando los borradores inválidos y l
 `automation/editor.mjs` incorpora estilos, scripts y un bloque JSON escapado al HTML del editor instalado. `app.js` prepara ese bloque al iniciar, antes que ejemplo/preferencias. `review` guarda el HTML dentro de la raíz y opcionalmente solicita su apertura en un navegador normal; no usa el servidor headless de renderizado.
 
 `app/src/integration.js` contiene la fábrica del controlador, ejemplo y ZIP32 sin compresión para una sola descarga. El reproductor compartido ofrece cierres explícitos y modo manual; `presentation.js` expone protocolo v1 y valida ventana padre, origen y canal. El controlador coordina solicitudes, entrada desde iframe y pasos de la secuencia. No añade acceso al estado abierto del editor. Las pruebas específicas están en `tests/integration.test.mjs`.
+
+## Entrada exclusiva de la presentación · 0.18.0
+
+`attach` conserva/restaura atributos de foco y pointer-events del iframe, utiliza inert y negocia `interaction: host`. El reproductor confirma esa modalidad, oculta el reinicio y desactiva su entrada interna; disconnect restaura el uso directo. `bindInput` delega clic y teclado una vez por raíz, separa acciones de botones de controles nativos y sustituye vinculaciones repetidas. La presentación conserva la decisión de secuencia/lámina. `tests/host-input-browser.mjs` comprueba hit testing real, foco, controles, tres animaciones y cuatro láminas desde archivo y HTTP.

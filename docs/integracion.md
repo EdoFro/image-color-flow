@@ -4,7 +4,7 @@
 
 [Volver al proyecto](../README.es.md)
 
-Disponible desde 0.16.0; avance predeterminado actualizado en 0.17.0. Este flujo no conecta al asistente con una sesión abierta del editor: el usuario termina la edición y entrega la exportación al agente que integra la presentación.
+Disponible desde 0.16.0; avance predeterminado actualizado en 0.17.0 y entrada exclusiva de la presentación en 0.18.0. Este flujo no conecta al asistente con una sesión abierta del editor: el usuario termina la edición y entrega la exportación al agente que integra la presentación.
 
 ## A. Abrir un borrador para corregirlo
 
@@ -32,37 +32,58 @@ En **Exportar HTML → Uso de la animación**, elige **Integrar en otra presenta
 
 - `animacion.html`: animación autónoma con control por etapas.
 - `tinta-color-host.js`: controlador reutilizable del contenedor.
-- `ejemplo.html`: dos animaciones, explicación intermedia y segunda lámina.
+- `ejemplo.html`: cuatro láminas, tres animaciones y una explicación intermedia.
 - `LEEME.txt`: instrucciones breves en español e inglés.
 
 Descomprime todos los archivos antes de abrir el ejemplo. Entrega la carpeta al agente que prepara la presentación. No hace falta modificar el HTML de la animación. En API/CLI/MCP, usa `presentation: {mode: "integrated"}`; `render` entrega `presentacion.html` y los mismos auxiliares junto al informe y las vistas previas. Los objetos de un parche reemplazan el objeto completo: conserva el fondo y color que quieras mantener.
 
-El modo independiente conserva su reproducción habitual. El integrado espera una orden en cada etapa habilitada, aunque `pauseAfter` sea falso. No altera los tiempos, puntos ni el proyecto de autoría; fuerza las pausas sólo en el reproductor exportado. Los controles habituales se ocultan, pero permanece el reinicio final. Si se abre por sí solo, clic/→/Espacio avanzan una etapa; Shift+→ salta, ← retrocede, Inicio reinicia y Fin termina. No hay reproducción automática.
+El modo integrado espera una orden por etapa habilitada, aunque `pauseAfter` sea falso. Conserva tiempos, puntos y geometrías. Al abrir ese HTML directamente mantiene clic, flechas, Espacio y el reinicio final por hover; no reproduce automáticamente. La presentación independiente conserva también sus controles habituales.
 
-## Controlador de la presentación principal
+## Una sola entrada para toda la presentación
+
+Desde 0.18.0, **`attach` conecta cada animación como superficie visual controlada por la presentación**. Desactiva los clics y el foco del iframe, y acuerda `interaction: "host"` con el reproductor para ocultar todos sus controles internos, incluido Reiniciar. Los clics sobre dibujo y márgenes alcanzan el documento principal. La presentación decide qué animación o lámina recibe la acción. No se reenvían gestos desde el iframe.
 
 ```html
 <iframe id="imagen" src="animacion.html" title="Ilustración" allowfullscreen></iframe>
+<button type="button" data-tinta-color-action="back">Retroceder</button>
+<button type="button" data-tinta-color-action="restart">Reiniciar imagen</button>
 <script src="tinta-color-host.js"></script>
 <script>
-let sequence;
-const imagen = TintaColorHost.attach(document.getElementById('imagen'), {
-  onInput: action => sequence.input(action),
-  onError: error => console.error(error)
-});
-sequence = TintaColorHost.createSequence([
+const imagen = TintaColorHost.attach(document.getElementById('imagen'));
+const secuencia = TintaColorHost.createSequence([
   imagen,
   { run: () => mostrarSiguienteElemento(), undo: () => ocultarElemento() }
 ]);
-document.addEventListener('keydown', event => sequence.handleKey(event), true);
+const entrada = TintaColorHost.bindInput({
+  onAction: accion => secuencia.input(accion)
+});
 </script>
 ```
 
-Las funciones de mostrar/ocultar son las de tu presentación; sustituye ese paso por su comportamiento real. El ejemplo incluido es ejecutable y muestra también el cambio de lámina. Cada animación necesita su propio `attach`. La lista puede intercalar animaciones y pasos `{run, undo}`; `run` se ejecuta con un avance, `undo` es opcional para retroceder. Se puede crear una secuencia por lámina o una global. Si hay varias, el contenedor debe enviar la entrada sólo a la activa.
+Sustituye las funciones de mostrar/ocultar por las de tu presentación. El ejemplo completo es ejecutable: una lámina introductoria, dos animaciones con explicación intermedia, una lámina normal y otra animación final. Todos los recursos usan el mismo controlador y la misma conexión de entrada. No hay que modificar sus HTML.
 
-**Un único responsable del avance:** conecta o retira los manejadores anteriores del contenedor. Este controlador no puede impedir que otro manejador ya ejecutado cambie una lámina. `handleKey` consume las teclas reconocidas; evita repetición automática y no toma controles de texto. Los botones del ejemplo ofrecen las mismas acciones. Con foco dentro del iframe, el reproductor envía la entrada al contenedor mediante mensajes.
+Si tu presentación ya administra las láminas, conserva esa lógica: usa `onAction` para decidir entre enviar la orden a su secuencia activa o navegar. No hace falta adoptar `createSequence`; también puedes utilizar directamente las operaciones de cada conexión. Una secuencia puede intercalar animaciones y pasos `{run, undo}`, o puedes tener una por lámina. Sólo la activa recibe las acciones.
 
-`attach` recarga el iframe para establecer un canal nuevo. `connection.ready`, `connection.state`, `connection.busy` y `connection.error` permiten consultar su estado. `onState`, `onInput`, `onRestart` y `onError` notifican cambios. `connection.subscribe` devuelve una función para dejar de observar; `destroy` libera escuchas y solicitudes. La secuencia también tiene `destroy`.
+**Configura `bindInput` una sola vez**, después de sustituir o conectar los manejadores anteriores. El controlador no puede deshacer una acción que otro manejador ya ejecutó. No combines `bindInput` con otro listener que invoque `sequence.handleKey`, ni con `onclick` en los botones que ya delegas al controlador. La función devuelve `destroy()`; vincular de nuevo la misma raíz sustituye la vinculación anterior sin duplicarla.
+
+### Clics, teclado y controles
+
+- Un clic principal en imagen, márgenes o fondo emite `advance`.
+- → y Espacio emiten `advance`; Shift+→ salta; ← retrocede; Inicio reinicia la imagen activa; Fin muestra su final. Mantener una tecla no acumula avances.
+- Un botón con `data-tinta-color-action` emite sólo su acción, aunque se pulse su icono o texto interior. Acciones: `advance`, `advance-wait`, `skip`, `back`, `restart`, `finish`, `pause`, `restart-sequence`.
+- Botones normales, enlaces, campos, controles editables y otros controles nativos mantienen su función sin provocar además avance. Enter/Espacio conservan la activación nativa de botones; las flechas siguen funcionando tras usar la barra. En campos y controles que utilizan flechas, éstas no navegan la presentación.
+- Para un control personalizado usa `data-tinta-color-ignore` en él o en su contenedor. `ignoreSelector` permite elegir otro selector. Las teclas con modificadores Ctrl/Alt/Meta, la composición de texto y los clics modificados conservan su función.
+- `root` permite limitar la entrada a un elemento; por defecto es `document`, recomendado para mantener el teclado de toda la presentación. `onError` recibe los fallos del manejador.
+
+La interfaz externa pertenece a la presentación. `sequence.activeAnimation` indica la conexión de la etapa actual o `null` en un paso normal; usa su propiedad `ready` para habilitar Reiniciar/Final cuando corresponda. El ejemplo incluye esa lógica. No quedan botones internos visibles pero sin uso. El reinicio de imagen vuelve a Inicio sin reproducir; el de toda la presentación es una acción diferente.
+
+### Conexión y limpieza
+
+Cada imagen requiere su `attach`, pero ninguna configuración individual de entrada. La conexión expone `ready`, `state`, `busy`, `error`, `onState`, `onRestart`, `onError` y `subscribe`. `onInput` permanece aceptado por compatibilidad, pero no se utiliza en el modo de entrada exclusiva. `sequence.handleKey` sigue disponible para integraciones anteriores; no se combina con `bindInput`.
+
+`attach` recarga el iframe para establecer un canal nuevo. La negociación confirma que el reproductor oculta sus controles; si el HTML es anterior, se informa `HOST_INPUT_UNSUPPORTED` y es necesario reexportarlo. Una conexión no se declara disponible hasta confirmarlo.
+
+`connection.destroy()` libera escuchas y solicitudes, devuelve al recuadro sus atributos previos de foco y mouse y solicita al reproductor restaurar su interacción. Conectar de nuevo el mismo iframe reemplaza la conexión anterior. `sequence.destroy()` deja de observar sus conexiones; la presentación decide cuándo liberar éstas.
 
 | Operación de la conexión | Resultado |
 | --- | --- |
@@ -79,13 +100,13 @@ Las operaciones devuelven promesas con `state`. Avanzar después del final devue
 
 `sequence.advanceWhenIdle()` aplica la alternativa de espera a la secuencia; `sequence.input('advance-wait')` es su equivalente por acción. `sequence.advance(true)` salta el momento; `sequence.back()` retrocede; `sequence.input('restart')` reinicia la imagen actual y `sequence.input('finish')` la lleva al final. **`sequence.restart()` reinicia el ejemplo o secuencia completa**, deshaciendo los pasos con `undo`; es distinto del reinicio de una imagen.
 
-Al terminar una animación, su botón ↻ Reiniciar aparece al pasar el mouse y permite acceso por teclado. Ese clic vuelve a Inicio, avisa al contenedor y recupera el lugar de esa imagen en la secuencia sin empezar a pintar. Si otra imagen está pintando, el retorno queda para cuando termine su momento; no se inician dos a la vez. La secuencia puede repetir después sus elementos posteriores, por lo que sus funciones `run` deberían poder ejecutarse nuevamente sin duplicaciones.
+Abierta directamente, la animación conserva su botón ↻ Reiniciar al terminar. **Conectada a la presentación, ese botón queda oculto**: Reiniciar se solicita desde los controles externos o la API. La conexión sigue notificando reinicios para coordinar su lugar en la secuencia. Si otro recurso está pintando, un reinicio externo de una imagen anterior no empieza a reproducir ambas. Las acciones `run` deberían ser repetibles, ya que un retroceso puede ejecutarlas nuevamente.
 
 ## Contrato de mensajes v1
 
 El controlador utiliza `postMessage`, comprueba la ventana exacta, el origen y un canal aleatorio por iframe. El canal y el origen del padre se pasan en el fragmento de la URL; se mantiene apertura `file://` mediante comprobación de ventana y canal, sin confiar sólo en el origen `null`. No se admiten instrucciones de código arbitrario.
 
-Los mensajes llevan `protocol: "tinta-color"`, `version: 1`, `channel` y `kind`. `connect` establece conexión; `command` lleva `id` y uno de `advance`, `advance-wait`, `skip`, `back`, `restart`, `finish`, `pause`, `state`. `reply` devuelve el resultado y el mismo `id`. `event` informa `loading`, `ready`, `state`, `restart`, `error`. `input` comunica la acción del usuario al contenedor. El controlador recomendado administra este protocolo; no hace falta construir mensajes a mano.
+Los mensajes llevan `protocol: "tinta-color"`, `version: 1`, `channel` y `kind`. `connect` establece conexión con `interaction: "host"`; el reproductor confirma ese campo en sus avisos. `disconnect` restaura su interacción; `command` lleva `id` y uno de `advance`, `advance-wait`, `skip`, `back`, `restart`, `finish`, `pause`, `state`. `reply` devuelve el resultado y el mismo `id`. `event` informa `loading`, `ready`, `state`, `restart`, `error`. `input` es legado y se ignora en la conexión de entrada exclusiva; los gestos los recibe el documento principal. El controlador recomendado administra este protocolo; no hace falta construir mensajes a mano.
 
 El estado contiene `index` (índice original desde cero), `position` (posición entre etapas habilitadas), `stageCount`, `name`, `phase` (`initial`, `playing`, `waiting`, `paused`, `completed`), `time`, `elapsed`, `total`, `atStart`, `playing`, `waiting`, `ended`, `empty` y vista. Los avisos de estado se envían al cambiar fase o etapa, no en cada fotograma; consulta `state` para el tiempo actual. En el propio HTML, `window.TintaColorPlayer` expone `command` y `getState`; el contenedor debe usar el controlador para no depender del acceso directo entre archivos locales.
 
@@ -93,6 +114,6 @@ Mantén el ejemplo y animaciones bajo el mismo esquema: todos locales o servidos
 
 ## Comprobación antes de integrar
 
-Para actualizar una presentación existente, vuelve a exportar las animaciones y reemplaza también `tinta-color-host.js`; los HTML antiguos conservan su reproductor incorporado. Mantén un único controlador actualizado si compartes el archivo entre varias imágenes. Si la presentación real tiene un bloqueo propio durante la pintura, el agente debe retirarlo para este avance; los controles de versiones anteriores podían ignorar la orden antes de enviarla.
+Para actualizar una presentación existente, vuelve a exportar las animaciones y reemplaza también `tinta-color-host.js`; los HTML antiguos conservan su reproductor incorporado. Carga un único controlador actualizado para todas las imágenes y establece una sola entrada con `bindInput`. No parches los HTML exportados ni añadas excepciones por imagen. Si la presentación real tiene un bloqueo propio durante la pintura, el agente debe retirarlo para este avance; los controles de versiones anteriores podían ignorar la orden antes de enviarla.
 
-Prueba dos animaciones con un texto intermedio y otra lámina: avance durante la pintura, alternativa de espera, salto explícito, retroceso, final, reinicio por hover y teclado dentro/fuera del iframe. Comprueba una apertura local sin conexión. La integración con tu presentación real debe conectar su sistema de avance y ensayarse por separado.
+Prueba varias animaciones, texto intermedio y láminas normales: clics en dibujo y márgenes, avance durante pintura, salto, retroceso entre láminas, reinicio externo y botones sin doble acción. Comprueba que Tab no entra en recuadros, que escribir no avanza y que la apertura independiente conserva el reinicio por hover. Comprueba una apertura local sin conexión. La integración con tu presentación real debe conectar su sistema de avance y ensayarse por separado.

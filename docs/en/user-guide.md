@@ -226,3 +226,5 @@ Up to 64 rectangles are allowed. A separate configuration with none shows the fu
 ## Assistant drafts and embedded exports
 
 An assistant can deliver `edit.html` with its draft already loaded. Edit and save the project JSON; reloading that HTML restores the original draft. **Export HTML → Animation use → Embed in another presentation** downloads the animation, controller and example in one ZIP. Unzip before testing. The presentation agent connects the sequence without taking over your editing. See [drafts and embedding](embedding.md).
+
+With 0.18.0 embedding, playback and Restart controls belong to the host. Artwork/margin clicks reach the host, and Tab skips animation frames. Opened alone, the HTML retains its gestures and ordinary restart. Update the controller, re-export older HTML and bind host input once; see the [embedding guide](embedding.md).

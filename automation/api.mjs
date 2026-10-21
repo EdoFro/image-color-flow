@@ -11,7 +11,7 @@ const context = createContext({});
 for (const name of ['engine', 'ink-lines', 'base-generation', 'project', 'integration']) runInContext(await readFile(new URL(`../app/src/${name}.js`, import.meta.url), 'utf8'), context);
 const normalize = input => JSON.parse(JSON.stringify(context.PaintProject.normalize(input)));
 const mimeTypes = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.bmp': 'image/bmp', '.avif': 'image/avif' };
-export const version = '0.17.0';
+export const version = '0.18.0';
 export { planSchema };
 
 export async function createAutomation({ root = process.cwd(), browser, renderer = renderInBrowser } = {}) {

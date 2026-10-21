@@ -224,3 +224,5 @@ La lista admite hasta 64 rectángulos. Si una configuración separada no tiene n
 ## Borradores del asistente y exportación integrada
 
 Un asistente puede entregarte `editar.html` con su borrador ya abierto en el editor. Corrige y guarda el proyecto JSON; al recargar ese HTML se restaura su borrador original. Al terminar, **Exportar HTML → Uso de la animación → Integrar en otra presentación** descarga un ZIP con la animación, controlador y ejemplo. Descomprímelo antes de probarlo. El agente de la presentación conecta la secuencia; no necesita retomar tu edición. Consulta [borradores e integración](integracion.md).
+
+En la integración 0.18.0, los botones de reproducción y Reiniciar pertenecen a la presentación principal. Los clics en el dibujo y sus márgenes llegan a esa presentación; Tab no entra en los recuadros. Al abrir el HTML por sí solo conserva los gestos y el reinicio habitual. El agente debe actualizar el controlador, reexportar los HTML anteriores y conectar la entrada una vez; véase la [guía de integración](integracion.md).

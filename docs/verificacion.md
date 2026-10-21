@@ -6,6 +6,16 @@
 
 Este documento registra comprobaciones históricas y sus limitaciones. Su traducción no significa que se hayan repetido esas pruebas. Si un resultado antiguo difiere del comportamiento actual, consulta la versión más reciente correspondiente.
 
+## v0.18.0 · Entrada exclusiva de la presentación
+
+- Chrome headless, archivo local sin conexión y HTTP local: clics físicos sobre el dibujo, márgenes e imagen no activa alcanzan la presentación y ordenan sólo a su animación activa. Tres animaciones y cuatro láminas, incluidas introducción, explicación y lámina intermedia, comparten una sola vinculación de entrada.
+- Tab y foco programático no entran en los iframes conectados. Body inert y negociación interaction:host confirmados; no quedan controles internos ni reinicio visibles. El mismo HTML abierto por separado mantiene clic, teclado y reinicio por hover sin autoplay.
+- Botones con texto interior, Enter y Espacio ejecutan una sola acción. Enlaces, campos de texto, flechas de edición, ayuda nativa y región personalizada excluida no provocan avances. Reinicio de imagen y de secuencia, retroceso entre láminas, avance durante pintura y cierre final antes de cambiar de lámina comprobados.
+- Reemplazo/limpieza de vinculación sin doble entrada; reconexión del iframe y restauración de atributos al desconectar; rechazo de emisor/canal incorrectos y de input originado en el iframe. NOT_READY no se ejecuta después; errores de imagen y exportaciones sin negociación compatible se informan.
+- Regresiones: 106/106 motor/reproductor, 29/29 automatización, pruebas específicas de integración, 11 preferencias, 467 claves por idioma; interfaz/HTML independiente es/en/fr/de y destacados/reinicio correctos. Captura del ejemplo revisada. La prueba reutilizable de entrada está en tests/host-input-browser.mjs, invocada por tests/integration-browser.mjs.
+- No se ha integrado esta versión en la presentación real del usuario ni probado otros motores o dispositivos físicos. Las pruebas del ejemplo no sustituyen el ensayo del sistema de navegación del contenedor real.
+
+
 ## v0.17.0 · Avance durante la pintura
 
 - 106/106 pruebas existentes del motor/reproductor y 29/29 de automatización. Pruebas de integración actualizadas para completar la etapa actual y arrancar la siguiente, conservar `skip` como cierre detenido y mantener `advanceWhenIdle` como alternativa. Verificados índices originales, color acumulado, etapas de duración cero y final consumido antes de continuar al contenedor.

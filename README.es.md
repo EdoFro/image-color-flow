@@ -88,3 +88,5 @@ El destacado separado permite varios rectángulos por etapa o en Inicio: Ctrl + 
 ## Borrador editable e integración
 
 El asistente puede generar y abrir un borrador en el editor mediante `colorflow_review`. Después puedes corregirlo por tu cuenta. Para una presentación web, elige **Exportar HTML → Integrar en otra presentación**: el ZIP incluye animación, controlador y ejemplo con varias imágenes y láminas. Permite avanzar, saltar, retroceder, reiniciar y mostrar el final. Consulta [borradores e integración](docs/integracion.md).
+
+Desde **0.18.0**, la presentación administra toda la entrada con una sola llamada a `TintaColorHost.bindInput`. Las animaciones conectadas dejan pasar los clics al contenedor, no capturan foco y ocultan todos sus controles internos. Abiertas por separado conservan su interacción. Consulta la [integración reutilizable](docs/integracion.md).

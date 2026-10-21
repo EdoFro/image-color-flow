@@ -121,3 +121,7 @@ Language changes refresh controls while retaining invalid drafts and selection; 
 `automation/editor.mjs` inlines installed editor assets and escaped project JSON. `app.js` prepares this embedded draft before choosing example/preferences. `review` saves inside the workspace and can request a normal browser window; it does not use the headless rendering server.
 
 `app/src/integration.js` contains the host factory, example and uncompressed ZIP32 download. The shared player adds explicit checkpoints and manual mode. `presentation.js` exposes protocol v1 and validates parent window, origin and channel. The controller coordinates requests, iframe input and sequence steps. This does not access an open editor session. Focused checks are in `tests/integration.test.mjs`.
+
+## Exclusive host input · 0.18.0
+
+`attach` preserves/restores iframe focus and pointer-events attributes, uses inert and negotiates `interaction: host`. The player confirms this mode, hides Restart and disables internal input; disconnect restores direct interaction. `bindInput` delegates click/keyboard once per root, separates action buttons from native controls and replaces repeated bindings. The host retains sequence/slide decisions. `tests/host-input-browser.mjs` checks real hit testing, focus, controls, three animations and four slides from files and HTTP.

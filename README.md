@@ -92,3 +92,5 @@ Code and documentation are distributed under the [MIT License](LICENSE). Example
 ## Editable drafts and embedding
 
 An assistant can generate and open an editor draft with `colorflow_review`; you can then finish editing yourself. Choose **Export HTML → Embed in another presentation** for a ZIP containing the animation, controller and multi-image/slide example. Controls include advance, skip, back, restart and finish. See [drafts and embedding](docs/en/embedding.md).
+
+Since **0.18.0**, the host owns all input through one `TintaColorHost.bindInput` call. Attached animations pass clicks to the host, exclude focus and hide every internal control. Opened independently, they retain their interaction. See [reusable embedding](docs/en/embedding.md).

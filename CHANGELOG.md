@@ -2,6 +2,14 @@
 
 **English** | [Español](CHANGELOG.es.md) · [Back to the project](README.md)
 
+## v0.18.0 · One input owner per presentation
+
+- attach disables iframe pointer/focus and negotiates hiding every internal control, including Restart. Directly opened HTML retains its interaction.
+- bindInput configures clicks, keyboard and buttons once per host, respecting fields, links and custom controls without duplicate actions.
+- Official example: four slides, three animations, intermediate text, backward navigation and external resets. activeAnimation supports context-aware controls.
+- Advance while painting, skip and last-moment/host separation retained. Bilingual guides and input/focus checks updated.
+
+
 ## v0.17.0 · Default advancement while painting
 
 - `advance` completes the playing stage and starts the next; in the last stage it shows the end without also advancing the host. Right arrow and click use this behavior.

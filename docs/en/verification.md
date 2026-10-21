@@ -6,6 +6,16 @@
 
 This is a translated record of checks performed during the versions below, including their limitations. Translating this record does not mean those tests were rerun. Where old results differ from current behavior, use the newest relevant version's entry.
 
+## v0.18.0 · Exclusive host input
+
+- Headless Chrome, offline local files and local HTTP: physical clicks on artwork, margins and an inactive image reach the host and command only its active animation. Three animations and four slides (introduction, explanation and intermediate slide) share one input binding.
+- Tab and programmatic focus exclude attached iframes. Body inert and interaction:host negotiation checked; no internal controls/restart remain visible. The same HTML opened independently retains clicks, keyboard and hover restart without autoplay.
+- Buttons with nested text, Enter and Space perform exactly one action. Links, text fields, editing arrows, native help and a custom excluded region do not advance. Image/sequence resets, backward slide navigation, advancement while painting and completing the last moment before slide changes checked.
+- Rebinding/cleanup without duplicate input; iframe reattachment and attribute restoration on disconnect; wrong source/channel and iframe-originated input rejected. NOT_READY does not execute later; image errors and incompatible handshake exports report errors.
+- Regressions: 106/106 engine/player, 29/29 automation, focused integration tests, 11 preferences, 467 keys per language; es/en/fr/de standalone interface/HTML and highlighting/restart passed. Example screenshot inspected. Reusable input scenario: tests/host-input-browser.mjs, called by tests/integration-browser.mjs.
+- This version has not been integrated into the user's real presentation or tested on other engines/physical devices. The example does not replace a rehearsal with the real host navigation system.
+
+
 ## v0.17.0 · Advancement while painting
 
 - 106/106 existing engine/player tests and 29/29 automation tests. Updated integration checks cover completing the current stage and playing the next, `skip` as a stopped checkpoint, and the `advanceWhenIdle` alternative. Original indices, accumulated paint, zero-duration stages and consuming the final stage before host advancement are checked.

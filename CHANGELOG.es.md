@@ -2,6 +2,14 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.18.0 · Entrada única de la presentación
+
+- attach desactiva mouse y foco del iframe y negocia ocultar todos los controles internos, incluido Reiniciar. El HTML abierto directamente conserva su interacción.
+- bindInput configura clic, teclado y botones una vez por presentación; respeta campos, enlaces y controles personalizados y evita acciones duplicadas.
+- Ejemplo oficial con cuatro láminas, tres animaciones, explicación intermedia, retroceso y reinicios externos. activeAnimation permite habilitar controles según el contexto.
+- Conservados avance durante pintura, salto y separación entre completar el último momento y continuar. Guías bilingües y pruebas de entrada/foco actualizadas.
+
+
 ## v0.17.0 · Avance predeterminado durante la pintura
 
 - `advance` completa la etapa que se está animando e inicia la siguiente; en la última muestra el final sin avanzar también el contenedor. Flecha derecha y clic usan este comportamiento.
