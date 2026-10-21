@@ -6,6 +6,16 @@
 
 This is a translated record of checks performed during the versions below, including their limitations. Translating this record does not mean those tests were rerun. Where old results differ from current behavior, use the newest relevant version's entry.
 
+## v0.16.0 · Drafts and embedding
+
+- Existing checks: 106/106 engine/player tests, 29/29 automation tests, 11 preference tests and 467 keys in four languages. Focused integration tests cover manual checkpoints, skip/back/restart/finish, zero duration, ZIP CRC/Unicode, escaped self-contained editor JSON, file roots, API/CLI/MCP review and helper delivery.
+- Headless Chrome: offline `file://` draft opening, name/radius edits, saved JSON inspection and ZIP export/extraction. Two three-stage animations, intermediate text and slide change; rapid advances discarded, explicit skip, back, Home/End, focus inside/outside iframe, hover restart without autoplay. Restart during another animation does not start both.
+- Wrong-channel and wrong-source messages ignored. Local HTTP also checked; commands before readiness return NOT_READY without delayed execution, and image initialization failures report errors. Real Node rendering delivers HTML/controller/example from a workspace outside the installation.
+- Reusable `tests/integration-browser.mjs` exports `runIntegrationBrowser(browser, outputDirectory)` for a Playwright-compatible test browser supplied by the environment. The local launcher adds no runtime library to the app or packages. Editor/example screenshots inspected.
+- Existing interface and standalone export scenarios passed in es/en/fr/de. Both reproducible ZIPs work after isolated extraction (30 editor files, 50 complete files).
+- The user's real presentation integration, other browser engines and physical devices remain untested. Normal-window opening is requested through a process launch; these checks opened the review file through the test browser.
+
+
 ## v0.15.0 · Portable application and two ZIPs
 
 - 106/106 DOM-free cases, 29/29 automation tests, 11 preference tests and 461 translation keys per language. Chrome language/export, New/preferences, image preparation and highlight scenarios work using `app/`.

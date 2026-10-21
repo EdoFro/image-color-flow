@@ -461,6 +461,12 @@
   "preferences_thresholds": "El umbral de papel debe superar al de negro en al menos un punto porcentual.",
   "preferences_saved": "Preferencias guardadas. Se usarán en proyectos y etapas nuevos; el proyecto actual conserva sus valores.",
   "preferences_session_only": "Preferencias aplicadas a esta sesión. El navegador no permitió guardarlas; puedes exportarlas para conservarlas.",
-  "preferences_recovered": "No se pudieron leer las preferencias guardadas. Se utilizaron los valores de fábrica."
+  "preferences_recovered": "No se pudieron leer las preferencias guardadas. Se utilizaron los valores de fábrica.",
+  "export_mode": "Uso de la animación",
+  "export_standalone": "Presentación independiente",
+  "export_integrated": "Integrar en otra presentación",
+  "export_integrated_hint": "El modo integrado espera una orden por etapa y permite control desde la presentación principal.",
+  "download_integrated": "Descargar paquete ZIP",
+  "integrated_downloaded": "Paquete integrado descargado. Descomprímelo para probar el ejemplo y entregar los archivos al agente de la presentación."
 });
 })(typeof window === "undefined" ? globalThis : window);

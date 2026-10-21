@@ -148,7 +148,7 @@ try {
     assert.equal((await session.handle({ jsonrpc:'2.0',id:1,method:'tools/list' })).error.code, -32002);
     const init = await session.handle({ jsonrpc:'2.0',id:2,method:'initialize',params:{ protocolVersion:'2025-11-25' } }); assert.equal(init.result.protocolVersion, '2025-11-25');
     assert.equal(await session.handle({ jsonrpc:'2.0',method:'notifications/initialized' }), undefined);
-    assert.equal((await session.handle({ jsonrpc:'2.0',id:3,method:'tools/list' })).result.tools.length, 7);
+    assert.equal((await session.handle({ jsonrpc:'2.0',id:3,method:'tools/list' })).result.tools.length, 8);
     const resource = await session.handle({ jsonrpc:'2.0',id:4,method:'resources/read',params:{ uri:'colorflow://schema/plan' } }); assert.equal(JSON.parse(resource.result.contents[0].text).title, planSchema.title);
     const invalid = await session.handle({ jsonrpc:'2.0',id:5,method:'tools/call',params:{name:'colorflow_create',arguments:{image:'imagen.png',output:'mcp.json',plan:{stages:[{speed:9}]}}} }); assert.equal(invalid.result.isError,true); assert.ok(invalid.result.structuredContent.error.details.length);
     const inspect = await session.handle({ jsonrpc:'2.0',id:6,method:'tools/call',params:{name:'colorflow_inspect',arguments:{project:'animacion.colorflow.json'}} }); assert.equal(inspect.result.structuredContent.plan.stages[0].name, 'Modificada');
@@ -169,7 +169,7 @@ try {
     input.write('{"jsonrpc":"2.0","id":1,"method":"init'); input.write('ialize"}\n');
     input.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
     input.write('{"jsonrpc":"2.0","id":"á","method":"tools/list"}\n'); input.write('JSON inválido\n'); input.end(); await serving;
-    const messages = text.trim().split('\n').map(line => JSON.parse(line)); assert.equal(messages.length,3); assert.ok(messages.every(m => m.jsonrpc === '2.0')); assert.ok(messages.some(m => m.id === 'á' && m.result.tools.length === 7)); assert.ok(messages.some(m => m.error?.code === -32700));
+    const messages = text.trim().split('\n').map(line => JSON.parse(line)); assert.equal(messages.length,3); assert.ok(messages.every(m => m.jsonrpc === '2.0')); assert.ok(messages.some(m => m.id === 'á' && m.result.tools.length === 8)); assert.ok(messages.some(m => m.error?.code === -32700));
   });
   await test('Renderizador local limita origen, recursos y registra errores de cálculo', async () => {
     const job = await startRenderJob({}, { timeout: 1000 });

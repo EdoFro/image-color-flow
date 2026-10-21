@@ -22,6 +22,7 @@ La documentación se mantiene en español e inglés. La interfaz está disponibl
 | [Galería](../exampleVideos/README.es.md) | [Gallery](../exampleVideos/README.md) |
 | [Idiomas](idiomas.md) | [Languages](en/languages.md) |
 | [Ideas y tareas pendientes](pendientes.md) | [Ideas and pending tasks](en/roadmap.md) |
+| [Borradores e integración](integracion.md) | [Drafts and embedding](en/embedding.md) |
 | [Distribución](distribucion.md) | [Distribution](en/distribution.md) |
 | [Editor portable](../app/README.es.md) | [Portable editor](../app/README.md) |
 | Esta guía | [Documentation guide](en/documentation.md) |

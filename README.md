@@ -45,7 +45,7 @@ The editor opens its example by default. **Preferences** lets you choose startup
 
 ## Use with an AI assistant
 
-Optional automation provides a local API, CLI commands and an MCP server with seven tools. A vision-capable assistant can create projects from images and JSON plans, prepare and inspect the initial image without calculating propagation, and export HTML. Preparation and rendering require Node.js 22 or later and Chrome/Edge/Chromium; there are no external package dependencies. The editor still opens directly without installation.
+Optional automation provides a local API, CLI commands and an MCP server with eight tools. A vision-capable assistant can create projects from images and JSON plans, prepare and inspect the initial image without calculating propagation, and export HTML. Preparation and rendering require Node.js 22 or later and Chrome/Edge/Chromium; there are no external package dependencies. The editor still opens directly without installation.
 
 See the [automation and MCP setup guide](docs/en/automation.md), [plan schema](schemas/animation.schema.json) and [assistant guide](docs/en/for-ai.md).
 
@@ -88,3 +88,7 @@ node scripts/ejecutar-pruebas.mjs
 ## License and example resources
 
 Code and documentation are distributed under the [MIT License](LICENSE). Example images and the images shown in recordings are excluded. The project owner does not hold their rights; inclusion as examples does not grant permission to reuse them. See [license and resources](docs/en/license-and-resources.md) for provenance and scope.
+
+## Editable drafts and embedding
+
+An assistant can generate and open an editor draft with `colorflow_review`; you can then finish editing yourself. Choose **Export HTML → Embed in another presentation** for a ZIP containing the animation, controller and multi-image/slide example. Controls include advance, skip, back, restart and finish. See [drafts and embedding](docs/en/embedding.md).

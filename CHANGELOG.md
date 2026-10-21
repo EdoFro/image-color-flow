@@ -2,6 +2,14 @@
 
 **English** | [Español](CHANGELOG.es.md) · [Back to the project](README.md)
 
+## v0.16.0 · Editor drafts and embedding
+
+- API/CLI/MCP `review` creates a self-contained, preloaded editor with optional browser opening.
+- Integrated export ZIP includes controller, two-animation/slide example and bilingual instructions.
+- Protocol v1 supports advance, skip, back, restart, finish, pause and state; per-stage checkpoints and discarded advances while painting.
+- Final hover restart informs the host and restores the image's turn; source window, origin and channel checks.
+- Documentation and export selector updated in existing languages.
+
 ## Unreleased
 
 - English/Spanish documentation: READMEs, manual, technical guides, gallery and changelog with language navigation. The interface remained in Spanish in that initial documentation commit.

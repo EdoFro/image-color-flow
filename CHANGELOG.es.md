@@ -2,6 +2,14 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.16.0 · Borrador en el editor e integración
+
+- API/CLI/MCP `review` genera un editor autocontenido con el proyecto cargado y apertura opcional.
+- Exportación integrada en ZIP con controlador, ejemplo de dos animaciones y láminas e instrucciones bilingües.
+- Contrato v1: avanzar, saltar, retroceder, reiniciar, final, pausa y consulta; pausas por etapa y descarte de avances durante pintura.
+- Reinicio final por hover notifica y recupera el turno en la secuencia; validación de origen, ventana y canal.
+- Documentación y selector de exportación actualizados en los idiomas existentes.
+
 ## Sin publicar
 
 - Documentación bilingüe español/inglés: portadas, manual, guías técnicas, galería y cambios, con navegación por idioma. La interfaz permaneció en español en ese primer commit documental.

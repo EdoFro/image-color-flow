@@ -50,4 +50,6 @@ Utiliza un cliente que pueda iniciar un servidor local por stdio. Sustituye amba
 }
 ```
 
-El servidor ofrece siete herramientas y los recursos `colorflow://guide` y `colorflow://schema/plan`. El asistente necesita visión para interpretar las imágenes; las herramientas revelan los colores existentes. Consulta la [guía para asistentes](docs/para-ia.md). Conserva las carpetas de ejecución juntas para que estén disponibles la guía y el motor compartido.
+El servidor ofrece ocho herramientas y los recursos `colorflow://guide` y `colorflow://schema/plan`. El asistente necesita visión para interpretar las imágenes; las herramientas revelan los colores existentes. Consulta la [guía para asistentes](docs/para-ia.md). Conserva las carpetas de ejecución juntas para que estén disponibles la guía y el motor compartido.
+
+Consulta [borradores e integración](docs/integracion.md) para abrir el editor con un proyecto y exportar animaciones controlables desde otra presentación.

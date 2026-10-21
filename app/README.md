@@ -17,3 +17,7 @@ Exported presentations work independently of this folder. Click the image to sta
 Code and documentation: [MIT](LICENSE). Example-image conditions: [NOTICE.md](NOTICE.md). The complete package additionally provides the local API, CLI and MCP; Node.js is only needed for those optional tools.
 
 [Full manual and source repository](https://github.com/EdoFro/image-color-flow)
+
+## Embed in a presentation
+
+Choose **Embed in another presentation** when exporting. Unzip the animation, controller, instructions and example, and give that folder to the presentation agent. The host must connect its advancement system to the controller; inserting an iframe alone does not coordinate playback. Keep the project JSON for later editing.

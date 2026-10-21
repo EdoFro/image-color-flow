@@ -142,3 +142,7 @@ El encuadre de comparación, el progreso parcial y el trabajador son estados tra
 `highlightLinked: true` utiliza únicamente el enfoque, sin borrar la lista separada. `highlightEnabled: false` deja los ajustes y la lista guardados pero no aplica el efecto. No se guarda selección de rectángulo ni gesto transitorio. Los archivos de formatos 1–9 conservan su único rectángulo y los algoritmos de imagen anteriores.
 
 Listas de igual cantidad interpolan los rectángulos por índice durante `cameraDuration`; cantidades distintas funden las dos máscaras. La unión se recorta en un único dibujo para no acumular alfa en solapamientos. El codec, reproductor y HTML autónomo conservan la lista completa.
+
+## Modo de reproducción exportada · aplicación 0.16.0
+
+`presentation.mode` acepta `standalone` o `integrated`; omitido equivale a independiente. El modo integrado fuerza pausas por etapa en la exportación, sin modificar `pauseAfter`, geometrías ni tiempos del editor. Sigue siendo formato 10; lectores anteriores ignoran esta opción. El JSON no contiene la conexión de control ni una sesión del editor.

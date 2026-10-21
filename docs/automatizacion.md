@@ -175,3 +175,7 @@ L es `method: "protected"`; K sigue siendo `"coherent"`. Los proyectos de format
 En una etapa o en `initialView` usa `highlightEnabled: true`, `highlightLinked: false` y `highlightFrames: [{"x":0.1,"y":0.15,"width":0.25,"height":0.3},{"x":0.6,"y":0.5,"width":0.25,"height":0.3}]`. El exterior común depende de `outside`, `outsideColor` y `blur`. La lista reemplaza completa la anterior en un parche; no se modifica con índices de rectángulo. Los rectángulos deben estar dentro de la imagen y hay un máximo de 64.
 
 `frame` sigue siendo el enfoque. `highlightFrame` se acepta como campo antiguo; un parche de etapa que sólo incluya ese campo reemplaza la lista por un elemento (o la vacía si es null). Al aportar ambos campos, tiene prioridad `highlightFrames`. Editor, API, CLI y MCP comparten estas reglas. Ejemplo: [destacados-multiples.json](../examples/plans/destacados-multiples.json). El archivo editable actual es formato 10.
+
+## Abrir el borrador y exportar para integrar
+
+`colorflow_review` genera un editor autocontenido y solicita abrirlo (`open:true` por defecto). CLI: `review --project borrador.colorflow.json --out editar.html --open`. La creación no calcula propagación; `open:false` sólo entrega el archivo. Para la entrega integrada usa `presentation.mode: "integrated"`: `render` añade controlador y ejemplo. Consulta [borradores e integración](integracion.md).

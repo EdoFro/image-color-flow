@@ -6,6 +6,16 @@
 
 Este documento registra comprobaciones históricas y sus limitaciones. Su traducción no significa que se hayan repetido esas pruebas. Si un resultado antiguo difiere del comportamiento actual, consulta la versión más reciente correspondiente.
 
+## v0.16.0 · Borrador e integración
+
+- 106/106 pruebas de motor/reproductor existentes; 29/29 de automatización, 11 de preferencias y 467 claves completas en cuatro idiomas. Las pruebas específicas de integración comprueban cierres manuales, salto/retroceso/reinicio/final, duración cero, ZIP con CRC y Unicode, editor autocontenido con JSON escapado, raíz de archivos, revisión API/CLI/MCP y entrega de auxiliares.
+- Chrome headless: borrador abierto por `file://` sin conexión, edición de nombre/radio, descarga y lectura del JSON, exportación y extracción del ZIP. Dos animaciones con tres etapas, texto intermedio y cambio de lámina; teclas rápidas descartadas, salto explícito, retroceso, Inicio/Fin, foco dentro/fuera del iframe y reinicio por hover sin autoplay. Comprobado también reiniciar una imagen mientras otra pinta, sin iniciar ambas.
+- Mensajes con canal incorrecto o ventana emisora incorrecta ignorados. Apertura por HTTP local comprobada; una orden previa a disponibilidad devuelve NOT_READY sin ejecución posterior y un fallo de imagen informa error. Renderizador Node real entrega HTML, controlador y ejemplo trabajando en una raíz externa a la instalación.
+- Prueba reutilizable `tests/integration-browser.mjs`: exporta `runIntegrationBrowser(browser, directorioDeSalida)` para un navegador de pruebas compatible con Playwright, suministrado por el entorno. El arnés de ejecución local no añade una biblioteca a la aplicación ni al paquete distribuido. Capturas de editor y ejemplo revisadas.
+- Regresión de interfaz y exportación independiente comprobada en es/en/fr/de. Los dos ZIP se construyen reproduciblemente y funcionan tras extracción aislada (30 archivos editor, 50 completo).
+- No se ha probado aún la integración con la presentación real del usuario, otros motores de navegador ni dispositivos físicos. La apertura automática de una ventana normal se solicita por proceso; estas pruebas abrieron el archivo de revisión mediante el navegador de pruebas.
+
+
 ## v0.15.0 · Aplicación portable y dos ZIP
 
 - 106/106 casos sin DOM, 29/29 de automatización, 11 pruebas de preferencias y 461 claves de traducción por idioma. Los escenarios Chrome de idiomas/exportación, Nuevo/preferencias, preparación de imágenes y destacados funcionan usando `app/`.

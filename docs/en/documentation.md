@@ -35,3 +35,5 @@ Documentation is maintained in English and Spanish. The interface supports Engli
 5. Reuse screenshots and video attachment URLs rather than duplicating large files. Explain screenshot language and recording limitations. Check both Markdown previews in GitHub.
 
 The verification guide records historical checks and their limits; translating it does not mean those checks were rerun. The MIT legal text stays in the single `LICENSE` file.
+
+Draft/embedding documentation is paired: [English](embedding.md) / [Español](../integracion.md). Update both when the control contract changes.

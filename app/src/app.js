@@ -717,16 +717,23 @@
     if (candidate) requestReplacement('abrir_proyecto', async () => { await installProject(candidate.next, candidate.images); status(() => t('proyecto_abierto_puedes_continuar_editando')); });
   };
   const packField = field => window.PaintCodec.pack(field);
-  $('exportButton').onclick = () => { $('exportLanguage').value = i18n.language; $('exportBackground').value = project.presentation.background; $('exportColor').value = project.presentation.color; $('exportColorField').hidden = project.presentation.background !== 'color'; $('exportDialog').showModal(); };
+  $('exportButton').onclick = () => { $('exportMode').value = project.presentation.mode || 'standalone'; $('exportLanguage').value = i18n.language; $('exportBackground').value = project.presentation.background; $('exportColor').value = project.presentation.color; $('exportColorField').hidden = project.presentation.background !== 'color'; syncExportMode(); $('exportDialog').showModal(); };
+  function syncExportMode() {
+    const label = $('confirmExport').querySelector('span'), key = $('exportMode').value === 'integrated' ? 'download_integrated' : 'descargar_html';
+    label.dataset.i18n = key; label.textContent = t(key);
+  }
+  $('exportMode').onchange = syncExportMode;
   $('exportBackground').onchange = () => { $('exportColorField').hidden = $('exportBackground').value !== 'color'; };
   $('cancelExport').onclick = () => $('exportDialog').close();
   $('confirmExport').onclick = () => action(async () => {
-    const settings = normalizePresentation({ background: $('exportBackground').value, color: $('exportColor').value });
+    const settings = normalizePresentation({ mode: $('exportMode').value, background: $('exportBackground').value, color: $('exportColor').value });
     if (JSON.stringify(settings) !== JSON.stringify(project.presentation)) { project.presentation = settings; dirty = true; }
     $('exportDialog').close();
     const fields = await calculateFields(); player?.pause(); status(() => (t("empaquetando_la_presentacion_sin_conexion"))); await waitFrame();
     const data = { language: $('exportLanguage').value, width: prepared.width, height: prepared.height, presentation: project.presentation, initialView: project.initialView, base: prepared.baseCanvas.toDataURL('image/png'), final: prepared.finalCanvas.toDataURL('image/png'), fields: fields.filter(f => !f.skipped).map(packField) };
-    download('presentacion-tinta-y-color.html', buildPresentation(data), 'text/html;charset=utf-8'); status(() => (t("presentacion_descargada_un_solo_html_con_imagenes_y_animac")));
+    const html = buildPresentation(data);
+    if (settings.mode === 'integrated') download('animacion-integrada.zip', PaintIntegration.zip({ 'animacion.html': html, ...PaintIntegration.files() }), 'application/zip');
+    else download('presentacion-tinta-y-color.html', html, 'text/html;charset=utf-8'); status(() => t(settings.mode === 'integrated' ? 'integrated_downloaded' : 'presentacion_descargada_un_solo_html_con_imagenes_y_animac'));
   });
   const buildPresentation = data => window.PaintPresentation.build(data);
   async function loadDemo() {
@@ -825,5 +832,10 @@
 
   renderStages(); updateInspector(); scheduleSelectLabels();
   const startup = document.documentElement.dataset.startup || preferences.startup;
-  action(startup === 'empty' ? newProject : loadDemo).then(() => { if (loadedPreferences.reset && !$('status').classList.contains('error')) status(() => t('preferences_recovered')); });
+  async function loadEmbeddedProject() {
+    const next = validateProject(JSON.parse($('tinta-color-project').textContent)), images = {};
+    for (const kind of ['final', 'initial']) if (next.images[kind]) images[kind] = await PaintPreparation.loadImage(next.images[kind].data);
+    await installProject(next, images); status(() => t('proyecto_abierto_puedes_continuar_editando'));
+  }
+  action($('tinta-color-project') ? loadEmbeddedProject : startup === 'empty' ? newProject : loadDemo).then(() => { if (loadedPreferences.reset && !$('status').classList.contains('error')) status(() => t('preferences_recovered')); });
 })();

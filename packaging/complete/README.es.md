@@ -13,3 +13,5 @@ Ejecuta los comandos de automatización desde la raíz de este paquete. Conserva
 [Licencia MIT](LICENSE) · [Condiciones de las imágenes de ejemplo](app/NOTICE.md)
 
 [Repositorio y documentación completa](https://github.com/EdoFro/image-color-flow)
+
+Consulta [borradores e integración](docs/integracion.md) para abrir el editor con un proyecto y exportar animaciones controlables desde otra presentación.

@@ -1,6 +1,6 @@
 {
   "name": "image-color-flow",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "private": true,
   "license": "MIT",
   "description": "Editor offline y automatización local para animar la aparición del color",
@@ -10,13 +10,14 @@
   "scripts": {
     "colorflow": "node automation/cli.mjs",
     "mcp": "node automation/mcp.mjs",
-    "test": "node scripts/ejecutar-pruebas.mjs && node tests/automation.test.mjs && node tests/i18n.test.mjs && node tests/preferences.test.mjs && node tests/distribution.test.mjs",
+    "test": "node scripts/ejecutar-pruebas.mjs && node tests/automation.test.mjs && node tests/i18n.test.mjs && node tests/preferences.test.mjs && node tests/distribution.test.mjs && node tests/integration.test.mjs",
     "package": "node scripts/empaquetar.mjs",
     "test:distribution": "node tests/distribution.test.mjs",
     "test:projects": "node scripts/ejecutar-pruebas-vista.mjs --projects",
     "test:preview": "node scripts/ejecutar-pruebas-vista.mjs",
     "test:editor": "node scripts/ejecutar-pruebas-vista.mjs --editor",
     "test:highlights": "node scripts/ejecutar-pruebas-vista.mjs --highlights",
-    "test:i18n": "node tests/i18n.test.mjs && node scripts/ejecutar-pruebas-vista.mjs --i18n"
+    "test:i18n": "node tests/i18n.test.mjs && node scripts/ejecutar-pruebas-vista.mjs --i18n",
+    "test:integration": "node tests/integration.test.mjs"
   }
 }

@@ -220,3 +220,7 @@ En una etapa o en Inicio, habilita Destacado y desmarca «Usar el mismo rectáng
 Dentro de cualquiera de los rectángulos se conserva el original. El exterior común recibe Mostrar, Desenfocar, Negro, Blanco, Color o Transparente; las zonas solapadas se dibujan una sola vez. Todos los rectángulos comparten los ajustes de la etapa. Vincular nuevamente con el enfoque conserva la lista separada para recuperarla al desvincular. Los cambios de destacado no modifican el enfoque. El Ctrl de selección de etapas en la columna izquierda sigue funcionando igual.
 
 La lista admite hasta 64 rectángulos. Si una configuración separada no tiene ninguno, muestra la página completa. Durante una transición, listas con igual cantidad interpolan sus rectángulos por número; si cambia la cantidad, se funden las dos máscaras completas. La cámara continúa su transición independientemente.
+
+## Borradores del asistente y exportación integrada
+
+Un asistente puede entregarte `editar.html` con su borrador ya abierto en el editor. Corrige y guarda el proyecto JSON; al recargar ese HTML se restaura su borrador original. Al terminar, **Exportar HTML → Uso de la animación → Integrar en otra presentación** descarga un ZIP con la animación, controlador y ejemplo. Descomprímelo antes de probarlo. El agente de la presentación conecta la secuencia; no necesita retomar tu edición. Consulta [borradores e integración](integracion.md).

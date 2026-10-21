@@ -20,8 +20,8 @@ export async function packageFiles(root = sourceRoot) {
   for (const name of app) await add(name);
   if (!files.get('app/LICENSE').equals(await readFile(resolve(root, 'LICENSE')))) throw new Error('Synchronize app/LICENSE with LICENSE.');
   const editor = new Map(files);
-  for (const name of ['api.mjs','browser.mjs','cli.mjs','mcp.mjs','runner.js','runner.html','runner.css','validation.mjs']) await add('automation/' + name);
-  for (const name of ['schemas/animation.schema.json','docs/para-ia.md','docs/en/for-ai.md','LICENSE']) await add(name);
+  for (const name of ['editor.mjs','api.mjs','browser.mjs','cli.mjs','mcp.mjs','runner.js','runner.html','runner.css','validation.mjs']) await add('automation/' + name);
+  for (const name of ['schemas/animation.schema.json','docs/para-ia.md','docs/en/for-ai.md','docs/integracion.md','docs/en/embedding.md','LICENSE']) await add(name);
   for (const name of ['README.md','README.es.md','AUTOMATION.md','AUTOMATION.es.md']) await add('packaging/complete/' + name, name);
   const original = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
   if (!/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/.test(original.version)) throw new Error('Invalid package version.');

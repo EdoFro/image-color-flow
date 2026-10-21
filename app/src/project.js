@@ -3,7 +3,7 @@
   'use strict';
   const engine = root.PaintEngine;
   const zeroAlignment = () => ({ x: 0, y: 0, sx: 1, sy: 1, angle: 0 });
-  function normalizePresentation(value = {}) { return { background: ['hatch', 'color', 'transparent'].includes(value?.background) ? value.background : 'hatch', color: /^#[0-9a-f]{6}$/i.test(value?.color || '') ? value.color : '#e5e7e3' }; }
+  function normalizePresentation(value = {}) { return { ...(value?.mode === 'integrated' ? { mode: 'integrated' } : {}), background: ['hatch', 'color', 'transparent'].includes(value?.background) ? value.background : 'hatch', color: /^#[0-9a-f]{6}$/i.test(value?.color || '') ? value.color : '#e5e7e3' }; }
   function validateProject(data, { allowEmpty = false } = {}) {
     const empty = allowEmpty && data?.images && typeof data.images === 'object' && !Array.isArray(data.images) && Object.keys(data.images).length === 0;
     if (!data || data.format !== 'tinta-y-color' || ![1, 2, 3, 4, 5, 6, 7, 8, 9, 10].includes(data.version) || (!data.images?.final?.data && !empty) || !Array.isArray(data.stages) || !data.stages.length || data.stages.length > 64) throw new Error('El archivo no es un proyecto compatible de Tinta y color.');

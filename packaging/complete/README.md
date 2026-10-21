@@ -13,3 +13,5 @@ Run automation commands from this package's root. Keep `automation/`, `schemas/`
 [MIT license](LICENSE) · [Example-image conditions](app/NOTICE.md)
 
 [Source repository and full documentation](https://github.com/EdoFro/image-color-flow)
+
+See [drafts and embedding](docs/en/embedding.md) to open a preloaded editor and export animations controlled by another presentation.

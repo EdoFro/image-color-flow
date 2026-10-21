@@ -68,6 +68,13 @@
         "color": {
           "type": "string",
           "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "mode": {
+          "enum": [
+            "standalone",
+            "integrated"
+          ],
+          "description": "integrated: manual stage checkpoints and host control; standalone: existing playback."
         }
       },
       "default": {

@@ -461,6 +461,12 @@
   "preferences_thresholds": "Der Papierschwellenwert muss den Schwarzschwellenwert um mindestens einen Prozentpunkt überschreiten.",
   "preferences_saved": "Einstellungen gespeichert. Sie gelten für neue Projekte und Schritte; das aktuelle Projekt behält seine Werte.",
   "preferences_session_only": "Einstellungen für diese Sitzung übernommen. Der Browser hat das Speichern nicht zugelassen; exportieren Sie sie, um sie zu behalten.",
-  "preferences_recovered": "Die gespeicherten Einstellungen konnten nicht gelesen werden. Die Werkseinstellungen wurden verwendet."
+  "preferences_recovered": "Die gespeicherten Einstellungen konnten nicht gelesen werden. Die Werkseinstellungen wurden verwendet.",
+  "export_mode": "Verwendung der Animation",
+  "export_standalone": "Eigenständige Präsentation",
+  "export_integrated": "In eine Präsentation einbetten",
+  "export_integrated_hint": "Der eingebettete Modus wartet auf einen Befehl pro Phase und lässt sich von der Hauptpräsentation steuern.",
+  "download_integrated": "ZIP-Paket herunterladen",
+  "integrated_downloaded": "Einbettungspaket heruntergeladen. Entpacken Sie es, um das Beispiel zu testen und die Dateien an den Präsentationsassistenten weiterzugeben."
 });
 })(typeof window === "undefined" ? globalThis : window);

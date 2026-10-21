@@ -36,7 +36,7 @@ La aplicación usa HTML, CSS y JavaScript clásico, sin dependencias externas ni
 
 `app/` contiene el editor completo con scripts, estilos, ejemplo, licencia e instrucciones. Basta copiar esa carpeta. El `index.html` de la raíz es sólo un acceso de compatibilidad. Automatización y pruebas leen el mismo motor desde `app/src/`; el servidor de renderizado conserva sus URL virtuales `src/*` y su enumeración de recursos.
 
-`scripts/empaquetar.mjs` genera dos ZIP reproducibles con una lista de archivos permitidos: editor y completo. El completo añade los ocho archivos de automatización, esquema, guía para asistentes, instrucciones de `packaging/complete/`, licencia y un `package.json` de ejecución. `scripts/lib/zip.mjs` usa deflate y CRC32 con módulos integrados de Node; las fechas del ZIP son fijas. `dist/` está excluido de Git. Consulta [distribución](distribucion.md).
+`scripts/empaquetar.mjs` genera dos ZIP reproducibles con una lista de archivos permitidos: editor y completo. El completo añade los nueve archivos de automatización, esquema, guía para asistentes, instrucciones de `packaging/complete/`, licencia y un `package.json` de ejecución. `scripts/lib/zip.mjs` usa deflate y CRC32 con módulos integrados de Node; las fechas del ZIP son fijas. `dist/` está excluido de Git. Consulta [distribución](distribucion.md).
 
 ## Flujo de datos
 
@@ -100,7 +100,7 @@ La API de Node.js usa el mismo normalizador que el editor, junto con un contrato
 
 Canvas, decodificación, alineación, Web Worker y fotogramas se ejecutan en Chrome/Edge/Chromium sin ventana con un perfil temporal aislado. El proceso de Node sirve exclusivamente recursos enumerados y el trabajo actual en loopback, mediante una ruta aleatoria. El resultado regresa por HTTP local; el servidor, navegador y perfil se cierran al finalizar, cancelar o fallar. El renderizador admite una sesión de navegador externa para las pruebas visuales del mismo trabajo.
 
-MCP utiliza JSON-RPC por stdio, sin dependencias, con descubrimiento de siete herramientas, esquema y guía como recursos, resultados estructurados y cancelación. `prepare` ejecuta decodificación y preparación sin instanciar el trabajador de propagación. Produce la base completa y una comparación; `render` añade cálculo y presentación. La raíz de archivos se limita tanto léxicamente como al resolver enlaces. La validación de estructura no pretende garantizar la interpretación visual del pedido. La IA debe revisar base, plan y fotogramas; consulta la [guía de integración](automatizacion.md).
+MCP utiliza JSON-RPC por stdio, sin dependencias, con descubrimiento de ocho herramientas, esquema y guía como recursos, resultados estructurados y cancelación. `prepare` ejecuta decodificación y preparación sin instanciar el trabajador de propagación. Produce la base completa y una comparación; `render` añade cálculo y presentación. La raíz de archivos se limita tanto léxicamente como al resolver enlaces. La validación de estructura no pretende garantizar la interpretación visual del pedido. La IA debe revisar base, plan y fotogramas; consulta la [guía de integración](automatizacion.md).
 
 `app/src/base-preview.js` construye un Worker Blob con las fábricas del motor, sin importaciones externas. Mantiene soporte global de L, revisiones y cola de bloques de 192 px; espera confirmación entre bloques para atender cancelaciones/encuadres. `PaintBase.region` conserva 12 px de margen; el Worker agrega margen de remuestreo y conserva la geometría completa al reducir con OffscreenCanvas. `app/src/image-comparison.js` gestiona un único encuadre para ambas vistas y la miniatura. El formato 9 añade L/M/N; los estados parciales nunca se exportan ni se guardan.
 
@@ -115,3 +115,9 @@ El README inglés es la portada del repositorio; `README.es.md` es su equivalent
 `app/src/i18n.js` expone una fábrica autocontenida y la instancia `PaintI18n`; los catálogos `app/src/locales/es.js`, `en.js`, `fr.js` y `de.js` se cargan antes del editor mediante scripts clásicos. Los textos estáticos usan atributos `data-i18n`; los dinámicos usan claves y variables. La traducción de metadatos y errores ocurre en la interfaz: el motor, los campos JSON y los nombres del usuario conservan su significado. No se emplean observadores que traduzcan texto arbitrario del lienzo.
 
 El cambio de idioma refresca controles conservando los borradores inválidos y la selección; no llama a invalidate ni reinicia el reproductor o el Worker. La preferencia es local al navegador, fuera del proyecto. Exportar incorpora únicamente las claves necesarias y la fábrica de traducción en el HTML. La automatización sin idioma explícito conserva el español. Consulta [idiomas](idiomas.md).
+
+## Borradores y contrato de integración · 0.16.0
+
+`automation/editor.mjs` incorpora estilos, scripts y un bloque JSON escapado al HTML del editor instalado. `app.js` prepara ese bloque al iniciar, antes que ejemplo/preferencias. `review` guarda el HTML dentro de la raíz y opcionalmente solicita su apertura en un navegador normal; no usa el servidor headless de renderizado.
+
+`app/src/integration.js` contiene la fábrica del controlador, ejemplo y ZIP32 sin compresión para una sola descarga. El reproductor compartido ofrece cierres explícitos y modo manual; `presentation.js` expone protocolo v1 y valida ventana padre, origen y canal. El controlador coordina solicitudes, entrada desde iframe y pasos de la secuencia. No añade acceso al estado abierto del editor. Las pruebas específicas están en `tests/integration.test.mjs`.

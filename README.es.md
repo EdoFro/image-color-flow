@@ -37,7 +37,7 @@ El editor abre el ejemplo por defecto. **Preferencias** permite elegir el inicio
 
 ## Uso desde una IA
 
-La automatización opcional ofrece una API local, comandos y un servidor MCP con siete herramientas. Un asistente con visión puede crear proyectos desde imágenes y planes JSON, preparar y revisar la base sin calcular la animación, y exportar el HTML. Requiere Node.js 22 o posterior y Chrome/Edge/Chromium para preparar o renderizar; no usa paquetes externos. El editor conserva su apertura directa sin instalación.
+La automatización opcional ofrece una API local, comandos y un servidor MCP con ocho herramientas. Un asistente con visión puede crear proyectos desde imágenes y planes JSON, preparar y revisar la base sin calcular la animación, y exportar el HTML. Requiere Node.js 22 o posterior y Chrome/Edge/Chromium para preparar o renderizar; no usa paquetes externos. El editor conserva su apertura directa sin instalación.
 
 Consulta la [guía de automatización y conexión MCP](docs/automatizacion.md), el [contrato del plan](schemas/animation.schema.json) y la [guía para asistentes](docs/para-ia.md).
 
@@ -84,3 +84,7 @@ El código y la documentación se distribuyen bajo la [licencia MIT](LICENSE). L
 La preparación de imágenes ofrece Oscurecer (M) y Multiplicar (N), comparación con zoom/posición compartidos, miniatura navegable y recálculo por bloques que prioriza el detalle visible. Una luz con texto indica cuándo el detalle o toda la imagen están actualizados. Los proyectos anteriores conservan su método.
 
 El destacado separado permite varios rectángulos por etapa o en Inicio: Ctrl + arrastrar agrega otro; la lista y las asas permiten editarlo. El exterior de su unión recibe el tratamiento elegido. El enfoque permanece independiente y el HTML autónomo conserva todos los rectángulos.
+
+## Borrador editable e integración
+
+El asistente puede generar y abrir un borrador en el editor mediante `colorflow_review`. Después puedes corregirlo por tu cuenta. Para una presentación web, elige **Exportar HTML → Integrar en otra presentación**: el ZIP incluye animación, controlador y ejemplo con varias imágenes y láminas. Permite avanzar, saltar, retroceder, reiniciar y mostrar el final. Consulta [borradores e integración](docs/integracion.md).

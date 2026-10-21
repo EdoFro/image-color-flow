@@ -461,6 +461,12 @@
   "preferences_thresholds": "Le seuil du papier doit dépasser celui du noir d’au moins un point de pourcentage.",
   "preferences_saved": "Préférences enregistrées. Les nouveaux projets et étapes les utiliseront ; le projet actuel conserve ses valeurs.",
   "preferences_session_only": "Préférences appliquées à cette session. Le navigateur n’a pas autorisé leur stockage ; vous pouvez les exporter pour les conserver.",
-  "preferences_recovered": "Les préférences enregistrées n’ont pas pu être lues. Les valeurs d’origine ont été utilisées."
+  "preferences_recovered": "Les préférences enregistrées n’ont pas pu être lues. Les valeurs d’origine ont été utilisées.",
+  "export_mode": "Utilisation de l’animation",
+  "export_standalone": "Présentation autonome",
+  "export_integrated": "Intégrer dans une présentation",
+  "export_integrated_hint": "Le mode intégré attend une commande par étape et permet le contrôle depuis la présentation principale.",
+  "download_integrated": "Télécharger le paquet ZIP",
+  "integrated_downloaded": "Paquet intégré téléchargé. Décompressez-le pour essayer l’exemple et transmettre les fichiers à l’assistant de présentation."
 });
 })(typeof window === "undefined" ? globalThis : window);

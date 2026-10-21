@@ -461,6 +461,12 @@
   "preferences_thresholds": "The paper threshold must exceed the black threshold by at least one percentage point.",
   "preferences_saved": "Preferences saved. New projects and stages will use them; the current project keeps its values.",
   "preferences_session_only": "Preferences applied to this session. The browser did not allow storage; you can export them to keep them.",
-  "preferences_recovered": "Saved preferences could not be read. Factory defaults were used."
+  "preferences_recovered": "Saved preferences could not be read. Factory defaults were used.",
+  "export_mode": "Animation use",
+  "export_standalone": "Standalone presentation",
+  "export_integrated": "Embed in another presentation",
+  "export_integrated_hint": "Embedded mode waits for one command per stage and allows control from the host presentation.",
+  "download_integrated": "Download ZIP package",
+  "integrated_downloaded": "Embedded package downloaded. Unzip it to try the example and give the files to your presentation agent."
 });
 })(typeof window === "undefined" ? globalThis : window);

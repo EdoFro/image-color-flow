@@ -1,4 +1,6 @@
 import { readFile, writeFile, mkdir, realpath, stat, rename, link, unlink } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
+import { buildEditor, openEditor } from './editor.mjs';
 import { resolve, relative, dirname, basename, extname, isAbsolute } from 'node:path';
 import { createContext, runInContext } from 'node:vm';
 import { randomBytes } from 'node:crypto';
@@ -6,10 +8,10 @@ import { assertPlan, planSchema, AutomationError } from './validation.mjs';
 import { renderInBrowser } from './browser.mjs';
 
 const context = createContext({});
-for (const name of ['engine', 'ink-lines', 'base-generation', 'project']) runInContext(await readFile(new URL(`../app/src/${name}.js`, import.meta.url), 'utf8'), context);
+for (const name of ['engine', 'ink-lines', 'base-generation', 'project', 'integration']) runInContext(await readFile(new URL(`../app/src/${name}.js`, import.meta.url), 'utf8'), context);
 const normalize = input => JSON.parse(JSON.stringify(context.PaintProject.normalize(input)));
 const mimeTypes = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.bmp': 'image/bmp', '.avif': 'image/avif' };
-export const version = '0.15.0';
+export const version = '0.16.0';
 export { planSchema };
 
 export async function createAutomation({ root = process.cwd(), browser, renderer = renderInBrowser } = {}) {
@@ -76,7 +78,12 @@ export async function createAutomation({ root = process.cwd(), browser, renderer
     const result = await renderer(await load(project), { browser, operation, autoAlign, timeout, signal });
     const artifacts = {};
     const put = async (name, content) => { artifacts[name] = await save(resolve(target, name), content, overwrite); };
-    if (operation === 'render') await put('presentacion.html', result.html);
+    if (operation === 'render') {
+      await put('presentacion.html', result.html);
+      if (result.project.presentation?.mode === 'integrated') {
+        for (const [name, content] of Object.entries(context.PaintIntegration.files('presentacion.html'))) await put(name, content);
+      }
+    }
     await put('proyecto.colorflow.json', JSON.stringify(normalize(result.project)));
     const warnings = operation === 'prepare' ? validation.warnings.filter(w => ['DERIVED_BASE','INK_BASE_APPROXIMATION'].includes(w.code)) : validation.warnings;
     result.report.warnings = [...warnings, ...(result.report.warnings || [])];
@@ -97,6 +104,13 @@ export async function createAutomation({ root = process.cwd(), browser, renderer
       const project = normalize({ format: 'tinta-y-color', version: 10, ...plan, baseMode: plan.baseMode || (initialImage ? 'uploaded' : 'derived'), images, stages: plan.stages || [{ maxRadius: .4 }] });
       const path = await save(output, JSON.stringify(project), overwrite);
       return summary(project, path);
+    },
+    async review({ project, output, open = true, overwrite = false }) {
+      const value = await load(project), html = await buildEditor(value);
+      const path = await save(output, html, overwrite), url = pathToFileURL(await filePath(path)).href;
+      let opened = false, openError;
+      if (open) try { await openEditor(url, browser); opened = true; } catch (error) { openError = error.message; }
+      return { path, editorUrl: url, opened, ...(openError ? { openError } : {}), note: 'Editor con borrador cargado. Guarda tus cambios como .colorflow.json; este HTML conserva el borrador inicial al recargar.' };
     },
     async inspect({ project }) { return summary(await load(project), project); },
     async update({ project: path, patch, stageIndex, output = path, overwrite = output === path }) {

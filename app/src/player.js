@@ -28,7 +28,7 @@
       return { x: from.x + (target.x - from.x) * ease, y: from.y + (target.y - from.y) * ease, size: from.size + (target.size - from.size) * ease };
     }
     function transition() { return atStart ? 1 : fields[index]?.cameraDuration ? Math.min(1, time / fields[index].cameraDuration) : 1; }
-    function state() { return { index: fields[index]?.stageIndex ?? 0, time, atStart, playing, waiting, ended, empty: !fields.length, elapsed: (offsets[index] || 0) + time, total, name: atStart ? 'Inicio' : fields[index]?.name || '', camera: camera(), transparent: views ? views.transparent(atStart ? initialView : fields[index]) || (!atStart && transition() < 1 && views.transparent(index ? fields[index - 1] : initialView)) : false }; }
+    function state() { return { index: fields[index]?.stageIndex ?? 0, position: index, stageCount: fields.length, time, atStart, playing, waiting, ended, empty: !fields.length, phase: atStart ? 'initial' : ended ? 'completed' : playing ? 'playing' : waiting ? 'waiting' : 'paused', elapsed: (offsets[index] || 0) + time, total, name: atStart ? 'Inicio' : fields[index]?.name || '', camera: camera(), transparent: views ? views.transparent(atStart ? initialView : fields[index]) || (!atStart && transition() < 1 && views.transparent(index ? fields[index - 1] : initialView)) : false }; }
     function commit(field) {
       if (!field) return;
       for (let i = 0; i < committed.length; i++) {
@@ -69,12 +69,13 @@
         const field = fields[index], excess = time - field.duration;
         time = field.duration; commit(field);
         if (index === fields.length - 1) { playing = false; ended = true; break; }
-        if (field.pauseAfter) { playing = false; waiting = true; break; }
+        if (model.manual || field.pauseAfter) { playing = false; waiting = true; break; }
         index++; time = excess;
       }
       render(); schedule();
     }
-    function pause() { playing = false; last = null; if (raf) cancelAnimationFrame(raf); raf = 0; render(); }
+    function stop() { playing = false; last = null; if (raf) cancelAnimationFrame(raf); raf = 0; }
+    function pause() { stop(); render(); }
     function play() {
       if (!fields.length || destroyed) return;
       if (ended && !atStart) restart();
@@ -82,18 +83,34 @@
       if (waiting) { waiting = false; index++; time = 0; }
       playing = true; last = null; render(); schedule();
     }
-    function restart() { pause(); committed.fill(0); index = 0; time = 0; atStart = true; waiting = false; ended = !fields.length; render(); }
+    function restart() { stop(); committed.fill(0); index = 0; time = 0; atStart = true; waiting = false; ended = !fields.length; render(); }
     function seek(seconds) {
       if (!fields.length) { restart(); return; }
-      pause(); committed.fill(0); atStart = false; waiting = false; ended = !fields.length;
+      stop(); committed.fill(0); atStart = false; waiting = false; ended = !fields.length;
       const target = Math.max(0, Math.min(total, seconds)); index = 0;
       while (index < fields.length - 1 && target >= offsets[index + 1]) { commit(fields[index]); index++; }
       time = target - offsets[index]; ended = target >= total; if (ended) commit(fields[index]); render();
     }
     function next() { if (atStart) { play(); return; } if (index < fields.length - 1) { const resume = playing || waiting; seek(offsets[index + 1]); if (resume) play(); } else seek(total); }
     function previous() { if (!index && time <= .1) restart(); else seek(offsets[Math.max(0, time > .1 ? index : index - 1)]); }
+    // Explicit checkpoints avoid seek's boundary convention (which selects the next stage).
+    function showEnd(target) {
+      if (!fields.length || target < 0) { restart(); return; }
+      stop(); committed.fill(0); index = Math.min(target, fields.length - 1);
+      for (let i = 0; i <= index; i++) commit(fields[i]);
+      time = fields[index].duration; atStart = false; ended = index === fields.length - 1; waiting = !ended; render();
+    }
+    function advance(animate = true) {
+      if (!fields.length || ended && !atStart) return { consumed: false, completed: true, state: state() };
+      if (animate && playing) return { consumed: true, accepted: false, reason: 'busy', state: state() };
+      if (animate) play();
+      else showEnd(atStart ? 0 : waiting ? index + 1 : index);
+      return { consumed: true, accepted: true, state: state() };
+    }
+    function back() { if (atStart) return; showEnd(index - 1); }
+    function finish() { showEnd(fields.length - 1); }
     render();
-    return { play, pause, restart, seek, next, previous, toggle: () => playing ? pause() : play(), getState: state, destroy() { destroyed = true; playing = false; if (raf) cancelAnimationFrame(raf); } };
+    return { play, pause, restart, seek, next, previous, advance, back, finish, toggle: () => playing ? pause() : play(), getState: state, destroy() { destroyed = true; stop(); } };
   }
   root.createPaintPlayer = createPaintPlayer;
 })(typeof window === 'undefined' ? globalThis : window);

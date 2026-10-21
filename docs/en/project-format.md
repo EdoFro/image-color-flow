@@ -142,3 +142,7 @@ Comparison framing, partial progress and the Worker are transient editor state, 
 `highlightLinked: true` uses only camera framing without deleting the separate list. `highlightEnabled: false` retains settings/list without applying the effect. Rectangle selection and gestures are not saved. Formats 1–9 retain their single rectangle and previous image algorithms.
 
 During `cameraDuration`, equal-length lists interpolate rectangles by index; different lengths crossfade both masks. The union clips a single drawing operation, avoiding alpha buildup in overlaps. Codec, player and standalone HTML retain the complete list.
+
+## Export playback mode · application 0.16.0
+
+`presentation.mode` accepts `standalone` or `integrated`; omission means standalone. Embedded mode enforces per-stage pauses in the export without changing authored `pauseAfter`, geometry or timing. The project remains format 10; older readers ignore this option. JSON does not contain a controller connection or editor session.

@@ -222,3 +222,7 @@ In a stage or Inicio, enable highlighting and uncheck **Usar el mismo rectángul
 Inside any rectangle the original is retained. The common outside receives Show, Blur, Black, White, Color or Transparent treatment; overlaps are drawn once. All rectangles share stage settings. Relinking to camera framing preserves the separate list for later unlinking. Highlight changes do not change camera framing. Ctrl stage selection in the left column works as before.
 
 Up to 64 rectangles are allowed. A separate configuration with none shows the full page. During transitions, equal-length lists interpolate rectangles by number; different-length lists crossfade the two complete masks. Camera transition continues independently.
+
+## Assistant drafts and embedded exports
+
+An assistant can deliver `edit.html` with its draft already loaded. Edit and save the project JSON; reloading that HTML restores the original draft. **Export HTML → Animation use → Embed in another presentation** downloads the animation, controller and example in one ZIP. Unzip before testing. The presentation agent connects the sequence without taking over your editing. See [drafts and embedding](embedding.md).

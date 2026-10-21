@@ -173,3 +173,7 @@ L is `method: "protected"`; K remains `"coherent"`. Format-8 projects retain K a
 In a stage or `initialView`, set `highlightEnabled: true`, `highlightLinked: false` and `highlightFrames: [{"x":0.1,"y":0.15,"width":0.25,"height":0.3},{"x":0.6,"y":0.5,"width":0.25,"height":0.3}]`. `outside`, `outsideColor` and `blur` control the common outside treatment. A patch replaces the complete list; rectangles are not patched by index. All rectangles must be inside the image, with at most 64.
 
 `frame` remains the camera framing. Legacy `highlightFrame` is accepted; a stage patch containing only that field replaces the list with one element (or empties it for null). If both are provided, `highlightFrames` takes precedence. Editor, API, CLI and MCP share these rules. See [destacados-multiples.json](../../examples/plans/destacados-multiples.json). The current editable format is 10.
+
+## Open drafts and export for embedding
+
+`colorflow_review` generates a self-contained editor and requests opening it (`open:true` by default). CLI: `review --project draft.colorflow.json --out edit.html --open`. Generation does not calculate propagation; `open:false` only delivers the file. Use `presentation.mode: "integrated"` to include the controller and example in `render`. See [drafts and embedding](embedding.md).

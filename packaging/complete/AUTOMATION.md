@@ -50,4 +50,6 @@ Use a client that can launch a local stdio server. Replace both paths with absol
 }
 ```
 
-The server provides seven tools and the `colorflow://guide` and `colorflow://schema/plan` resources. The assistant needs vision to interpret images; the tools reveal existing colors. See the [assistant workflow](docs/en/for-ai.md). Keep the runtime folders together so the guide and shared engine remain available.
+The server provides eight tools and the `colorflow://guide` and `colorflow://schema/plan` resources. The assistant needs vision to interpret images; the tools reveal existing colors. See the [assistant workflow](docs/en/for-ai.md). Keep the runtime folders together so the guide and shared engine remain available.
+
+See [drafts and embedding](docs/en/embedding.md) to open a preloaded editor and export animations controlled by another presentation.

@@ -36,7 +36,7 @@ The application uses HTML, CSS and classic JavaScript, with no external dependen
 
 `app/` contains the complete editor with scripts, styles, example, license and instructions. Copying that folder is sufficient. Root `index.html` is only a compatibility entry. Automation and tests read the same engine from `app/src/`; the render server retains its virtual `src/*` URLs and resource allowlist.
 
-`scripts/empaquetar.mjs` builds two reproducible ZIPs from allowlisted files: editor and complete. The complete package adds the eight automation files, schema, assistant guide, instructions from `packaging/complete/`, license and a runtime `package.json`. `scripts/lib/zip.mjs` uses deflate and CRC32 with built-in Node modules; ZIP dates are fixed. Git ignores `dist/`. See [distribution](distribution.md).
+`scripts/empaquetar.mjs` builds two reproducible ZIPs from allowlisted files: editor and complete. The complete package adds the nine automation files, schema, assistant guide, instructions from `packaging/complete/`, license and a runtime `package.json`. `scripts/lib/zip.mjs` uses deflate and CRC32 with built-in Node modules; ZIP dates are fixed. Git ignores `dist/`. See [distribution](distribution.md).
 
 ## Data flow
 
@@ -115,3 +115,9 @@ The English README is the repository entry point; `README.es.md` is its Spanish 
 `app/src/i18n.js` exposes a self-contained factory and the `PaintI18n` instance; `app/src/locales/es.js`, `en.js`, `fr.js` and `de.js` load through classic scripts before the editor. Static text uses `data-i18n` attributes; dynamic text uses keys and variables. Metadata/error translation occurs at the UI boundary: engine behavior, JSON fields and user-authored names retain their meaning. No observer translates arbitrary canvas text.
 
 Language changes refresh controls while retaining invalid drafts and selection; they do not invalidate calculation or restart the player/Worker. Preference is browser-local, outside the project. Export embeds only required keys and the translation factory. Automation without an explicit language retains Spanish. See [languages](languages.md).
+
+## Drafts and embedding contract · 0.16.0
+
+`automation/editor.mjs` inlines installed editor assets and escaped project JSON. `app.js` prepares this embedded draft before choosing example/preferences. `review` saves inside the workspace and can request a normal browser window; it does not use the headless rendering server.
+
+`app/src/integration.js` contains the host factory, example and uncompressed ZIP32 download. The shared player adds explicit checkpoints and manual mode. `presentation.js` exposes protocol v1 and validates parent window, origin and channel. The controller coordinates requests, iframe input and sequence steps. This does not access an open editor session. Focused checks are in `tests/integration.test.mjs`.
