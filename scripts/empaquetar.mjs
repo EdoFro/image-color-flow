@@ -25,6 +25,8 @@ export async function packageFiles(root = sourceRoot) {
   for (const name of ['README.md','README.es.md','AUTOMATION.md','AUTOMATION.es.md']) await add('packaging/complete/' + name, name);
   const original = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
   if (!/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/.test(original.version)) throw new Error('Invalid package version.');
+  const editorVersion = files.get('app/index.html').toString('utf8').match(/class="app-version">v([^<]+)</)?.[1];
+  if (editorVersion !== original.version) throw new Error('Synchronize the editor header version with package.json.');
   const runtime = Object.fromEntries(['name','version','private','license','description','engines'].map(key => [key, original[key]]));
   runtime.scripts = { colorflow: 'node automation/cli.mjs', mcp: 'node automation/mcp.mjs' };
   files.set('package.json', Buffer.from(JSON.stringify(runtime, null, 2) + '\n'));

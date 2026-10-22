@@ -2,6 +2,11 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.18.1 · Versión y enlaces en el editor
+
+- La cabecera muestra la versión junto al nombre, un enlace al repositorio de GitHub y el crédito «by EdoFro» enlazado al perfil del autor.
+- Los enlaces se abren en otra pestaña para conservar el trabajo en el editor. El empaquetado comprueba que la versión visible coincida con package.json.
+
 ## v0.18.0 · Entrada única de la presentación
 
 - attach desactiva mouse y foco del iframe y negocia ocultar todos los controles internos, incluido Reiniciar. El HTML abierto directamente conserva su interacción.

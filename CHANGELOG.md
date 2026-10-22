@@ -2,6 +2,11 @@
 
 **English** | [Español](CHANGELOG.es.md) · [Back to the project](README.md)
 
+## v0.18.1 · Editor version and links
+
+- The header shows the version next to the app name, a GitHub repository link and “by EdoFro” linked to the author's profile.
+- Links open in another tab to preserve work in the editor. Packaging checks that the visible version matches package.json.
+
 ## v0.18.0 · One input owner per presentation
 
 - attach disables iframe pointer/focus and negotiates hiding every internal control, including Restart. Directly opened HTML retains its interaction.
