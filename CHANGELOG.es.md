@@ -4,6 +4,7 @@
 
 ## v0.18.1 · Versión y enlaces en el editor
 
+- Los enlaces de GitHub y del autor se sitúan a la derecha del título.
 - La cabecera muestra la versión junto al nombre, un enlace al repositorio de GitHub y el crédito «by EdoFro» enlazado al perfil del autor.
 - Los enlaces se abren en otra pestaña para conservar el trabajo en el editor. El empaquetado comprueba que la versión visible coincida con package.json.
 

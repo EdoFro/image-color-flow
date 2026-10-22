@@ -4,6 +4,7 @@
 
 ## v0.18.1 · Editor version and links
 
+- GitHub and author links sit to the right of the title.
 - The header shows the version next to the app name, a GitHub repository link and “by EdoFro” linked to the author's profile.
 - Links open in another tab to preserve work in the editor. Packaging checks that the visible version matches package.json.
 
