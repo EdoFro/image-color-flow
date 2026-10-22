@@ -10,6 +10,17 @@ The editor still works without Node.js. Exported HTML does not need automation t
 
 Get the [complete package](distribution.md#complete-package) for API, CLI or MCP. The editor ZIP contains only the portable application.
 
+## Named draft and suggested destination
+
+Use `plan.name` when creating a project. Keep the original, e.g. `windsurf-draft.colorflow.json`. `review` accepts optional `name` and `saveAs`, a `.colorflow.json` file path inside the authorized root. The suggested destination is not created or written and grants no browser permission. The result includes `name` and `saveSuggestion` with `fileName`, `directory` and `path`.
+
+```sh
+node automation/cli.mjs review --project windsurf-draft.colorflow.json --out windsurf-edit.html --name "Windsurf history" --save-as animations/windsurf.colorflow.json --open
+```
+
+MCP: `colorflow_review` accepts the same `name` and `saveAs` fields. Without `saveAs`, it proposes a project-derived filename beside the draft and avoids matching the source file. A name passed to review is embedded in the editor without changing the source project. The editor supports Save, Save as and Undo/Redo; JSON files use format 11 (also reads 1–10). History exists only in the editor and is not exposed through MCP. Read user-corrected files before making changes. This remains file exchange, not a live session connection.
+
+
 ## Setup
 
 1. Install **Node.js 22 or later** for automation. [Node.js 24 LTS](https://nodejs.org/en/about/previous-releases) is recommended.

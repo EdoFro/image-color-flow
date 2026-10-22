@@ -2,6 +2,13 @@
 
 **English** | [Español](CHANGELOG.es.md) · [Back to the project](README.md)
 
+## v0.19.0 · Named projects, local saving and history
+
+- Editable, persistent project name (format 11; compatible reads of 1–10). API, CLI and MCP review suggest a name and destination while preserving the original file.
+- Save and Save as use user-authorized files where supported; named download fallback and destination hints clearly distinguish suggestions from actual storage.
+- Undo/Redo with Ctrl+Z and Ctrl+Y, up to 80 steps, grouped drags and shared image memory. Native text editing and canceled/failed-save protection retained.
+- Manuals, contracts, bilingual guides, four languages and saving/history/automation checks updated.
+
 ## v0.18.1 · Editor version and links
 
 - GitHub and author links sit to the right of the title.

@@ -439,7 +439,7 @@
   "replace_message": "Des modifications ne sont pas enregistrées. Vous pouvez télécharger le projet avant de continuer.",
   "replace_downloaded": "Le téléchargement du projet a été demandé. Vérifiez que vous avez le fichier avant de continuer.",
   "pending_save_hint": "Appliquez ou annulez les réglages en attente dans Général ou la sélection ; terminez ou annulez le tracé avant de télécharger. Les modifications des images sont enregistrées lors de leur application.",
-  "download_current_project": "Télécharger le projet actuel",
+  "download_current_project": "Enregistrer le projet actuel",
   "discard_continue": "Abandonner les modifications et continuer",
   "pending_save_title": "Vérifiez les réglages en attente",
   "return_editor": "Revenir à l’éditeur",
@@ -467,6 +467,23 @@
   "export_integrated": "Intégrer dans une présentation",
   "export_integrated_hint": "Le mode intégré attend une commande par étape et permet le contrôle depuis la présentation principale.",
   "download_integrated": "Télécharger le paquet ZIP",
-  "integrated_downloaded": "Paquet intégré téléchargé. Décompressez-le pour essayer l’exemple et transmettre les fichiers à l’assistant de présentation."
+  "integrated_downloaded": "Paquet intégré téléchargé. Décompressez-le pour essayer l’exemple et transmettre les fichiers à l’assistant de présentation.",
+  "save_as": "Enregistrer sous…",
+  "project_details": "Projet Tinta y color",
+  "project_name": "Nom du projet",
+  "untitled_project": "Sans titre",
+  "suggested_location": "Emplacement conseillé (non confirmé)",
+  "copy_path": "Copier le chemin",
+  "undo": "Annuler",
+  "redo": "Rétablir",
+  "undo_shortcut": "Annuler (Ctrl+Z)",
+  "redo_shortcut": "Rétablir (Ctrl+Y)",
+  "undo_done": "Modification annulée.",
+  "redo_done": "Modification rétablie.",
+  "path_copied": "Chemin copié.",
+  "path_copy_manual": "Chemin sélectionné : appuyez sur Ctrl+C pour le copier.",
+  "project_saved_file": "Projet enregistré : {name}.",
+  "project_download_started": "Téléchargement lancé : {name}. Vérifiez où le navigateur l’a enregistré.",
+  "save_cancelled": "Enregistrement annulé. Vos modifications restent dans l’éditeur."
 });
 })(typeof window === "undefined" ? globalThis : window);

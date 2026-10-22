@@ -6,7 +6,7 @@ import { AutomationError, errorData } from './validation.mjs';
 const help = `Tinta y color · Automatización local (Node.js 22+)
 
 node automation/cli.mjs create --image imagen.png --plan plan.json --out trabajo.colorflow.json
-node automation/cli.mjs review --project trabajo.colorflow.json --out editar.html [--open]
+node automation/cli.mjs review --project trabajo.colorflow.json --out editar.html [--name "Nombre del proyecto"] [--save-as animacion.colorflow.json] [--open]
 node automation/cli.mjs inspect --project trabajo.colorflow.json
 node automation/cli.mjs validate --project trabajo.colorflow.json
 node automation/cli.mjs update --project trabajo.colorflow.json --plan cambios.json [--stage 0] [--out copia.colorflow.json]
@@ -15,6 +15,7 @@ node automation/cli.mjs render --project trabajo.colorflow.json --out output/pre
 node automation/cli.mjs schema
 
 Opciones: --root carpeta, --browser ejecutable, --initial imagen.jpg (create),
+--name "Nombre" (create/review), --save-as archivo.colorflow.json (review),
 --force (sobrescribir), --timeout milisegundos (prepare/render, 120000 por defecto).
 Las rutas se resuelven dentro de --root (por defecto la carpeta actual).
 create/update/inspect/validate/schema no necesitan navegador. prepare/render utilizan Chrome/Edge/Chromium.
@@ -27,7 +28,7 @@ export async function main(argv, { stdout = process.stdout, stderr = process.std
     if (!command || ['help', '--help', '-h'].includes(command)) { stdout.write(help); return 0; }
     if (!['create', 'inspect', 'validate', 'update', 'prepare', 'render', 'review', 'schema'].includes(command)) throw new AutomationError('INVALID_COMMAND', 'Comando desconocido. Usa --help.');
     const flags = {}, booleans = new Set(['force', 'auto-align', 'open']);
-    const allowed = new Set(['root','browser','image','initial','plan','out','stage','project','force','auto-align','timeout','open']);
+    const allowed = new Set(['root','browser','image','initial','plan','out','stage','project','force','auto-align','timeout','open','name','save-as']);
     for (let i = 0; i < args.length; i++) {
       const key = args[i].slice(2);
       if (!args[i].startsWith('--') || !allowed.has(key) || Object.hasOwn(flags, key)) throw new AutomationError('INVALID_ARGUMENT', `Opción no válida: ${args[i]}`);
@@ -38,8 +39,11 @@ export async function main(argv, { stdout = process.stdout, stderr = process.std
     let result;
     const common = { project: flags.project };
     if (command === 'schema') result = api.schema;
-    if (command === 'create') result = await api.create({ image: flags.image, initialImage: flags.initial, plan: flags.plan ? await api.readJson(flags.plan) : {}, output: flags.out, overwrite: !!flags.force });
-    if (command === 'review') result = await api.review({ ...common, output: flags.out, open: !!flags.open, overwrite: !!flags.force });
+    if (command === 'create') {
+      const plan = flags.plan ? await api.readJson(flags.plan) : {};
+      result = await api.create({ image: flags.image, initialImage: flags.initial, plan: flags.name === undefined ? plan : { ...plan, name: flags.name }, output: flags.out, overwrite: !!flags.force });
+    }
+    if (command === 'review') result = await api.review({ ...common, output: flags.out, name: flags.name, saveAs: flags['save-as'], open: !!flags.open, overwrite: !!flags.force });
     if (command === 'inspect') result = await api.inspect(common);
     if (command === 'validate') result = await api.validate(common);
     if (command === 'update') result = await api.update({ ...common, patch: await api.readJson(flags.plan), stageIndex: flags.stage === undefined ? undefined : Number(flags.stage), output: flags.out || flags.project, overwrite: flags.force || !flags.out || flags.out === flags.project });

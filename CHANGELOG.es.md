@@ -2,6 +2,13 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.19.0 · Proyectos con nombre, guardado local e historial
+
+- Nombre de proyecto editable y persistente (formato 11; lectura compatible con 1–10). API, CLI y MCP review proponen nombre y destino, conservando el archivo original.
+- Guardar y Guardar como con autorización de archivo cuando el navegador lo permite; alternativa por descarga con nombre y ruta recomendada claramente diferenciada del destino real.
+- Deshacer/rehacer con Ctrl+Z y Ctrl+Y, hasta 80 pasos, arrastres agrupados y memoria de imágenes compartida. Conserva edición nativa en texto y protege guardados cancelados o fallidos.
+- Manuales, contratos, guías bilingües, cuatro idiomas y comprobaciones de guardado, historial y automatización actualizados.
+
 ## v0.18.1 · Versión y enlaces en el editor
 
 - Los enlaces de GitHub y del autor se sitúan a la derecha del título.

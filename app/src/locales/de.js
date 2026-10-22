@@ -439,7 +439,7 @@
   "replace_message": "Es gibt ungespeicherte Änderungen. Sie können das Projekt vor dem Fortfahren herunterladen.",
   "replace_downloaded": "Der Projektdownload wurde angefordert. Prüfen Sie vor dem Fortfahren, ob Sie die Datei haben.",
   "pending_save_hint": "Übernehmen oder verwerfen Sie ausstehende Einstellungen unter Allgemein oder für die Auswahl; beenden oder verwerfen Sie Zeichnungen vor dem Herunterladen. Bildänderungen werden beim Übernehmen gespeichert.",
-  "download_current_project": "Aktuelles Projekt herunterladen",
+  "download_current_project": "Aktuelles Projekt speichern",
   "discard_continue": "Änderungen verwerfen und fortfahren",
   "pending_save_title": "Ausstehende Einstellungen prüfen",
   "return_editor": "Zum Editor zurückkehren",
@@ -467,6 +467,23 @@
   "export_integrated": "In eine Präsentation einbetten",
   "export_integrated_hint": "Der eingebettete Modus wartet auf einen Befehl pro Phase und lässt sich von der Hauptpräsentation steuern.",
   "download_integrated": "ZIP-Paket herunterladen",
-  "integrated_downloaded": "Einbettungspaket heruntergeladen. Entpacken Sie es, um das Beispiel zu testen und die Dateien an den Präsentationsassistenten weiterzugeben."
+  "integrated_downloaded": "Einbettungspaket heruntergeladen. Entpacken Sie es, um das Beispiel zu testen und die Dateien an den Präsentationsassistenten weiterzugeben.",
+  "save_as": "Speichern unter…",
+  "project_details": "Tinta y color-Projekt",
+  "project_name": "Projektname",
+  "untitled_project": "Unbenannt",
+  "suggested_location": "Empfohlener Speicherort (nicht bestätigt)",
+  "copy_path": "Pfad kopieren",
+  "undo": "Rückgängig",
+  "redo": "Wiederholen",
+  "undo_shortcut": "Rückgängig (Strg+Z)",
+  "redo_shortcut": "Wiederholen (Strg+Y)",
+  "undo_done": "Änderung rückgängig gemacht.",
+  "redo_done": "Änderung wiederholt.",
+  "path_copied": "Pfad kopiert.",
+  "path_copy_manual": "Pfad ausgewählt: Mit Strg+C kopieren.",
+  "project_saved_file": "Projekt gespeichert: {name}.",
+  "project_download_started": "Download gestartet: {name}. Prüfen Sie den Speicherort im Browser.",
+  "save_cancelled": "Speichern abgebrochen. Ihre Änderungen bleiben im Editor."
 });
 })(typeof window === "undefined" ? globalThis : window);

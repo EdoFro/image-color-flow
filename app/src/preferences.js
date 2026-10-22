@@ -50,7 +50,7 @@
   }
   function project(value, name) {
     const p = validate(value);
-    return { format: 'tinta-y-color', version: 10, resolution: p.resolution, baseMode: p.baseMode,
+    return { format: 'tinta-y-color', version: 11, name: '', resolution: p.resolution, baseMode: p.baseMode,
       baseGeneration: clone(p.baseGeneration), presentation: clone(p.presentation), initialView: root.PaintEngine.normalizeView(p.stage),
       images: {}, alignment: root.PaintProject.zeroAlignment(), stages: [stage(p, 0, name)] };
   }

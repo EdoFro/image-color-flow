@@ -7,6 +7,7 @@
   const upload=(id,value,name='project.json')=>{const files=new DataTransfer();files.items.add(new File([typeof value==='string'?value:JSON.stringify(value)],name,{type:'application/json'}));$(id).files=files.files;$(id).dispatchEvent(new Event('change'));};
   const snapshot=()=>JSON.stringify(TintaColor.getProject());
   const downloads=[],createURL=URL.createObjectURL;URL.createObjectURL=function(blob){if(blob.type==='application/json')blob.text().then(text=>downloads.push(JSON.parse(text)));return createURL.call(this,blob);};
+  window.showSaveFilePicker = undefined;
   try {
     await wait(()=>window.TintaColor&&!document.body.classList.contains('busy'));
     const language=document.documentElement.dataset.i18nTestLanguage||'es';PaintI18n.setLanguage(language);

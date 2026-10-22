@@ -19,6 +19,57 @@
   const general = window.PaintGeneral;
   const viewRenderer = window.PaintView.createRenderer();
   let revision = 0, cached = null, player = null, editing = true, dirty = false, busy = false, gesture = null, polygon = [];
+  const history = PaintHistory.create(80);
+  let historySuspended = false, historyInput = null, saveSuggestion = null;
+  const projectFiles = PaintProjectFiles.create({ picker: () => window.isSecureContext && typeof window.showSaveFilePicker === 'function' ? window.showSaveFilePicker.bind(window) : null, download });
+  function editorContext() { return { selected, selectedPoint, selectedHighlight, tool, selection: project.stages.flatMap((stage, i) => stageSelection.has(stage) ? [i] : []) }; }
+  history.reset(project, editorContext());
+  function syncHistory() {
+    const blocked = busy || hasPendingDrafts() || !!document.querySelector('dialog[open]');
+    $('undoButton').disabled = blocked || !history.canUndo; $('redoButton').disabled = blocked || !history.canRedo;
+  }
+  function recordHistory() {
+    if (historySuspended) return;
+    history.commit(project, editorContext(), historyInput); dirty = !history.clean; syncHistory();
+  }
+  function projectLabel() { $('projectName').value = project.name || ''; }
+  function suggestedFilename() { return saveSuggestion && saveSuggestion.projectName === project.name ? saveSuggestion.fileName : PaintProject.filename(project.name); }
+  function resetSaveTarget(name = '') { projectFiles.reset(name); saveSuggestion = null; $('saveAdvice').hidden = true; $('suggestedDirectory').value = ''; projectLabel(); }
+  async function restoreHistory(delta) {
+    if (busy || hasPendingDrafts() || document.querySelector('dialog[open]')) return;
+    const next = history.peek(delta); if (!next) return;
+    history.endGroup();
+    await action(async () => {
+      // Decode and prepare before changing the cursor: a failure retains the current edit.
+      const imagesChanged = ['final', 'initial'].some(k => project.images[k]?.data !== next.project.images[k]?.data);
+      const preparationChanged = imagesChanged || ['alignment', 'baseMode', 'baseGeneration', 'resolution'].some(k => JSON.stringify(project[k]) !== JSON.stringify(next.project[k]));
+      const images = imagesChanged ? {} : decoded;
+      if (imagesChanged) for (const kind of ['final', 'initial']) if (next.project.images[kind]) images[kind] = await PaintPreparation.loadImage(next.project.images[kind].data);
+      const ready = images.final ? preparationChanged ? PaintPreparation.prepare(images.final, images.initial, next.project) : prepared : null;
+      historySuspended = true;
+      try {
+        project = next.project; decoded = images; prepared = ready; history.move(delta);
+        destroyPlayer(); resetBasePreview(); cached = null; generalDraft = {}; selectionDraft = {}; generalInvalid.clear(); generalReview = null; draft = draftDecoded = null; polygon = []; gesture = null;
+        const context = next.context;
+        selected = Math.max(-2, Math.min(context.selected, project.stages.length - 1)); selectedPoint = context.selectedPoint; selectedHighlight = context.selectedHighlight;
+        stageSelection = new Set(context.selection.filter(i => project.stages[i]).map(i => project.stages[i]));
+        if (selected >= 0 && !stageSelection.size) stageSelection.add(current());
+        if (ready) await prepareProject(ready);
+        else { canvas.width = canvas.height = overlay.width = overlay.height = 1; $('canvasWrap').hidden = true; $('emptyState').hidden = false; $('dimensions').textContent = '—'; invalidate(); }
+        projectLabel(); renderStages(); updateInspector();
+        tool = context.tool; if (!isBulk()) setTool(isInitial() || tool === 'highlight' && (!current().highlightEnabled || current().highlightLinked) ? 'camera' : tool);
+        dirty = !history.clean; status(() => t(delta < 0 ? 'undo_done' : 'redo_done'));
+      } finally { historySuspended = false; }
+    });
+  }
+  document.addEventListener('input', event => { history.context(editorContext()); historyInput = event.target; queueMicrotask(() => { historyInput = null; syncHistory(); }); }, true);
+  for (const type of ['click', 'pointerdown', 'change', 'focusout']) document.addEventListener(type, () => { history.context(editorContext()); history.endGroup(); queueMicrotask(syncHistory); }, true);
+  for (const dialog of document.querySelectorAll('dialog')) dialog.addEventListener('close', syncHistory);
+  $('undoButton').onclick = () => restoreHistory(-1); $('redoButton').onclick = () => restoreHistory(1);
+  $('projectName').oninput = () => { project.name = PaintProject.normalizeName($('projectName').value); recordHistory(); };
+  $('projectName').onchange = projectLabel;
+  $('suggestedDirectory').onclick = () => $('suggestedDirectory').select();
+  $('copyDirectory').onclick = async () => { try { await navigator.clipboard.writeText($('suggestedDirectory').value); status(() => t('path_copied')); } catch (_) { $('suggestedDirectory').focus(); $('suggestedDirectory').select(); status(() => t('path_copy_manual')); } };
   const params = {
     radius: ['radius', 100, v => `${Math.round(v * 100)}%`], speed: ['speed', 100, v => `${Math.round(v * 100)}% / s`],
     maxRadius: ['maxRadius', 100, v => `${Math.round(v * 100)}%`], hue: ['hueResistance', 1, v => `+${v.toFixed(1)}×`], cameraDuration: ['cameraDuration', 1, v => `${v.toFixed(1)} s`], hold: ['hold', 1, v => `${v.toFixed(1)} s`], paintDelay: ['paintDelay', 1, v => `${v.toFixed(1)} s`],
@@ -41,10 +92,10 @@
   function status(message, error = false) { lastStatus = { message, error }; $('status').textContent = i18n.error(typeof message === 'function' ? message() : message); $('status').classList.toggle('error', error); }
   function timeLabel(seconds) { if (!Number.isFinite(seconds)) return '—'; const s = Math.round(seconds); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
   function report(error) { console.error(error); status(() => (error.message || String(error)), true); }
-  async function action(fn) { if (busy) return; busy = true; document.body.classList.add('busy'); const controls = [...document.querySelectorAll('button,input,select')].map(e => [e, e.disabled]); controls.forEach(([e]) => e.disabled = true); try { await fn(); } catch (error) { report(error); } finally { busy = false; document.body.classList.remove('busy'); controls.forEach(([e, disabled]) => e.disabled = disabled); if ($('imagesDialog').open) { syncBaseControls(); $('downloadBase').disabled = !basePreviewGenerated; } if (player) playerState(player.getState()); syncAvailability(); } }
+  async function action(fn) { if (busy) return; busy = true; document.body.classList.add('busy'); const controls = [...document.querySelectorAll('button,input,select')].map(e => [e, e.disabled]); controls.forEach(([e]) => e.disabled = true); try { await fn(); } catch (error) { report(error); } finally { busy = false; document.body.classList.remove('busy'); controls.forEach(([e, disabled]) => e.disabled = disabled); if ($('imagesDialog').open) { syncBaseControls(); $('downloadBase').disabled = !basePreviewGenerated; } if (player) playerState(player.getState()); syncAvailability(); syncHistory(); } }
   function destroyPlayer() { if (player) player.destroy(); player = null; }
   function enterEdit() { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); $('viewMode').value = 'edit'; $('playButton').textContent = '▶'; $('playButton').setAttribute('aria-label', t("reproducir")); $('playStatus').textContent = t("listo_para_explorar"); $('playButton').disabled = false; $('nextButton').disabled = false; drawEditor(); syncAvailability(); }
-  function invalidate() { revision++; cached = null; dirty = true; $('estimate').textContent = t("por_calcular"); $('timeLabel').textContent = '0:00 / —'; $('timeline').value = 0; enterEdit(); }
+  function invalidate() { revision++; cached = null; recordHistory(); $('estimate').textContent = t("por_calcular"); $('timeLabel').textContent = '0:00 / —'; $('timeline').value = 0; enterEdit(); }
   function fitCanvas() {
     if (!prepared) return;
     const area = $('canvasArea'), padding = innerWidth <= 600 ? 24 : 40;
@@ -369,8 +420,9 @@
         Object.assign(point, radii, { inheritRadii: false }); renderPoints(); drawOverlay(); return;
       }
       const r = overlay.getBoundingClientRect(); let index = current().points.findIndex(q => Math.hypot((q.x - p.x) * r.width, (q.y - p.y) * r.height) < 16);
+      const added = index === -1;
       if (index === -1) { if (current().points.length >= 64) { status(() => (t("maximo_de_64_puntos_por_etapa")), true); return; } index = current().points.push(engine.normalizeStage({ points: [{ ...preferences.point, ...p }] }).points[0]) - 1; }
-      gesture = { kind: 'point', index, original: { ...current().points[index] } }; Object.assign(current().points[index], p);
+      gesture = { kind: 'point', index, added, original: { ...current().points[index] } }; Object.assign(current().points[index], p);
       selectedPoint = index; renderPoints();
     }
     drawOverlay();
@@ -408,7 +460,8 @@
       if (gesture.kind === 'rect') { const a = gesture.start, b = gesture.end; if (Math.abs(a.x - b.x) > .005 && Math.abs(a.y - b.y) > .005) current().zone = rectPoints(a, b); }
       if (gesture.kind === 'path') current().path = gesture.path;
       if (gesture.kind === 'camera') { const frame = frameFromRect(gesture.start, gesture.end); if (frame.width >= .02 && frame.height >= .02) current().frame = frame; }
-    } else if (gesture.kind === 'point' || gesture.kind === 'radius') current().points[gesture.index] = gesture.original;
+    } else if (gesture.kind === 'point' && gesture.added) current().points.splice(gesture.index, 1);
+    else if (gesture.kind === 'point' || gesture.kind === 'radius') current().points[gesture.index] = gesture.original;
     gesture = null; invalidate(); updateInspector(); renderStages();
   }
   overlay.addEventListener('pointerup', () => finishGesture()); overlay.addEventListener('pointercancel', () => finishGesture(true));
@@ -482,6 +535,11 @@
   $('timeline').addEventListener('input', () => { if (player) player.seek(+$('timeline').value / 1000 * player.getState().total); });
   $('canvasArea').addEventListener('click', () => { if (!editing && (player?.getState().waiting || player?.getState().atStart)) player.play(); });
   document.addEventListener('keydown', e => {
+    const target = e.target instanceof Element ? e.target : document.body, textEntry = target.closest('textarea,[contenteditable]:not([contenteditable="false"])') || target.tagName === 'INPUT' && !['range','checkbox','radio','button','submit','color'].includes(target.type);
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !textEntry && ['z','y'].includes(e.key.toLowerCase())) {
+      if (busy || document.querySelector('dialog[open]') || hasPendingDrafts()) return;
+      e.preventDefault(); e.stopPropagation(); restoreHistory(e.key.toLowerCase() === 'y' || e.shiftKey ? 1 : -1); return;
+    }
     if (busy || document.querySelector('dialog[open]') || /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)) return;
     if (e.key === ' ' && !(polygon.length || gesture)) { e.preventDefault(); action(async () => { (await ensurePlayer()).toggle(); }); }
     if (e.key === 'ArrowRight' && player) { e.preventDefault(); player.next(); }
@@ -656,12 +714,17 @@
       ($('imagesDialog').open && draft && JSON.stringify(draft) !== JSON.stringify(project)));
   }
   const hasUnsavedChanges = () => dirty || hasPendingDrafts();
-  function saveProject() {
-    if (hasPendingDrafts()) return false;
-    download('proyecto-tinta-y-color.colorflow.json', JSON.stringify(project), 'application/json');
-    dirty = false; status(() => t('proyecto_descargado_conserva_este_archivo_para_seguir_edit')); return true;
+  async function saveProject(saveAs = false) {
+    if (hasPendingDrafts()) { $('pendingSaveDialog').showModal(); return false; }
+    history.endGroup();
+    try {
+      const result = await projectFiles.save(project, { saveAs, suggestedName: suggestedFilename(), description: t('project_details') });
+      history.markSaved(); dirty = false; syncHistory();
+      status(() => t(result.method === 'file' ? 'project_saved_file' : 'project_download_started', { name: result.name })); return true;
+    } catch (error) { if (error.name === 'AbortError') { status(() => t('save_cancelled')); return false; } throw error; }
   }
-  $('saveButton').onclick = () => { if (!saveProject()) $('pendingSaveDialog').showModal(); };
+  $('saveButton').onclick = () => action(() => saveProject());
+  $('saveAsButton').onclick = () => action(() => saveProject(true));
   $('closePendingSave').onclick = () => $('pendingSaveDialog').close();
   let replacement = null;
   function refreshReplacement() {
@@ -678,11 +741,11 @@
   }
   $('cancelReplace').onclick = () => $('replaceDialog').close();
   $('replaceDialog').addEventListener('close', () => { replacement = null; });
-  $('downloadBeforeReplace').onclick = () => { if (saveProject()) refreshReplacement(); };
+  $('downloadBeforeReplace').onclick = () => action(async () => { if (await saveProject()) refreshReplacement(); });
   $('confirmReplace').onclick = () => { const run = replacement?.run; replacement = null; $('replaceDialog').close(); if (run) action(run); };
   function clearSession(next, images) {
     destroyPlayer(); resetBasePreview(); cached = null; prepared = null; revision++;
-    project = next; decoded = images; draft = draftDecoded = null;
+    project = next; decoded = images; draft = draftDecoded = null; resetSaveTarget();
     generalDraft = {}; selectionDraft = {}; generalReview = null; generalInvalid.clear();
     stageSelection = new Set([project.stages[0]]); selected = 0; selectedPoint = selectedHighlight = 0;
     polygon = []; gesture = null; radiusHandles = []; $('includeInitial').checked = false; $('showAllRadii').checked = false;
@@ -694,7 +757,10 @@
   async function installProject(next, images) {
     // Finish image preparation before replacing any of the current editable state.
     const ready = images.final ? PaintPreparation.prepare(images.final, images.initial, next) : null;
-    clearSession(next, images); if (ready) await prepareProject(ready); dirty = false; syncAvailability();
+    historySuspended = true;
+    try { clearSession(next, images); if (ready) await prepareProject(ready); }
+    finally { historySuspended = false; }
+    history.reset(project, editorContext()); dirty = false; syncAvailability(); syncHistory();
   }
   async function newProject() {
     await installProject(PaintPreferences.project(preferences, t('etapa_value', { p0: 1 })), {});
@@ -714,7 +780,7 @@
       if (next.images.initial) images.initial = await PaintPreparation.loadImage(next.images.initial.data);
       candidate = { next, images };
     });
-    if (candidate) requestReplacement('abrir_proyecto', async () => { await installProject(candidate.next, candidate.images); status(() => t('proyecto_abierto_puedes_continuar_editando')); });
+    if (candidate) requestReplacement('abrir_proyecto', async () => { await installProject(candidate.next, candidate.images); projectFiles.reset(file.name); status(() => t('proyecto_abierto_puedes_continuar_editando')); });
   };
   const packField = field => window.PaintCodec.pack(field);
   $('exportButton').onclick = () => { $('exportMode').value = project.presentation.mode || 'standalone'; $('exportLanguage').value = i18n.language; $('exportBackground').value = project.presentation.background; $('exportColor').value = project.presentation.color; $('exportColorField').hidden = project.presentation.background !== 'color'; syncExportMode(); $('exportDialog').showModal(); };
@@ -727,7 +793,7 @@
   $('cancelExport').onclick = () => $('exportDialog').close();
   $('confirmExport').onclick = () => action(async () => {
     const settings = normalizePresentation({ mode: $('exportMode').value, background: $('exportBackground').value, color: $('exportColor').value });
-    if (JSON.stringify(settings) !== JSON.stringify(project.presentation)) { project.presentation = settings; dirty = true; }
+    if (JSON.stringify(settings) !== JSON.stringify(project.presentation)) { project.presentation = settings; recordHistory(); }
     $('exportDialog').close();
     const fields = await calculateFields(); player?.pause(); status(() => (t("empaquetando_la_presentacion_sin_conexion"))); await waitFrame();
     const data = { language: $('exportLanguage').value, width: prepared.width, height: prepared.height, presentation: project.presentation, initialView: project.initialView, base: prepared.baseCanvas.toDataURL('image/png'), final: prepared.finalCanvas.toDataURL('image/png'), fields: fields.filter(f => !f.skipped).map(packField) };
@@ -741,7 +807,7 @@
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
-    const exampleProject = { format: 'tinta-y-color', version: 10, baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
+    const exampleProject = { format: 'tinta-y-color', version: 11, name: 'Samurái · ejemplo', baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
       engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17, startMode: 'delay', delay: .7 }, { x: .16, y: .17, startMode: 'delay', delay: .7 }], radius: .22, maxRadius: .4, speed: .13, hueResistance: 8, paintDelay: 1.2, cameraDuration: .8, pauseAfter: true, frame: { x: .53, y: .03, width: .44, height: .27 } }),
       engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5, startMode: 'after' }], radius: .35, maxRadius: .5, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true, frame: { x: .06, y: .29, width: .91, height: .38 } }),
       engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 }),
@@ -784,13 +850,13 @@
     onSave: value => { const saved = PaintPreferences.save(preferenceStorage, value); preferences = saved.value; status(() => t(saved.stored ? 'preferences_saved' : 'preferences_session_only')); }
   });
   // Interfaz de diagnóstico local, útil para comprobar exportaciones sin dependencias.
-  window.TintaColor = { hasUnsavedChanges, getPreferences: () => structuredClone(preferences), getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision, getBasePreviewState: () => ({ complete: basePreviewGenerated, revision: previewRevision, view: { ...comparison.view }, state: $('basePreviewIndicator').dataset.state }) };
+  window.TintaColor = { hasUnsavedChanges, undo: () => restoreHistory(-1), redo: () => restoreHistory(1), getHistory: () => ({ canUndo: history.canUndo, canRedo: history.canRedo }), getPreferences: () => structuredClone(preferences), getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision, getBasePreviewState: () => ({ complete: basePreviewGenerated, revision: previewRevision, view: { ...comparison.view }, state: $('basePreviewIndicator').dataset.state }) };
 
   function refreshLanguage() {
     // Keep unfinished numeric edits and their invalid state across language changes.
     const invalid = new Set(generalInvalid), values = new Map([...document.querySelectorAll('#generalParameters input[type=number]')].map(input => [input.id, input.value]));
     i18n.apply(document); document.querySelectorAll('[data-language-select]').forEach(select => select.value = i18n.language);
-    renderStages(); updateInspector();
+    renderStages(); updateInspector(); syncHistory();
     if (isBulk()) {
       for (const key of invalid) {
         generalInvalid.add(key); const parameter = general.parameters.find(p => p.key === key), row = document.querySelector('[data-parameter="' + key + '"]');
@@ -835,7 +901,14 @@
   async function loadEmbeddedProject() {
     const next = validateProject(JSON.parse($('tinta-color-project').textContent)), images = {};
     for (const kind of ['final', 'initial']) if (next.images[kind]) images[kind] = await PaintPreparation.loadImage(next.images[kind].data);
-    await installProject(next, images); status(() => t('proyecto_abierto_puedes_continuar_editando'));
+    await installProject(next, images);
+    if ($('tinta-color-save')) {
+      const info = JSON.parse($('tinta-color-save').textContent);
+      if (typeof info.fileName === 'string' && typeof info.directory === 'string') {
+        saveSuggestion = { ...info, projectName: project.name }; $('suggestedDirectory').value = info.directory; $('saveAdvice').hidden = false;
+      }
+    }
+    status(() => t('proyecto_abierto_puedes_continuar_editando'));
   }
   action($('tinta-color-project') ? loadEmbeddedProject : startup === 'empty' ? newProject : loadDemo).then(() => { if (loadedPreferences.reset && !$('status').classList.contains('error')) status(() => t('preferences_recovered')); });
 })();

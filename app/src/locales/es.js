@@ -439,7 +439,7 @@
   "replace_message": "Hay cambios sin guardar. Puedes descargar el proyecto antes de continuar.",
   "replace_downloaded": "Se solicitó la descarga del proyecto. Comprueba que conservas el archivo antes de continuar.",
   "pending_save_hint": "Aplica o descarta los ajustes pendientes de General o de la selección; termina o cancela los trazos antes de descargar. Los cambios en Imágenes se guardan al aplicar.",
-  "download_current_project": "Descargar proyecto actual",
+  "download_current_project": "Guardar proyecto actual",
   "discard_continue": "Descartar cambios y continuar",
   "pending_save_title": "Revisa los ajustes pendientes",
   "return_editor": "Volver al editor",
@@ -467,6 +467,23 @@
   "export_integrated": "Integrar en otra presentación",
   "export_integrated_hint": "El modo integrado espera una orden por etapa y permite control desde la presentación principal.",
   "download_integrated": "Descargar paquete ZIP",
-  "integrated_downloaded": "Paquete integrado descargado. Descomprímelo para probar el ejemplo y entregar los archivos al agente de la presentación."
+  "integrated_downloaded": "Paquete integrado descargado. Descomprímelo para probar el ejemplo y entregar los archivos al agente de la presentación.",
+  "save_as": "Guardar como…",
+  "project_details": "Proyecto de Tinta y color",
+  "project_name": "Nombre del proyecto",
+  "untitled_project": "Sin título",
+  "suggested_location": "Ubicación recomendada (no confirmada)",
+  "copy_path": "Copiar ruta",
+  "undo": "Deshacer",
+  "redo": "Rehacer",
+  "undo_shortcut": "Deshacer (Ctrl+Z)",
+  "redo_shortcut": "Rehacer (Ctrl+Y)",
+  "undo_done": "Cambio deshecho.",
+  "redo_done": "Cambio rehecho.",
+  "path_copied": "Ruta copiada.",
+  "path_copy_manual": "Ruta seleccionada: pulsa Ctrl+C para copiarla.",
+  "project_saved_file": "Proyecto guardado: {name}.",
+  "project_download_started": "Descarga iniciada: {name}. Comprueba dónde la guardó el navegador.",
+  "save_cancelled": "Guardado cancelado. Tus cambios siguen en el editor."
 });
 })(typeof window === "undefined" ? globalThis : window);

@@ -2,6 +2,11 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 120,
+      "description": "Nombre del proyecto; se conserva en el editor y sugiere el nombre del archivo."
+    },
     "resolution": {
       "enum": [
         720,

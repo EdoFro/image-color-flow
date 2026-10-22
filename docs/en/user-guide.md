@@ -14,6 +14,28 @@ Export lets you independently choose the presentation language, initially the ed
 
 Headings, tools and dialogs wrap when space is limited. If a selected value does not fit inside its selector, the full text appears below it and in its hover tooltip. Tools keep their labels in narrow windows. Small or short windows allow scrolling to reach the remaining controls. The exported HTML toolbar also scrolls if it exceeds the available height; showing or hiding it preserves the artwork size.
 
+## Project name, destination and saving
+
+The **Project name** field above the canvas is stored in the editable file and suggests its filename. You can choose a different filename when saving.
+
+An agent's draft may display a **Suggested location (not confirmed)**. Copy the path using its button, or select it and press Ctrl+C. This is guidance: the editor does not claim to have saved there. The path grants no file permissions and is not included in the portable project.
+
+- **Save**: choose and authorize a file on the first save; subsequent writes in that session update that file.
+- **Save as…**: choose another file, with a name suggested from the project name.
+- Unsupported browsers or contexts download a named JSON instead. Check where the browser saved it; it may use Downloads.
+- Canceling the picker or failing to write retains unsaved changes. Opening another project, New project or reloading the example releases the previous session's file target.
+
+Keep the agent's draft and your working copy under separate names. Reloading its editor HTML restores the original draft: save and reopen your JSON to continue your corrections.
+
+## Undo and redo
+
+Use **Undo / Ctrl+Z** and **Redo / Ctrl+Y**; Ctrl+Shift+Z and Command are also supported. Text fields retain native browser undo. The buttons operate on the project after completing the field edit.
+
+History covers points, radii, brushes, zones, framing, highlights, stages, parameters, confirmed batch edits, project name and applied image changes. Each drag or series of adjustments to one control is a single step. Selection and playback create no steps. A new edit after undo discards the redo branch.
+
+Up to 80 steps are kept during the session, sharing image sources without duplicating them per adjustment. Opening another project, New project or loading the example resets history. Saving retains history; returning to the saved state clears the unsaved-change warning. History is not serialized and does not change preferences. Finish/cancel drawings and apply/discard pending dialog or General edits before using it.
+
+
 ## Open the editor
 
 Open [app/index.html](../../app/index.html) in Chrome or Edge. Copy the complete `app/` folder or extract the editor ZIP; see the [two distributions](distribution.md). The example is embedded in `app/demo/demo-data.js` so loading it does not require web requests for local images.
@@ -177,7 +199,7 @@ To integrate it into another web presentation, keep the exported HTML alongside 
 
 Save a `.colorflow.json` project to continue editing: it includes original images, regions, point order/activation/start modes, paths, alignment, framing and parameters. Presentation HTML is a final output, not a replacement for the editable project. Downloads go to the folder selected by your browser.
 
-Projects are saved in format 10; formats 1–9 can also be opened. Existing fields are retained and missing fields receive defaults. See [project format](project-format.md) for compatibility details.
+Projects are saved in format 11; formats 1–10 can also be opened. Existing fields are retained and missing fields receive defaults. See [project format](project-format.md) for compatibility details.
 
 ## Scope and limitations
 

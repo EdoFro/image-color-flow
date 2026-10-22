@@ -10,6 +10,17 @@ El editor sigue funcionando sin instalar Node.js. El HTML exportado tampoco nece
 
 Obtén el [paquete completo](distribucion.md#paquete-completo) para usar API, CLI o MCP. El ZIP del editor contiene únicamente la aplicación portable.
 
+## Borrador con nombre y destino recomendado
+
+Usa `plan.name` al crear el proyecto. Conserva el original, por ejemplo `windsurf-borrador.colorflow.json`. `review` acepta `name` opcional y `saveAs`, una ruta de archivo `.colorflow.json` dentro de la raíz autorizada. El destino recomendado no se crea ni se escribe; no autoriza al navegador. El resultado devuelve `name` y `saveSuggestion` con `fileName`, `directory` y `path`.
+
+```sh
+node automation/cli.mjs review --project windsurf-borrador.colorflow.json --out windsurf-editar.html --name "Historia del windsurf" --save-as animaciones/windsurf.colorflow.json --open
+```
+
+MCP: `colorflow_review` recibe los mismos campos `name` y `saveAs`. Sin `saveAs`, propone un nombre derivado del proyecto junto al borrador y evita coincidir con el archivo original. El nombre indicado en review se incorpora al borrador abierto, sin cambiar el archivo de origen. El editor permite guardar, guardar como y deshacer/rehacer; sus archivos JSON usan formato 11 (abre también 1–10). El historial vive sólo en el editor y no está disponible por MCP. No cambies archivos corregidos por el usuario sin leerlos antes. Sigue siendo intercambio por archivos, no conexión con la sesión abierta.
+
+
 ## Preparación
 
 1. Para la automatización, instala **Node.js 22 o posterior**; se recomienda [Node.js 24 LTS](https://nodejs.org/en/about/previous-releases).

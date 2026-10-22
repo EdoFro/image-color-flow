@@ -439,7 +439,7 @@
   "replace_message": "There are unsaved changes. You can download the project before continuing.",
   "replace_downloaded": "The project download was requested. Check that you have the file before continuing.",
   "pending_save_hint": "Apply or discard pending General or selection settings; finish or cancel drawing before downloading. Image changes are saved when applied.",
-  "download_current_project": "Download current project",
+  "download_current_project": "Save current project",
   "discard_continue": "Discard changes and continue",
   "pending_save_title": "Review pending settings",
   "return_editor": "Return to editor",
@@ -467,6 +467,23 @@
   "export_integrated": "Embed in another presentation",
   "export_integrated_hint": "Embedded mode waits for one command per stage and allows control from the host presentation.",
   "download_integrated": "Download ZIP package",
-  "integrated_downloaded": "Embedded package downloaded. Unzip it to try the example and give the files to your presentation agent."
+  "integrated_downloaded": "Embedded package downloaded. Unzip it to try the example and give the files to your presentation agent.",
+  "save_as": "Save as…",
+  "project_details": "Tinta y color project",
+  "project_name": "Project name",
+  "untitled_project": "Untitled",
+  "suggested_location": "Suggested location (not confirmed)",
+  "copy_path": "Copy path",
+  "undo": "Undo",
+  "redo": "Redo",
+  "undo_shortcut": "Undo (Ctrl+Z)",
+  "redo_shortcut": "Redo (Ctrl+Y)",
+  "undo_done": "Change undone.",
+  "redo_done": "Change redone.",
+  "path_copied": "Path copied.",
+  "path_copy_manual": "Path selected: press Ctrl+C to copy it.",
+  "project_saved_file": "Project saved: {name}.",
+  "project_download_started": "Download started: {name}. Check where your browser saved it.",
+  "save_cancelled": "Save canceled. Your changes remain in the editor."
 });
 })(typeof window === "undefined" ? globalThis : window);

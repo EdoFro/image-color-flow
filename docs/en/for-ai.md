@@ -13,6 +13,17 @@ Goal: turn a colored image and the user's request into an editable project and a
 5. Inspect `plan.png` and `storyboard.png` with `colorflow_read_image`. Check selected regions, starting points, ordering and framing. Individual frames provide more detail. Successful validation does not prove that the AI selected the requested object.
 6. If needed, use `colorflow_update` and render again. Always deliver `presentacion.html` and `proyecto.colorflow.json`, explaining pauses and observed limitations.
 
+## Named draft and suggested destination
+
+Use `plan.name` when creating a project. Keep the original, e.g. `windsurf-draft.colorflow.json`. `review` accepts optional `name` and `saveAs`, a `.colorflow.json` file path inside the authorized root. The suggested destination is not created or written and grants no browser permission. The result includes `name` and `saveSuggestion` with `fileName`, `directory` and `path`.
+
+```sh
+node automation/cli.mjs review --project windsurf-draft.colorflow.json --out windsurf-edit.html --name "Windsurf history" --save-as animations/windsurf.colorflow.json --open
+```
+
+MCP: `colorflow_review` accepts the same `name` and `saveAs` fields. Without `saveAs`, it proposes a project-derived filename beside the draft and avoids matching the source file. A name passed to review is embedded in the editor without changing the source project. The editor supports Save, Save as and Undo/Redo; JSON files use format 11 (also reads 1–10). History exists only in the editor and is not exposed through MCP. Read user-corrected files before making changes. This remains file exchange, not a live session connection.
+
+
 ## Units and behavior
 
 - x/y: fractions from 0 to 1 of the final image's width and height. The origin is at the top left; y increases downward. Preparation preserves geometry and only changes resolution. Rectangles must be inside the image and at least 0.02 wide and high.
@@ -38,6 +49,6 @@ To highlight multiple places simultaneously, set `highlightFrames` in a stage or
 
 ## Draft review before finishing
 
-Use **idea → editable draft → user review → delivery**. After agreeing on the idea, create a few stages at reduced resolution and call `colorflow_review` with `project`, `output: "edit.html"`, `open: true`. If opening fails, provide its file/URL. This step does not calculate propagation and does not require the complete playback HTML or preview gallery. The user continues editing; saving downloads JSON, while reloading the HTML restores its original draft. This is not a live session. Keep structural validation and originals. Reserve the complete render/review workflow above for delivery.
+Use **idea → editable draft → user review → delivery**. After agreeing on the idea, create a few stages at reduced resolution and call `colorflow_review` with `project`, `output: "edit.html"`, `open: true`. If opening fails, provide its file/URL. This step does not calculate propagation and does not require the complete playback HTML or preview gallery. The user continues editing; saving selects a local file or downloads JSON depending on the browser, while reloading the HTML restores its original draft. This is not a live session. Keep structural validation and originals. Reserve the complete render/review workflow above for delivery.
 
 For presentation embedding, use `presentation.mode: "integrated"` or the editor's integrated ZIP. Keep the HTML, controller and example together. Since 0.18.0 use `TintaColorHost.attach` per image and one `bindInput({onAction})` call per presentation. The host routes input to its active sequence (`createSequence` optional) or its own navigation. Replace old handlers; do not add per-resource listeners/onclick or HTML patches. attach disables iframe pointer/focus and negotiates hiding every internal control, including Restart. Buttons with `data-tinta-color-action` run only their action; native fields/links remain native, and custom controls use `data-tinta-color-ignore`. Each enabled stage is a moment. Since 0.17.0, right arrow and click use `advance`: while painting, complete the current stage and start the next; in the last stage, show the end and wait for another input before continuing the presentation. `advanceWhenIdle()` / command `advance-wait` retains the discard-while-painting alternative; explicit `skip` only completes the current moment. When updating, re-export animation HTML and replace the controller; remove any host guard that discarded advancement while painting. Back, restart and finish remain available through the API. The host owns restart controls; `sequence.activeAnimation` supports availability. Internal hover restart remains only when opened independently. Check artwork/margin clicks, Tab excluding frames, buttons without extra advances, ordinary slides, back and offline use. See [the contract](embedding.md). Validate real presentation integration separately.

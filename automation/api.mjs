@@ -11,7 +11,7 @@ const context = createContext({});
 for (const name of ['engine', 'ink-lines', 'base-generation', 'project', 'integration']) runInContext(await readFile(new URL(`../app/src/${name}.js`, import.meta.url), 'utf8'), context);
 const normalize = input => JSON.parse(JSON.stringify(context.PaintProject.normalize(input)));
 const mimeTypes = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif', '.bmp': 'image/bmp', '.avif': 'image/avif' };
-export const version = '0.18.1';
+export const version = '0.19.0';
 export { planSchema };
 
 export async function createAutomation({ root = process.cwd(), browser, renderer = renderInBrowser } = {}) {
@@ -22,7 +22,7 @@ export async function createAutomation({ root = process.cwd(), browser, renderer
     if (rel === '..' || rel.startsWith('..\\') || rel.startsWith('../') || isAbsolute(rel)) throw new AutomationError('OUTSIDE_WORKSPACE', 'La ruta debe quedar dentro de la carpeta de trabajo.');
     return path;
   }
-  async function filePath(path, output = false) {
+  async function filePath(path, output = false, createParent = true) {
     if (typeof path !== 'string' || !path.trim()) throw new AutomationError('INVALID_PATH', 'Indica una ruta de archivo.');
     const target = inside(resolve(workspace, path));
     try { return inside(await realpath(target)); } catch (e) {
@@ -36,6 +36,7 @@ export async function createAutomation({ root = process.cwd(), browser, renderer
         }
       }
       const parent = resolve(await realpath(ancestor), ...suffix); inside(parent);
+      if (!createParent) return resolve(parent, basename(target));
       await mkdir(parent, { recursive: true });
       return resolve(inside(await realpath(parent)), basename(target));
     }
@@ -101,16 +102,26 @@ export async function createAutomation({ root = process.cwd(), browser, renderer
       assertPlan(plan);
       const images = { final: await image(finalPath) }; if (initialImage) images.initial = await image(initialImage);
       if (plan.baseMode === 'uploaded' && !initialImage) throw new AutomationError('INITIAL_IMAGE_REQUIRED', 'baseMode uploaded necesita una imagen inicial.');
-      const project = normalize({ format: 'tinta-y-color', version: 10, ...plan, baseMode: plan.baseMode || (initialImage ? 'uploaded' : 'derived'), images, stages: plan.stages || [{ maxRadius: .4 }] });
+      const project = normalize({ format: 'tinta-y-color', version: 11, ...plan, baseMode: plan.baseMode || (initialImage ? 'uploaded' : 'derived'), images, stages: plan.stages || [{ maxRadius: .4 }] });
       const path = await save(output, JSON.stringify(project), overwrite);
       return summary(project, path);
     },
-    async review({ project, output, open = true, overwrite = false }) {
-      const value = await load(project), html = await buildEditor(value);
+    async review({ project, output, name, saveAs, open = true, overwrite = false }) {
+      if (name !== undefined) assertPlan({ name });
+      const value = await load(project);
+      if (name !== undefined) value.name = context.PaintProject.normalizeName(name);
+      const source = await filePath(project);
+      const stem = basename(source).replace(/(?:\.colorflow)?\.json$/i, '').replace(/-borrador$/i, '');
+      const proposed = saveAs || resolve(dirname(source), value.name ? context.PaintProject.filename(value.name) : stem + '.colorflow.json');
+      let target = await filePath(proposed, true, false);
+      if (!saveAs && target.toLowerCase() === source.toLowerCase()) target = resolve(dirname(target), basename(target).replace(/\.colorflow\.json$/i, '') + '-editado.colorflow.json');
+      if (!/\.colorflow\.json$/i.test(target)) throw new AutomationError('INVALID_PATH', 'saveAs debe terminar en .colorflow.json.');
+      const saveSuggestion = { fileName: basename(target), directory: dirname(target), path: target };
+      const html = await buildEditor(value, saveSuggestion);
       const path = await save(output, html, overwrite), url = pathToFileURL(await filePath(path)).href;
       let opened = false, openError;
       if (open) try { await openEditor(url, browser); opened = true; } catch (error) { openError = error.message; }
-      return { path, editorUrl: url, opened, ...(openError ? { openError } : {}), note: 'Editor con borrador cargado. Guarda tus cambios como .colorflow.json; este HTML conserva el borrador inicial al recargar.' };
+      return { path, editorUrl: url, name: value.name, saveSuggestion, opened, ...(openError ? { openError } : {}), note: 'Editor con borrador cargado. Guarda tus cambios con el nombre propuesto, en la ubicación recomendada o donde elijas. La ruta recomendada no autoriza escritura; este HTML conserva el borrador inicial al recargar.' };
     },
     async inspect({ project }) { return summary(await load(project), project); },
     async update({ project: path, patch, stageIndex, output = path, overwrite = output === path }) {

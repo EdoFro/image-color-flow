@@ -6,7 +6,7 @@
 
 Objetivo: transformar una imagen coloreada y el pedido del usuario en un proyecto editable y un HTML de animación autónomo. Necesitas capacidad de visión para interpretar el contenido. El motor revela colores existentes; no colorea una foto monocroma ni crea dibujos nuevos.
 
-Antes de calcular, distingue **idea → borrador editable → revisión del usuario → entrega**. No renderices una entrega completa por defecto si sólo se pidió un borrador. Tras acordar la idea, crea pocas etapas, usa resolución reducida y llama a `colorflow_review` con `project`, `output: "editar.html"`, `open: true`. Devuelve el archivo/URL si no se puede abrir. El usuario continúa en ese editor; guardar descarga JSON y recargar el HTML vuelve al borrador inicial. Esto no es conexión en vivo. Para esta fase no es obligatorio producir HTML de reproducción ni revisar toda la galería. Conserva validación estructural y originales.
+Antes de calcular, distingue **idea → borrador editable → revisión del usuario → entrega**. No renderices una entrega completa por defecto si sólo se pidió un borrador. Tras acordar la idea, crea pocas etapas, usa resolución reducida y llama a `colorflow_review` con `project`, `output: "editar.html"`, `open: true`. Devuelve el archivo/URL si no se puede abrir. El usuario continúa en ese editor; guardar permite elegir un archivo o descargar JSON según el navegador y recargar el HTML vuelve al borrador inicial. Esto no es conexión en vivo. Para esta fase no es obligatorio producir HTML de reproducción ni revisar toda la galería. Conserva validación estructural y originales.
 
 1. Inspecciona la imagen con `colorflow_read_image`. Si ya hay proyecto, utiliza `colorflow_inspect` antes de modificarlo. No vuelques imágenes base64 dentro del texto del plan.
 2. Prepara un plan explícito a partir del pedido: etapas en orden, puntos, zonas, recorridos, enfoque, destacado, pausas y parámetros. Usa nombres que permitan entender la secuencia. Para una primera prueba utiliza resolución 720.
@@ -14,6 +14,17 @@ Antes de calcular, distingue **idea → borrador editable → revisión del usua
 4. Valida, corrige los campos señalados y renderiza en un directorio nuevo. La duración se calcula según la imagen, velocidades y emisores; excluye las pausas manuales. Si te piden una duración, compruébala en el informe y ajusta velocidades o permanencias. Preparar la base no calcula duración ni genera HTML.
 5. Examina `plan.png` y `storyboard.png` con `colorflow_read_image`. Comprueba selección de zonas, posición de orígenes, orden y encuadres. Los fotogramas individuales permiten revisar con más detalle. Una validación correcta no demuestra que la IA haya seleccionado el objeto solicitado.
 6. Si es necesario, aplica cambios con `colorflow_update` y vuelve a renderizar. En la entrega final, entrega `presentacion.html` y `proyecto.colorflow.json`, indicando las pausas y las limitaciones observadas.
+
+## Borrador con nombre y destino recomendado
+
+Usa `plan.name` al crear el proyecto. Conserva el original, por ejemplo `windsurf-borrador.colorflow.json`. `review` acepta `name` opcional y `saveAs`, una ruta de archivo `.colorflow.json` dentro de la raíz autorizada. El destino recomendado no se crea ni se escribe; no autoriza al navegador. El resultado devuelve `name` y `saveSuggestion` con `fileName`, `directory` y `path`.
+
+```sh
+node automation/cli.mjs review --project windsurf-borrador.colorflow.json --out windsurf-editar.html --name "Historia del windsurf" --save-as animaciones/windsurf.colorflow.json --open
+```
+
+MCP: `colorflow_review` recibe los mismos campos `name` y `saveAs`. Sin `saveAs`, propone un nombre derivado del proyecto junto al borrador y evita coincidir con el archivo original. El nombre indicado en review se incorpora al borrador abierto, sin cambiar el archivo de origen. El editor permite guardar, guardar como y deshacer/rehacer; sus archivos JSON usan formato 11 (abre también 1–10). El historial vive sólo en el editor y no está disponible por MCP. No cambies archivos corregidos por el usuario sin leerlos antes. Sigue siendo intercambio por archivos, no conexión con la sesión abierta.
+
 
 ## Unidades y comportamiento
 

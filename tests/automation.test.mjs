@@ -34,7 +34,7 @@ try {
   await test('Create incorpora la imagen exacta y devuelve un plan sin base64', async () => {
     const result = await api.create({ image: 'imagen.png', plan, output: 'animacion.colorflow.json' });
     assert.equal(result.plan.baseMode, 'derived'); assert.equal(result.images.final.bytes, png.length); assert.equal(result.images.final.data, undefined);
-    const saved = JSON.parse(await readFile(resolve(workspace, result.path), 'utf8')); assert.equal(saved.images.final.data.split(',')[1], png.toString('base64')); assert.equal(saved.version, 10); assert.equal(saved.baseGeneration.method,'protected');
+    const saved = JSON.parse(await readFile(resolve(workspace, result.path), 'utf8')); assert.equal(saved.images.final.data.split(',')[1], png.toString('base64')); assert.equal(saved.version, 11); assert.equal(saved.baseGeneration.method,'protected');
   });
   await test('Crear con inicial conserva uploaded y los valores omitidos reciben valores del motor', async () => {
     const result = await api.create({ image: 'imagen.png', initialImage: 'imagen.png', output: 'dos.json' }); assert.equal(result.plan.baseMode, 'uploaded'); assert.equal(result.plan.stages[0].paintDelay, 0);
@@ -87,6 +87,33 @@ try {
     await assert.rejects(api.create({ image: 'imagen.png', output: 'dos.json' }), e => e.code === 'EEXIST');
     await assert.rejects(api.create({ image: 'imagen.png', plan: { baseMode: 'uploaded' }, output: 'invalido.json' }), e => e.code === 'INITIAL_IMAGE_REQUIRED');
   });
+  await test('Nombre y destino de revisión llegan al editor sin modificar el borrador ni crear el destino', async () => {
+    const before = await readFile(resolve(workspace, 'animacion.colorflow.json'), 'utf8');
+    const result = await api.review({ project: 'animacion.colorflow.json', output: 'revisar-con-nombre.html', name: 'Windsurf </script>', saveAs: 'mi-presentacion/animaciones/windsurf.colorflow.json', open: false });
+    assert.equal(result.name, 'Windsurf </script>');
+    assert.equal(result.saveSuggestion.fileName, 'windsurf.colorflow.json');
+    assert.equal(result.saveSuggestion.directory, resolve(workspace, 'mi-presentacion/animaciones'));
+    const html = await readFile(resolve(workspace, result.path), 'utf8');
+    assert.ok(html.includes('id="tinta-color-save"')); assert.ok(html.includes('Windsurf \\u003c/script>'));
+    assert.equal(await readFile(resolve(workspace, 'animacion.colorflow.json'), 'utf8'), before);
+    await assert.rejects(stat(resolve(workspace, 'mi-presentacion')), e => e.code === 'ENOENT');
+    await assert.rejects(api.review({ project: 'animacion.colorflow.json', output: 'no.html', saveAs: '../outside.colorflow.json', open: false }), e => e.code === 'OUTSIDE_WORKSPACE');
+    await assert.rejects(api.review({ project: 'animacion.colorflow.json', output: 'no.html', name: 'x'.repeat(121), open: false }), e => e.code === 'INVALID_PLAN');
+    const named = await api.create({ image: 'imagen.png', plan: { name: 'Windsurf' }, output: 'windsurf-borrador.colorflow.json' });
+    assert.equal(named.plan.name, 'Windsurf');
+    const defaults = await api.review({ project: named.path, output: 'windsurf-editar.html', open: false });
+    assert.equal(defaults.saveSuggestion.fileName, 'windsurf.colorflow.json');
+    const again = await api.review({ project: 'animacion.colorflow.json', output: 'otro-editor.html', open: false });
+    assert.equal(again.saveSuggestion.fileName, 'animacion-editado.colorflow.json');
+    let received;
+    assert.equal(await cli(['review','--project','draft.json','--out','edit.html','--name','Nombre','--save-as','revision.colorflow.json'], { stdout: { write() {} }, stderr: { write(text) { throw new Error(text); } }, createApi: async () => ({ review: async args => { received = args; return {}; } }) }), 0);
+    assert.equal(received.name, 'Nombre'); assert.equal(received.saveAs, 'revision.colorflow.json');
+    assert.equal(await cli(['create','--root',workspace,'--image','imagen.png','--name','Desde CLI','--out','cli-con-nombre.colorflow.json'], { stdout:{ write() {} }, stderr:{ write(text) { throw new Error(text); } } }), 0);
+    assert.equal((await api.inspect({ project:'cli-con-nombre.colorflow.json' })).plan.name, 'Desde CLI');
+    const handler = createHandler(api); await handler.handle({ jsonrpc:'2.0', id:1, method:'initialize' }); await handler.handle({ jsonrpc:'2.0', method:'notifications/initialized' });
+    const mcp = await handler.handle({ jsonrpc:'2.0', id:2, method:'tools/call', params:{ name:'colorflow_review', arguments:{ project:named.path, output:'mcp-named.html', name:'Otro nombre', saveAs:'otro.colorflow.json', open:false } } });
+    assert.equal(mcp.result.structuredContent.name, 'Otro nombre'); assert.equal(mcp.result.structuredContent.saveSuggestion.fileName, 'otro.colorflow.json');
+  });
   await test('Update de una etapa conserva emisores y las otras etapas', async () => {
     const result = await api.update({ project: 'animacion.colorflow.json', stageIndex: 0, patch: { paintDelay: 1.2, name: 'Modificada' } });
     assert.equal(result.plan.stages[0].paintDelay, 1.2); assert.equal(result.plan.stages[0].points[0].x, .3); assert.equal(result.plan.stages[1].name, 'Enfoque');
@@ -100,7 +127,7 @@ try {
   await test('Un proyecto anterior mantiene sus datos y recibe desfase cero', async () => {
     const raw = JSON.parse(await readFile(resolve(workspace, 'dos.json'), 'utf8')); raw.version = 5; delete raw.stages[0].paintDelay;
     await writeFile(resolve(workspace, 'anterior.json'), JSON.stringify(raw)); const result = await api.inspect({project:'anterior.json'});
-    assert.equal(result.formatVersion,10); assert.equal(result.plan.stages[0].paintDelay,0); assert.equal(result.plan.stages[0].points[0].x,.5);
+    assert.equal(result.formatVersion,11); assert.equal(result.plan.stages[0].paintDelay,0); assert.equal(result.plan.stages[0].points[0].x,.5);
   });
   await test('Validación detecta errores antes de que la normalización pueda ocultarlos', async () => {
     const raw = JSON.parse(await readFile(resolve(workspace, 'animacion.colorflow.json'), 'utf8')); raw.stages[0].points[0].x = 9;

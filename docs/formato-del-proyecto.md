@@ -6,14 +6,15 @@
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
-El formato actual es **10**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
+El formato actual es **11**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
 
 ## Estructura principal
 
 | Campo | Contenido |
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
-| `version` | Versión del formato: se guarda `10`; se leen formatos `1` a `10`. |
+| `version` | Versión del formato: se guarda `11`; se leen formatos `1` a `11`. |
+| `name` | Nombre opcional del proyecto, hasta 120 caracteres; sugiere el nombre del archivo editable. |
 | `images.final` | Imagen coloreada obligatoria para preparar/reproducir/exportar; puede omitirse sólo en un borrador vacío del editor. Contiene `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
 | `baseMode` | `uploaded` para preparar la inicial o `derived` para generarla desde la final. Sin inicial se utiliza `derived`. |
@@ -115,7 +116,7 @@ El HTML autónomo es un producto distinto. Incorpora imágenes preparadas, mapas
 
 ## Planes para automatización
 
-Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 10, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
+Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `name` y `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 11, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
 
 ### Igualación opcional (formatos 8 y 9)
 
@@ -145,4 +146,8 @@ Listas de igual cantidad interpolan los rectángulos por índice durante `camera
 
 ## Modo de reproducción exportada · aplicación 0.16.0
 
-`presentation.mode` acepta `standalone` o `integrated`; omitido equivale a independiente. El modo integrado fuerza pausas por etapa en la exportación, sin modificar `pauseAfter`, geometrías ni tiempos del editor. Sigue siendo formato 10; lectores anteriores ignoran esta opción. El JSON no contiene la conexión de control ni una sesión del editor.
+`presentation.mode` acepta `standalone` o `integrated`; omitido equivale a independiente. El modo integrado fuerza pausas por etapa en la exportación, sin modificar `pauseAfter`, geometrías ni tiempos del editor. Esta opción se introdujo en el formato 10 y se conserva en el 11. El JSON no contiene la conexión de control ni una sesión del editor.
+
+## Formato 11: nombre del proyecto
+
+Añade `name`, texto opcional de hasta 120 caracteres. Los proyectos anteriores reciben nombre vacío al abrirlos. No se guardan permisos de archivos, rutas locales recomendadas ni historial de deshacer. Esos datos pertenecen a la sesión del editor; la recomendación de destino de review sólo se incorpora a su HTML editable.

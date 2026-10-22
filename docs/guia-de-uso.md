@@ -12,6 +12,28 @@ Al exportar puedes elegir el idioma de la presentación de forma independiente; 
 
 Los títulos, las herramientas y los diálogos se distribuyen en varias líneas cuando falta espacio. Si el valor elegido no cabe en un selector, su texto completo aparece debajo y también al dejar el puntero sobre el selector. Las herramientas conservan sus etiquetas en ventanas estrechas. En ventanas pequeñas o bajas puedes desplazarte para acceder al resto de los controles. La barra del HTML exportado también admite desplazamiento si supera la altura disponible; mostrarla u ocultarla conserva el tamaño de la imagen.
 
+## Nombre, destino y guardado
+
+El campo **Nombre del proyecto**, sobre el lienzo, se conserva dentro del archivo editable. Se usa para sugerir un nombre de archivo; puedes cambiar ambos de forma independiente al guardar.
+
+Un borrador abierto por un agente puede mostrar una **Ubicación recomendada (no confirmada)**. Copia la ruta con su botón o selecciónala y pulsa Ctrl+C. Es una orientación: el editor no afirma haber guardado allí y la ruta no concede permisos ni se incorpora al proyecto portable.
+
+- **Guardar**: la primera vez eliges y autorizas un archivo; las siguientes escrituras de esa sesión actualizan el archivo elegido.
+- **Guardar como…**: siempre permite elegir otro archivo, con un nombre sugerido a partir del proyecto.
+- En navegadores o contextos sin selector de escritura compatible se descarga el JSON con el nombre sugerido. Comprueba dónde lo ha guardado el navegador; puede usar Descargas.
+- Cancelar el selector o fallar una escritura conserva los cambios pendientes. Abrir otro proyecto, Nuevo proyecto o recargar el ejemplo libera el archivo autorizado de la sesión anterior.
+
+El archivo de borrador del agente y tu versión de trabajo pueden tener nombres diferentes. Recargar su HTML de edición vuelve al borrador original: guarda y vuelve a abrir tu JSON para continuar tus correcciones.
+
+## Deshacer y rehacer
+
+Usa **Deshacer / Ctrl+Z** y **Rehacer / Ctrl+Y**; también se admite Ctrl+Mayús+Z y el modificador Command. Dentro de un campo de texto se conserva el deshacer nativo del navegador. Los botones permiten operar sobre el proyecto tras terminar la escritura del campo.
+
+El historial cubre puntos, radios, recorridos, zonas, encuadres, destacados, etapas, parámetros, cambios generales confirmados, nombre y cambios de imágenes aplicados. Cada arrastre o serie de ajustes de un control es un paso. Cambiar la selección o reproducir no crea pasos. Una modificación nueva después de deshacer descarta la rama de rehacer.
+
+Se conservan hasta 80 pasos durante la sesión, compartiendo los datos de las imágenes sin duplicarlos por cada ajuste. Abrir otro proyecto, Nuevo proyecto o cargar el ejemplo reinicia el historial. Guardar conserva los pasos; volver al estado guardado elimina el aviso de cambios pendientes. El historial no se guarda en el JSON y no modifica preferencias. Termina o cancela trazos y aplica o descarta borradores de diálogos o General antes de usarlo.
+
+
 ## Abrir
 
 Abre [app/index.html](../app/index.html) en Chrome o Edge. Basta copiar completa la carpeta `app/` o descomprimir el ZIP del editor; consulta las [dos distribuciones](distribucion.md). El ejemplo se incluye en `app/demo/demo-data.js` para no tener que leer imágenes locales mediante peticiones web.
@@ -35,7 +57,7 @@ El editor carga el ejemplo introductorio al abrirse. En **Preferencias → Al ab
 
 **Nuevo proyecto**, en la cabecera, siempre crea un proyecto sin imágenes, con Inicio y una primera etapa vacía. Limpia puntos, recorridos, zonas, rectángulos, selección, reproducción y cálculos anteriores. Usa los valores predeterminados guardados y conserva el idioma. Pulsa **Cargar imágenes** en el lienzo para continuar. Puedes ajustar parámetros, añadir etapas y guardar/reabrir el borrador antes de cargar imágenes; reproducir y exportar requieren una imagen coloreada.
 
-Si hay cambios sin guardar, **Nuevo proyecto**, **Abrir proyecto** y **Volver a cargar el ejemplo** muestran una advertencia. **Cancelar** o Escape mantienen el proyecto. **Descargar proyecto actual** solicita su descarga y mantiene abierto el diálogo; comprueba que conservas el archivo y pulsa **Continuar**. **Descartar cambios y continuar** permite reemplazarlo sin descargar. Un archivo incompatible o un fallo al preparar la imagen conserva el proyecto anterior. Cerrar o recargar la pestaña usa la advertencia propia del navegador.
+Si hay cambios sin guardar, **Nuevo proyecto**, **Abrir proyecto** y **Volver a cargar el ejemplo** muestran una advertencia. **Cancelar** o Escape mantienen el proyecto. **Guardar proyecto actual** solicita el guardado o descarga y mantiene abierto el diálogo; comprueba que conservas el archivo y pulsa **Continuar**. **Descartar cambios y continuar** permite reemplazarlo sin descargar. Un archivo incompatible o un fallo al preparar la imagen conserva el proyecto anterior. Cerrar o recargar la pestaña usa la advertencia propia del navegador.
 
 Los pendientes de General o de la selección y los trazos sin terminar también están protegidos. Para descargar, aplica o descarta esos ajustes y termina o cancela el trazo. El guardado muestra una indicación si todavía falta resolverlos. Los cambios de Imágenes se incorporan al proyecto con **Aplicar y volver al lienzo**; cerrar ese diálogo descarta su borrador.
 
@@ -175,7 +197,7 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 10 y se pueden abrir también los de formatos 1 a 9. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 11 y se pueden abrir también los de formatos 1 a 10. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 

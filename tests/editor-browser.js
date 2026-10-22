@@ -27,7 +27,7 @@
     const finalView = TintaColor.getBasePreviewState().view;assert(JSON.stringify(finalView) === JSON.stringify(view), 'Cambiar mezcla desplaza la vista');
     $('applyImages').click();await wait(() => !$('imagesDialog').open && !document.body.classList.contains('busy'));
     const project = TintaColor.getProject(), prepared = TintaColor.getPrepared();
-    assert(project.version === 10 && project.baseGeneration.method === 'protected' && project.baseGeneration.inkMatch === 'multiply' && project.baseGeneration.sensitivity === .55, 'No se aplican los últimos parámetros');
+    assert(project.version === 11 && project.baseGeneration.method === 'protected' && project.baseGeneration.inkMatch === 'multiply' && project.baseGeneration.sensitivity === .55, 'No se aplican los últimos parámetros');
     assert(project.images.final.data === input.images.final.data, 'Se sobrescribió el original');
     const image = await PaintPreparation.loadImage(project.images.final.data), full = PaintPreparation.prepare(image, null, project);
     for (const side of ['base', 'final']) assert(prepared[side].data.every((v, i) => v === full[side].data[i]), 'Aplicar difiere de preparar completo: ' + side);
