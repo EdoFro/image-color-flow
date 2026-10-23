@@ -2,6 +2,10 @@
 
 **English** | [Español](CHANGELOG.es.md) · [Back to the project](README.md)
 
+## v0.24.0 · Configurable initial waiting
+
+- Initial view adds a wait checkbox, enabled by default. Disabling it starts standalone HTML automatically on opening. The editor stays in edit mode; integrated/host playback retains control. Restart/back leave the initial view stopped. Format 14 reads 1–13; saving/history, API/CLI/MCP and bilingual documentation updated.
+
 ## v0.23.0 · Transparent blank base
 
 - Blank sheet adds Transparent background (zero alpha), a visual-only checkerboard, transparent PNG and opacity-based reveal without black fringes. Preserved through saving, Undo/Redo and API, CLI or MCP. Editable format 13 reads 1–12; bilingual documentation and four languages updated.

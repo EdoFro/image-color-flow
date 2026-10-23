@@ -57,8 +57,8 @@
   }
   function project(value, name) {
     const p = validate(value);
-    return { format: 'tinta-y-color', version: 13, name: '', resolution: p.resolution, baseMode: p.baseMode,
-      baseGeneration: clone(p.baseGeneration), presentation: clone(p.presentation), initialView: root.PaintEngine.normalizeView(p.stage),
+    return { format: 'tinta-y-color', version: 14, name: '', resolution: p.resolution, baseMode: p.baseMode,
+      baseGeneration: clone(p.baseGeneration), presentation: clone(p.presentation), initialView: root.PaintProject.normalizeInitialView({ ...p.stage, pauseAfter: true }),
       images: {}, alignment: root.PaintProject.zeroAlignment(), stages: [stage(p, 0, name)] };
   }
   root.PaintPreferences = { key, factory, validate, load, save, stage, project };

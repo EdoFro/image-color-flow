@@ -241,6 +241,8 @@
   }
   function updateStageSelection() {
     $('generalCard').classList.toggle('selected', isGeneral()); $('generalCard').setAttribute('aria-pressed', String(isGeneral()));
+    const initialSummaryKey = project.initialView.pauseAfter === false ? 'initial_automatic_summary' : 'encuadre_inicial_espera_tu_senal';
+    $('initialSummary').dataset.i18n = initialSummaryKey; $('initialSummary').textContent = t(initialSummaryKey);
     $('initialCard').classList.toggle('selected', isInitial()); $('initialCard').setAttribute('aria-pressed', String(isInitial()));
     document.querySelectorAll('.stage-card').forEach(card => { const active = stageSelection.has(project.stages[+card.dataset.stageIndex]); card.classList.toggle('selected', active); card.classList.toggle('reference-stage', active && +card.dataset.stageIndex === selected && isMultiple()); card.querySelector('.stage-select').setAttribute('aria-pressed', String(active)); });
     $('canvasTitle').textContent = isGeneral() ? t("general_toda_la_presentacion") : isInitial() ? t("inicio_de_la_presentacion") : isMultiple() ? t('selection_reference', { count: stageSelection.size, name: current().name }) : current().name;
@@ -274,7 +276,7 @@
       for (const id of ['duplicateStage', 'deleteStage', 'clearZone', 'clearPath']) $(id).disabled = true;
       document.querySelectorAll('[data-tool]').forEach(button => button.disabled = true); renderGeneral(); return;
     }
-    const stage = current(); $('stageSettings').hidden = isInitial(); $('initialHint').hidden = !isInitial(); $('estimateBlock').hidden = isInitial(); $('cameraTiming').hidden = isInitial();
+    const stage = current(); $('initialPauseField').hidden = !isInitial(); $('initialPauseAfter').checked = project.initialView.pauseAfter !== false; $('stageSettings').hidden = isInitial(); $('initialHint').hidden = !isInitial(); $('estimateBlock').hidden = isInitial(); $('cameraTiming').hidden = isInitial();
     $('inspectorTitle').textContent = isInitial() ? t("la_primera_mirada") : t("el_movimiento_del_color"); $('inspectorEyebrow').textContent = isInitial() ? t('initial_heading') : t('02_propagacion');
     for (const id of ['duplicateStage', 'deleteStage', 'clearZone', 'clearPath']) $(id).disabled = isInitial();
     $('deleteStage').disabled ||= project.stages.length === 1; $('duplicateStage').disabled ||= project.stages.length >= 64;
@@ -512,6 +514,7 @@
   $('clearPath').onclick = () => { current().path = []; invalidate(); updateInspector(); renderStages(); };
   for (const [id, [key, multiplier]] of Object.entries(params)) $(id).addEventListener('input', () => { current()[key] = +$(id).value / multiplier; invalidate(); updateInspector(); });
   $('stageName').addEventListener('input', () => { current().name = $('stageName').value || t("etapa_value", { p0: selected + 1 }); invalidate(); renderStages(); });
+  $('initialPauseAfter').onchange = () => { project.initialView.pauseAfter = $('initialPauseAfter').checked; invalidate(); renderStages(); };
   $('pauseAfter').onchange = () => { current().pauseAfter = $('pauseAfter').checked; invalidate(); renderStages(); };
   $('addStage').onclick = () => { if (project.stages.length >= 64) { status(() => (t("maximo_de_64_etapas_por_proyecto")), true); return; } project.stages.push(PaintPreferences.stage(preferences, project.stages.length, t('etapa_value', { p0: project.stages.length + 1 }))); selected = project.stages.length - 1; selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
   function stageActionAllowed() {
@@ -895,7 +898,7 @@
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
-    const exampleProject = { format: 'tinta-y-color', version: 13, name: 'Samurái · ejemplo', baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
+    const exampleProject = { format: 'tinta-y-color', version: 14, name: 'Samurái · ejemplo', baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: PaintProject.normalizeInitialView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
       engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17, startMode: 'delay', delay: .7 }, { x: .16, y: .17, startMode: 'delay', delay: .7 }], radius: .22, maxRadius: .4, speed: .13, hueResistance: 8, paintDelay: 1.2, cameraDuration: .8, pauseAfter: true, frame: { x: .53, y: .03, width: .44, height: .27 } }),
       engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5, startMode: 'after' }], radius: .35, maxRadius: .5, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true, frame: { x: .06, y: .29, width: .91, height: .38 } }),
       engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 }),

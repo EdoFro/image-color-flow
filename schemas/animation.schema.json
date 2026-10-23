@@ -93,6 +93,11 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "pauseAfter": {
+          "type": "boolean",
+          "default": true,
+          "description": "true espera interacción en Inicio; false inicia automáticamente al abrir el HTML independiente. El modo integrado conserva el control de la presentación principal; reiniciar siempre vuelve a Inicio sin arrancar de nuevo."
+        },
         "frame": {
           "anyOf": [
             {

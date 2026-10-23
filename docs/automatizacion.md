@@ -10,9 +10,13 @@ El editor sigue funcionando sin instalar Node.js. El HTML exportado tampoco nece
 
 Obtén el [paquete completo](distribucion.md#paquete-completo) para usar API, CLI o MCP. El ZIP del editor contiene únicamente la aplicación portable.
 
+## Espera en Inicio
+
+`initialView.pauseAfter` controla la espera inicial (predeterminado `true`). Usa `"initialView": { "pauseAfter": false }` para arrancar automáticamente al abrir el HTML independiente. Editor/review siguen en modo edición. El modo integrado y el controlador oficial mantienen el inicio bajo control de la presentación; reiniciar o retroceder vuelve a Inicio detenido. Disponible en create/update/render/review mediante API, CLI y MCP.
+
 ## Hoja inicial sin dibujo
 
-Para empezar desde una hoja vacía utiliza `"baseMode": "blank"` y `"baseGeneration": { "paper": "white" }` (blanco puro), `{ "paper": "matched" }` (tono uniforme estimado del papel final) o `{ "paper": "transparent" }` (alfa cero). Sólo se necesita la imagen coloreada. Se omiten extracción, igualación de trazos, ajustes de grises y alineación, sin modificar la imagen coloreada. Funciona con create/update/prepare/render/review en API, CLI y MCP, y con la vista previa del editor. Se guarda como formato 13; los formatos 1–12 siguen siendo legibles. La transparencia se revela por opacidad y no elimina el papel de la imagen final. Para ver el fondo de una página contenedora usa también `presentation.background: "transparent"`; el damero del editor no se exporta.
+Para empezar desde una hoja vacía utiliza `"baseMode": "blank"` y `"baseGeneration": { "paper": "white" }` (blanco puro), `{ "paper": "matched" }` (tono uniforme estimado del papel final) o `{ "paper": "transparent" }` (alfa cero). Sólo se necesita la imagen coloreada. Se omiten extracción, igualación de trazos, ajustes de grises y alineación, sin modificar la imagen coloreada. Funciona con create/update/prepare/render/review en API, CLI y MCP, y con la vista previa del editor. Se guarda como formato 14; los formatos 1–13 siguen siendo legibles. La transparencia se revela por opacidad y no elimina el papel de la imagen final. Para ver el fondo de una página contenedora usa también `presentation.background: "transparent"`; el damero del editor no se exporta.
 
 
 ## Borrador con nombre y destino recomendado
@@ -23,7 +27,7 @@ Usa `plan.name` al crear el proyecto. Conserva el original, por ejemplo `windsur
 node automation/cli.mjs review --project windsurf-borrador.colorflow.json --out windsurf-editar.html --name "Historia del windsurf" --save-as animaciones/windsurf.colorflow.json --open
 ```
 
-MCP: `colorflow_review` recibe los mismos campos `name` y `saveAs`. Sin `saveAs`, propone un nombre derivado del proyecto junto al borrador y evita coincidir con el archivo original. El nombre indicado en review se incorpora al borrador abierto, sin cambiar el archivo de origen. El editor permite guardar, guardar como y deshacer/rehacer; sus archivos JSON usan formato 13 (abre también 1–12). El historial vive sólo en el editor y no está disponible por MCP. No cambies archivos corregidos por el usuario sin leerlos antes. Sigue siendo intercambio por archivos, no conexión con la sesión abierta.
+MCP: `colorflow_review` recibe los mismos campos `name` y `saveAs`. Sin `saveAs`, propone un nombre derivado del proyecto junto al borrador y evita coincidir con el archivo original. El nombre indicado en review se incorpora al borrador abierto, sin cambiar el archivo de origen. El editor permite guardar, guardar como y deshacer/rehacer; sus archivos JSON usan formato 14 (abre también 1–13). El historial vive sólo en el editor y no está disponible por MCP. No cambies archivos corregidos por el usuario sin leerlos antes. Sigue siendo intercambio por archivos, no conexión con la sesión abierta.
 
 
 ## Preparación
@@ -80,7 +84,7 @@ node automation/cli.mjs prepare --project output/proyecto-base.colorflow.json --
 
 Para probar otra transformación, utiliza `update` con un parche que incluya el objeto `baseGeneration` y vuelve a preparar en un directorio nuevo. El objeto del parche reemplaza la configuración completa; los campos omitidos de ese objeto reciben sus valores predeterminados. En proyectos antiguos, `method: "grayscale"` mantiene la desaturación anterior. Usa `baseGeneration: { "method": "protected" }` para seleccionar L; el ejemplo [base-lineas.json](../examples/plans/base-lineas.json) incluye sus valores recomendados. Los nuevos proyectos ya utilizan L; formato 7 conserva ink al abrirse.
 
-La API ofrece la misma operación: `await api.prepare({ project, outputDir })`. En MCP se utiliza `colorflow_prepare`, seguido de `colorflow_read_image` sobre `base.png`. Los proyectos de salida son de formato 13, con todos los parámetros de generación guardados. El renderizado completo también incluye `base.png`.
+La API ofrece la misma operación: `await api.prepare({ project, outputDir })`. En MCP se utiliza `colorflow_prepare`, seguido de `colorflow_read_image` sobre `base.png`. Los proyectos de salida son de formato 14, con todos los parámetros de generación guardados. El renderizado completo también incluye `base.png`.
 
 ## Comandos y errores
 
@@ -190,7 +194,7 @@ L es `method: "protected"`; K sigue siendo `"coherent"`. Los proyectos de format
 
 En una etapa o en `initialView` usa `highlightEnabled: true`, `highlightLinked: false` y `highlightFrames: [{"x":0.1,"y":0.15,"width":0.25,"height":0.3},{"x":0.6,"y":0.5,"width":0.25,"height":0.3}]`. El exterior común depende de `outside`, `outsideColor` y `blur`. La lista reemplaza completa la anterior en un parche; no se modifica con índices de rectángulo. Los rectángulos deben estar dentro de la imagen y hay un máximo de 64.
 
-`frame` sigue siendo el enfoque. `highlightFrame` se acepta como campo antiguo; un parche de etapa que sólo incluya ese campo reemplaza la lista por un elemento (o la vacía si es null). Al aportar ambos campos, tiene prioridad `highlightFrames`. Editor, API, CLI y MCP comparten estas reglas. Ejemplo: [destacados-multiples.json](../examples/plans/destacados-multiples.json). El archivo editable actual es formato 13.
+`frame` sigue siendo el enfoque. `highlightFrame` se acepta como campo antiguo; un parche de etapa que sólo incluya ese campo reemplaza la lista por un elemento (o la vacía si es null). Al aportar ambos campos, tiene prioridad `highlightFrames`. Editor, API, CLI y MCP comparten estas reglas. Ejemplo: [destacados-multiples.json](../examples/plans/destacados-multiples.json). El archivo editable actual es formato 14.
 
 ## Abrir el borrador y exportar para integrar
 

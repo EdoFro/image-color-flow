@@ -6,14 +6,14 @@
 
 An editable project is a JSON file with the `.colorflow.json` extension. It embeds original images as base64 data and can be moved without separate image files.
 
-The current format is **13**. Its number is independent of the application version: reorganizing folders does not change the format.
+The current format is **14**. Its number is independent of the application version: reorganizing folders does not change the format.
 
 ## Top-level structure
 
 | Field | Contents |
 | --- | --- |
 | `format` | Fixed identifier `tinta-y-color`. |
-| `version` | Format version: saves `13`; reads formats `1`–`13`. |
+| `version` | Format version: saves `14`; reads formats `1`–`14`. |
 | `name` | Optional project name, up to 120 characters; suggests the editable filename. |
 | `images.final` | Colored image required for preparation/playback/export; may only be omitted in an empty editor draft. Contains `name` and `data` (image data URL). |
 | `images.initial` | Optional initial image, with the same structure. |
@@ -22,7 +22,7 @@ The current format is **13**. Its number is independent of the application versi
 | `resolution` | Working longest side: 720, 1080 or 1440 pixels. |
 | `alignment` | Translation `x`, `y`, per-axis scales `sx`, `sy`, and rotation `angle`. |
 | `presentation` | Export background: `background` (`hatch`, `color`, `transparent`) and hexadecimal `color`; defaults `hatch` and `#e5e7e3`. |
-| `initialView` | Initial camera framing, zoom and highlighting; no emitters. |
+| `initialView` | Initial camera framing, zoom, highlighting and `pauseAfter` (default `true`); no emitters. |
 | `stages` | Ordered list of 1–64 stages. |
 
 Point, region and rectangle `x`/`y` coordinates are fractions from 0 to 1 of the corresponding image dimensions. Radii and speeds are relative to **width**. Alignment rotation and wind direction are degrees. Times are seconds.
@@ -161,3 +161,7 @@ Adds optional `name`, up to 120 characters. Older projects receive an empty name
 With `baseMode: "blank"`, `baseGeneration.paper` also accepts `"transparent"`: the initial PNG is fully transparent (zero RGBA). Playback uses premultiplied alpha interpolation, retaining color and revealing the final background as supplied, without removing it. Outside `blank`, `transparent` is interpreted as `matched`; the editor enables the option only for a blank sheet.
 
 `presentation.background: "transparent"` is independent and lets the containing HTML show through. The editor checkerboard is never included in exports. Projects save in format 13 and still read 1–12; older readers reject the new format instead of losing transparency.
+
+## Format 14: configurable initial waiting
+
+`initialView.pauseAfter` is a boolean saved with the initial view. If omitted or in older projects, it defaults to `true`. `false` starts the first enabled stage when standalone HTML opens. It adds no stage, duration or emitters, and does not change regular stage pauses. Restart/back do not trigger automatic startup again; integrated mode and controller connections wait for host commands. Opening the project in the editor does not start playback.

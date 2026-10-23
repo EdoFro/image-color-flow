@@ -2,6 +2,10 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.24.0 · Espera configurable en Inicio
+
+- Inicio incorpora la casilla de espera, activada por defecto. Desactivarla inicia automáticamente el HTML independiente al abrirse. El editor conserva su modo de edición; integrado/anfitrión conservan el control. Reiniciar/retroceder dejan Inicio detenido. Formato 14 con lectura de 1–13, guardado e historial, API/CLI/MCP y documentación bilingüe actualizados.
+
 ## v0.23.0 · Base sin dibujo transparente
 
 - Hoja en blanco incorpora Fondo transparente (alfa cero), con damero sólo visual, PNG transparente y animación que revela el dibujo mediante opacidad sin halos negros. Se conserva al guardar, deshacer/rehacer y usar API, CLI o MCP. Formato editable 13 con lectura de 1–12; documentación bilingüe y cuatro idiomas actualizados.

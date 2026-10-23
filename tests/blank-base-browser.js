@@ -25,7 +25,7 @@
     const player=createPaintPlayer(playerCanvas,{width:compiled.prepared.width,height:compiled.prepared.height,base:compiled.prepared.base.data,final:compiled.prepared.final.data,fields:compiled.fields,initialView:compiled.project.initialView});
     assert(uniform(playerCanvas.getContext('2d').getImageData(0,0,64,48).data,[255,255,255]),'Playback does not begin on a blank sheet');
     player.seek(player.getState().total);assert(equal(playerCanvas.getContext('2d').getImageData(0,0,64,48).data,expected),'Playback does not reach the final image');player.destroy();
-    assert(compiled.html.includes('<html')&&compiled.project.baseMode==='blank'&&compiled.project.version===13,'Blank export contract');
+    assert(compiled.html.includes('<html')&&compiled.project.baseMode==='blank'&&compiled.project.version===14,'Blank export contract');
     const transparentCompiled=await PaintAutomation.compile({...input,baseGeneration:{paper:'transparent'}}),tc=document.createElement('canvas');
     const tp=createPaintPlayer(tc,{width:64,height:48,base:transparentCompiled.prepared.base.data,final:transparentCompiled.prepared.final.data,fields:transparentCompiled.fields});
     assert(uniform(tc.getContext('2d').getImageData(0,0,64,48).data,[0,0,0],0),'Playback must start fully transparent');

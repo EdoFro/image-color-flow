@@ -111,6 +111,8 @@
       document.addEventListener('visibilitychange', () => { if (document.hidden && player.getState().playing) player.pause(); });
       $('play').disabled = !fields.length; $('caption').textContent = fields.length ? t("inicio_clic_en_la_imagen_o_espacio_para_comenzar") : t("inicio_no_hay_etapas_habilitadas");
       send('event', { event: 'ready', state: current });
+      // Only the first opening may autostart. Restart/back stay at Inicio; embedded playback belongs to its host.
+      if (!integrated && !expectedChannel && data.initialView?.pauseAfter === false && fields.length) player.play();
     }
     init().catch(error => { initializationError = error.message; $('caption').textContent = t("no_se_pudo_abrir_la_presentacion_value", { p0: error.message }); send('event', { event: 'error', error: error.message }); });
   }

@@ -10,7 +10,8 @@ const workflow = process.argv.includes('--workflow');
 const canvasEditor = process.argv.includes('--canvas');
 const blankBase = process.argv.includes('--blank');
 const header = process.argv.includes('--header');
-const withEditor = editor || highlights || i18n || projects || workflow || canvasEditor || blankBase || header;
+const initial = process.argv.includes('--initial');
+const withEditor = editor || highlights || i18n || projects || workflow || canvasEditor || blankBase || header || initial;
 try {
   await cp(resolve(repo, 'app'), resolve(temp, 'app'), { recursive: true });
   await mkdir(resolve(temp, 'automation')); await mkdir(resolve(temp, 'schemas'));
@@ -26,12 +27,12 @@ try {
   let html = withEditor ? editorHTML : await readFile(resolve(repo, 'automation/runner.html'), 'utf8');
   html = html.replace('<html lang="es">', '<html lang="es" data-language="es" data-startup="example">');
   html = withEditor ? html.replace('</body>', '<script src="runner.js"></script></body>') : html.replace('<script src="runner.js">', '<script src="src/base-preview.js"></script><script src="src/image-comparison.js"></script><script src="runner.js">');
-  const runnerSource = await readFile(resolve(repo, header ? 'tests/header-browser.js' : blankBase ? 'tests/blank-base-browser.js' : canvasEditor ? 'tests/canvas-browser.js' : workflow ? 'tests/saving-history-browser.js' : projects ? 'tests/projects-browser.js' : i18n ? 'tests/i18n-browser.js' : highlights ? 'tests/highlight-browser.js' : editor ? 'tests/editor-browser.js' : 'tests/preview-browser.js'), 'utf8');
+  const runnerSource = await readFile(resolve(repo, initial ? 'tests/initial-wait-browser.js' : header ? 'tests/header-browser.js' : blankBase ? 'tests/blank-base-browser.js' : canvasEditor ? 'tests/canvas-browser.js' : workflow ? 'tests/saving-history-browser.js' : projects ? 'tests/projects-browser.js' : i18n ? 'tests/i18n-browser.js' : highlights ? 'tests/highlight-browser.js' : editor ? 'tests/editor-browser.js' : 'tests/preview-browser.js'), 'utf8');
   const { renderInBrowser } = await import(pathToFileURL(resolve(temp, 'automation/browser.mjs')));
   const image = process.argv.slice(2).find(a => !a.startsWith('--')) || resolve(repo, 'examples/images/samurai-final.png');
   const mime = /\.jpe?g$/i.test(image) ? 'image/jpeg' : 'image/png';
   const project = { format: 'tinta-y-color', version: 10, resolution: 720, baseMode: 'derived', images: { final: { name: 'Prueba', data: `data:${mime};base64,${(await readFile(image)).toString('base64')}` } }, stages: [{}] };
-  for (const language of i18n || projects || header ? ['es','en','fr','de'] : [null]) {
+  for (const language of i18n || projects || header || initial ? ['es','en','fr','de'] : [null]) {
     await writeFile(resolve(temp, 'automation/runner.html'), language ? html.replace('data-language="es"', `data-language="es" data-i18n-test-language="${language}"`) : html);
     await writeFile(resolve(temp, 'automation/runner.js'), runnerSource);
     const result = await renderInBrowser(project, { operation: 'prepare', timeout: 120000 });

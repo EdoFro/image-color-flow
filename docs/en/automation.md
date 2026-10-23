@@ -12,7 +12,7 @@ Get the [complete package](distribution.md#complete-package) for API, CLI or MCP
 
 ## Empty initial sheet
 
-To start from an empty sheet, use `"baseMode": "blank"` with `"baseGeneration": { "paper": "white" }` (pure white), `{ "paper": "matched" }` (a uniform estimated paper tone), or `{ "paper": "transparent" }` (zero alpha). Only the colored image is required. Extraction, ink matching, gray adjustments and alignment are bypassed without modifying the colored image. This works with create/update/prepare/render/review in API, CLI and MCP, and with editor previews. Projects use format 13; formats 1–12 remain readable. Transparency fades in through opacity and does not remove paper from the final image. To see a containing page behind it, also use `presentation.background: "transparent"`; the editor checkerboard is not exported.
+To start from an empty sheet, use `"baseMode": "blank"` with `"baseGeneration": { "paper": "white" }` (pure white), `{ "paper": "matched" }` (a uniform estimated paper tone), or `{ "paper": "transparent" }` (zero alpha). Only the colored image is required. Extraction, ink matching, gray adjustments and alignment are bypassed without modifying the colored image. This works with create/update/prepare/render/review in API, CLI and MCP, and with editor previews. Projects use format 14; formats 1–13 remain readable. Transparency fades in through opacity and does not remove paper from the final image. To see a containing page behind it, also use `presentation.background: "transparent"`; the editor checkerboard is not exported.
 
 
 ## Named draft and suggested destination
@@ -23,7 +23,7 @@ Use `plan.name` when creating a project. Keep the original, e.g. `windsurf-draft
 node automation/cli.mjs review --project windsurf-draft.colorflow.json --out windsurf-edit.html --name "Windsurf history" --save-as animations/windsurf.colorflow.json --open
 ```
 
-MCP: `colorflow_review` accepts the same `name` and `saveAs` fields. Without `saveAs`, it proposes a project-derived filename beside the draft and avoids matching the source file. A name passed to review is embedded in the editor without changing the source project. The editor supports Save, Save as and Undo/Redo; JSON files use format 13 (also reads 1–12). History exists only in the editor and is not exposed through MCP. Read user-corrected files before making changes. This remains file exchange, not a live session connection.
+MCP: `colorflow_review` accepts the same `name` and `saveAs` fields. Without `saveAs`, it proposes a project-derived filename beside the draft and avoids matching the source file. A name passed to review is embedded in the editor without changing the source project. The editor supports Save, Save as and Undo/Redo; JSON files use format 14 (also reads 1–13). History exists only in the editor and is not exposed through MCP. Read user-corrected files before making changes. This remains file exchange, not a live session connection.
 
 
 ## Setup
@@ -80,7 +80,7 @@ node automation/cli.mjs prepare --project output/proyecto-base.colorflow.json --
 
 To try another transformation, use `update` with a patch containing `baseGeneration`, then prepare into a new directory. The patched object replaces the complete configuration; omitted fields within it receive defaults. In older projects, `method: "grayscale"` preserves the original desaturation. Use `baseGeneration: { "method": "protected" }` for L; [base-lineas.json](../../examples/plans/base-lineas.json) contains recommended values. New projects already use L; format 7 retains ink when opened.
 
-The API provides the same operation: `await api.prepare({ project, outputDir })`. In MCP, use `colorflow_prepare`, then `colorflow_read_image` on `base.png`. Output projects use format 13 and retain all generation parameters. Full rendering also includes `base.png`.
+The API provides the same operation: `await api.prepare({ project, outputDir })`. In MCP, use `colorflow_prepare`, then `colorflow_read_image` on `base.png`. Output projects use format 14 and retain all generation parameters. Full rendering also includes `base.png`.
 
 ## Commands and errors
 
@@ -193,3 +193,7 @@ In a stage or `initialView`, set `highlightEnabled: true`, `highlightLinked: fal
 ## Open drafts and export for embedding
 
 `colorflow_review` generates a self-contained editor and requests opening it (`open:true` by default). CLI: `review --project draft.colorflow.json --out edit.html --open`. Generation does not calculate propagation; `open:false` only delivers the file. Use `presentation.mode: "integrated"` to include the controller and example in `render`. See [drafts and embedding](embedding.md).
+
+## Initial waiting
+
+`initialView.pauseAfter` controls initial waiting (default `true`). Use `"initialView": { "pauseAfter": false }` to start automatically when standalone HTML opens. Editor/review remain in edit mode. Integrated mode and the official controller keep startup under the host presentation’s control; restarting or going back leaves the initial view stopped. Available through API, CLI and MCP create/update/render/review.

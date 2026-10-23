@@ -50,6 +50,17 @@ La hoja es uniforme y no contiene trazos, sombras ni colores del dibujo. Blanco 
 
 No necesitas cargar una imagen inicial. La elección se guarda en el proyecto, se conserva al abrirlo y se puede deshacer/rehacer al aplicarla. También puedes elegir este modo y el papel en Preferencias para proyectos nuevos. El ejemplo introductorio mantiene su configuración propia.
 
+## Espera en Inicio
+
+Selecciona **Inicio** en la columna izquierda. Ahora tiene **Esperar clic o tecla al terminar esta etapa**, activada por defecto:
+
+- Activada: el HTML independiente conserva la imagen y el encuadre inicial hasta tu señal.
+- Desactivada: inicia la primera etapa habilitada al abrir el HTML, sin un clic adicional. No añade una duración a Inicio.
+
+El editor permanece en modo edición; usa **Reproducir** para probar. **Reiniciar** y retroceder a Inicio dejan la animación detenida, también si el arranque automático está habilitado. Si no hay etapas habilitadas, se conserva Inicio. En modo integrado o conectado al controlador oficial, la presentación principal sigue decidiendo cuándo comienza cada animación.
+
+La elección pertenece al proyecto, admite deshacer/rehacer y se conserva al guardar/reabrir. No cambia las pausas de las otras etapas ni los ajustes colectivos de enfoque de General. Los proyectos anteriores mantienen la espera activada.
+
 ## Zoom y desplazamiento del lienzo
 
 Sobre la imagen encontrarás el porcentaje actual y los botones **100 %**, **200 %**, **Ajustar ancho**, **Ajustar alto** e **Imagen completa**. El modo inicial es Imagen completa. El 100 % representa un píxel de la imagen preparada por píxel de presentación del navegador; corresponde a la resolución de trabajo.
@@ -230,7 +241,7 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 13 y se pueden abrir también los de formatos 1 a 11. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 14 y se pueden abrir también los de formatos 1 a 11. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 

@@ -6,14 +6,14 @@
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
-El formato actual es **13**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
+El formato actual es **14**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
 
 ## Estructura principal
 
 | Campo | Contenido |
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
-| `version` | Versión del formato: se guarda `13`; se leen formatos `1` a `13`. |
+| `version` | Versión del formato: se guarda `14`; se leen formatos `1` a `14`. |
 | `name` | Nombre opcional del proyecto, hasta 120 caracteres; sugiere el nombre del archivo editable. |
 | `images.final` | Imagen coloreada obligatoria para preparar/reproducir/exportar; puede omitirse sólo en un borrador vacío del editor. Contiene `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
@@ -22,7 +22,7 @@ El formato actual es **13**. Su número es independiente de la versión de la ap
 | `resolution` | Lado mayor de trabajo: 720, 1080 o 1440 píxeles. |
 | `alignment` | Desplazamiento `x`, `y`, escalas `sx`, `sy` y giro `angle`. |
 | `presentation` | Fondo exportado: `background` (`hatch`, `color` o `transparent`) y `color` hexadecimal; valores iniciales `hatch` y `#e5e7e3`. |
-| `initialView` | Enfoque, acercamiento y destacado de Inicio; no contiene emisores. |
+| `initialView` | Enfoque, acercamiento, destacado y `pauseAfter` de Inicio (predeterminado `true`); no contiene emisores. |
 | `stages` | Lista ordenada de 1 a 64 etapas. |
 
 Las coordenadas `x` e `y` de puntos, zonas y rectángulos son fracciones de las dimensiones correspondientes de la imagen, entre 0 y 1. Los radios y velocidades se expresan respecto al **ancho**. El giro de alineación y la dirección del viento usan grados. Los tiempos usan segundos.
@@ -116,7 +116,7 @@ El HTML autónomo es un producto distinto. Incorpora imágenes preparadas, mapas
 
 ## Planes para automatización
 
-Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `name` y `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 13, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
+Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `name` y `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 14, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
 
 ### Igualación opcional (formatos 8 y 9)
 
@@ -161,3 +161,7 @@ Añade `name`, texto opcional de hasta 120 caracteres. Los proyectos anteriores 
 Con `baseMode: "blank"`, `baseGeneration.paper` acepta también `"transparent"`: el PNG inicial es completamente transparente (RGBA cero). La interpolación de la animación usa alfa premultiplicada, preserva el color y revela el fondo final tal como está, sin eliminarlo. En modos distintos de `blank`, `transparent` se interpreta como `matched`; la opción del editor sólo se habilita en hoja sin dibujo.
 
 `presentation.background: "transparent"` es independiente y permite ver el HTML contenedor. El damero del editor nunca se incorpora a las exportaciones. Se guardan proyectos de formato 13 y se siguen leyendo 1–12; lectores antiguos rechazan el nuevo formato en vez de perder la transparencia.
+
+## Formato 14: espera inicial configurable
+
+`initialView.pauseAfter` es un booleano que se conserva junto al enfoque de Inicio. Omitido o en proyectos anteriores vale `true`. `false` permite comenzar la primera etapa habilitada al abrir el HTML independiente. No añade una etapa, duración ni emisores. No cambia las pausas de las etapas normales. Reiniciar/retroceder no vuelven a activar el arranque automático; el modo integrado y las conexiones del controlador esperan órdenes del anfitrión. El editor no reproduce por abrir el proyecto.

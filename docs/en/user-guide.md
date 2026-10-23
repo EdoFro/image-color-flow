@@ -52,6 +52,17 @@ The sheet is uniform and contains no drawing lines, shadows or colors. White and
 
 No initial image file is required. The choice is saved with the project, retained when reopened and can be undone/redone after applying. Preferences also lets you select this mode and paper for new projects. The introductory example retains its own settings.
 
+## Initial waiting
+
+Select **Initial view** in the left column. It now has **Wait for a click or key at the end of this stage**, enabled by default:
+
+- Enabled: standalone HTML keeps the initial image and view until your signal.
+- Disabled: the first enabled stage starts when the HTML opens, without an extra click. This does not add a duration to the initial view.
+
+The editor remains in edit mode; use **Play** to preview. **Restart** and going back to the initial view leave playback stopped, even with automatic startup enabled. If no stages are enabled, the initial view remains. In integrated mode or when attached to the official controller, the host presentation still decides when each animation starts.
+
+The choice belongs to the project, supports Undo/Redo and persists through saving/reopening. It does not change other stages’ pauses or General’s camera settings. Older projects keep waiting enabled.
+
 ## Canvas zoom and panning
 
 Above the image, the toolbar shows the current percentage and **100%**, **200%**, **Fit width**, **Fit height** and **Fit image** buttons. Fit image is the initial mode. At 100%, each prepared image pixel occupies one browser display pixel, using the working resolution.
@@ -232,7 +243,7 @@ To integrate it into another web presentation, keep the exported HTML alongside 
 
 Save a `.colorflow.json` project to continue editing: it includes original images, regions, point order/activation/start modes, paths, alignment, framing and parameters. Presentation HTML is a final output, not a replacement for the editable project. Downloads go to the folder selected by your browser.
 
-Projects are saved in format 13; formats 1–12 can also be opened. Existing fields are retained and missing fields receive defaults. See [project format](project-format.md) for compatibility details.
+Projects are saved in format 14; formats 1–13 can also be opened. Existing fields are retained and missing fields receive defaults. See [project format](project-format.md) for compatibility details.
 
 ## Scope and limitations
 

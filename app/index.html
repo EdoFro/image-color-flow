@@ -11,7 +11,7 @@
   <header id="appHeader" class="app-header">
     <div id="headerDetails" class="header-details">
     <div class="brand-block">
-      <a class="brand" href="./index.html"><span class="brand-mark" aria-hidden="true">◒</span><span><span class="brand-title"><span data-i18n="tinta_y_color">Tinta y color</span><span class="app-version">v0.23.0</span></span><small><span data-i18n="estudio_de_animacion">ESTUDIO DE ANIMACIÓN</span></small></span></a>
+      <a class="brand" href="./index.html"><span class="brand-mark" aria-hidden="true">◒</span><span><span class="brand-title"><span data-i18n="tinta_y_color">Tinta y color</span><span class="app-version">v0.24.0</span></span><small><span data-i18n="estudio_de_animacion">ESTUDIO DE ANIMACIÓN</span></small></span></a>
       <div class="brand-links"><a href="https://github.com/EdoFro/image-color-flow" target="_blank" rel="noopener noreferrer">GitHub ↗</a><span aria-hidden="true">·</span><a href="https://github.com/EdoFro" target="_blank" rel="noopener noreferrer">by EdoFro ↗</a></div>
     </div>
     <span class="offline"><i></i> <span data-i18n="todo_ocurre_en_tu_equipo">Todo ocurre en tu equipo</span></span>
@@ -21,7 +21,7 @@
       <button id="preferencesButton"><span data-i18n="preferences">Preferencias</span></button>
     </nav>
     </div>
-    <div id="compactIdentity" class="compact-identity" hidden><span class="compact-app-name" data-i18n="tinta_y_color">Tinta y color</span><span class="app-version">v0.23.0</span><span id="compactProjectName" class="compact-project-name"></span></div>
+    <div id="compactIdentity" class="compact-identity" hidden><span class="compact-app-name" data-i18n="tinta_y_color">Tinta y color</span><span class="app-version">v0.24.0</span><span id="compactProjectName" class="compact-project-name"></span></div>
     <button id="toggleHeader" class="header-toggle" type="button" aria-expanded="true" aria-controls="headerDetails projectBar" aria-label="Minimizar encabezado" title="Minimizar encabezado" data-i18n-aria-label="collapse_header" data-i18n-title="collapse_header"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false"><path d="m5 12 5-5 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </header>
   <section id="projectBar" class="project-bar" aria-label="Proyecto" data-i18n-aria-label="project_details">
@@ -36,7 +36,7 @@
       <p class="muted intro"><span data-i18n="define_donde_empieza_el_dibujo_guia_el_resto">Define dónde empieza. El dibujo guía el resto.</span></p>
       <p class="muted small selection-help"><span data-i18n="ctrl_clic_para_seleccionar_varias_etapas_la_casilla_habili">Ctrl + clic para seleccionar varias etapas. La casilla habilita o deshabilita su reproducción.</span></p>
       <button id="generalCard" class="initial-card general-card" aria-pressed="false"><strong><span data-i18n="general_2">General</span></strong><small><span data-i18n="parametros_de_toda_la_presentacion">Parámetros de toda la presentación</span></small></button>
-      <button id="initialCard" class="initial-card" aria-pressed="false"><strong><span data-i18n="inicio">Inicio</span></strong><small><span data-i18n="encuadre_inicial_espera_tu_senal">Encuadre inicial · espera tu señal</span></small></button>
+      <button id="initialCard" class="initial-card" aria-pressed="false"><strong><span data-i18n="inicio">Inicio</span></strong><small><span id="initialSummary" data-i18n="encuadre_inicial_espera_tu_senal">Encuadre inicial · espera tu señal</span></small></button>
       <div id="stageList" class="stage-list" aria-label="Etapas de la animación" data-i18n-aria-label="etapas_de_la_animacion"></div>
       <div class="sequence-actions"><button id="duplicateStage"><span data-i18n="duplicar">Duplicar</span></button><button id="deleteStage"><span data-i18n="eliminar">Eliminar</span></button></div>
       <div class="sequence-note"><span>↳</span><p><span data-i18n="las_etapas_se_reproducen_en_orden_puedes_detener_la_presen">Las etapas se reproducen en orden. Puedes detener la presentación entre ellas.</span></p></div>
@@ -79,7 +79,8 @@
         <div class="general-actions"><p id="generalPending" role="status"><span data-i18n="sin_cambios_pendientes">Sin cambios pendientes.</span></p><button id="reviewGeneral" class="primary" disabled><span data-i18n="aplicar_cambios">Aplicar cambios…</span></button><button id="cancelGeneral" disabled><span data-i18n="descartar_pendientes">Descartar pendientes</span></button></div>
       </section>
       <div id="individualSettings">
-      <p id="initialHint" class="muted" hidden><span data-i18n="la_imagen_inicial_permanece_quieta_sin_pintar_hasta_pulsar">La imagen inicial permanece quieta, sin pintar, hasta pulsar reproducir, clic o espacio. La primera etapa parte de este encuadre.</span></p>
+      <p id="initialHint" class="muted" hidden><span data-i18n="la_imagen_inicial_permanece_quieta_sin_pintar_hasta_pulsar">Define la imagen inicial sin pintar. Con la espera activada, el HTML independiente espera tu señal; desactivada, empieza al abrirse. El editor se prueba con Reproducir y el modo integrado sigue las órdenes de la presentación.</span></p>
+      <label id="initialPauseField" class="checkbox" hidden><input id="initialPauseAfter" type="checkbox" checked><span data-i18n="esperar_clic_o_tecla_al_terminar_esta_etapa">Esperar clic o tecla al terminar esta etapa</span></label>
       <div id="stageSettings">
       <label class="field"><span data-i18n="nombre_de_la_etapa">Nombre de la etapa</span><input id="stageName" maxlength="80"></label>
       <div class="parameter"><label for="radius"><span data-i18n="radio_antes_de_detenerse_en_negro">Radio antes de detenerse en negro</span></label><output id="radiusOut"></output><input id="radius" type="range" min="1" max="150" step="1"><p><span data-i18n="fuera_de_este_radio_la_tinta_bloquea_el_avance">Fuera de este radio, la tinta bloquea el avance.</span></p></div>

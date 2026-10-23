@@ -15,9 +15,13 @@ Antes de calcular, distingue **idea → borrador editable → revisión del usua
 5. Examina `plan.png` y `storyboard.png` con `colorflow_read_image`. Comprueba selección de zonas, posición de orígenes, orden y encuadres. Los fotogramas individuales permiten revisar con más detalle. Una validación correcta no demuestra que la IA haya seleccionado el objeto solicitado.
 6. Si es necesario, aplica cambios con `colorflow_update` y vuelve a renderizar. En la entrega final, entrega `presentacion.html` y `proyecto.colorflow.json`, indicando las pausas y las limitaciones observadas.
 
+## Espera en Inicio
+
+`initialView.pauseAfter` controla la espera inicial (predeterminado `true`). Usa `"initialView": { "pauseAfter": false }` para arrancar automáticamente al abrir el HTML independiente. Editor/review siguen en modo edición. El modo integrado y el controlador oficial mantienen el inicio bajo control de la presentación; reiniciar o retroceder vuelve a Inicio detenido. Disponible en create/update/render/review mediante API, CLI y MCP.
+
 ## Hoja inicial sin dibujo
 
-Para empezar desde una hoja vacía utiliza `"baseMode": "blank"` y `"baseGeneration": { "paper": "white" }` (blanco puro), `{ "paper": "matched" }` (tono uniforme estimado del papel final) o `{ "paper": "transparent" }` (alfa cero). Sólo se necesita la imagen coloreada. Se omiten extracción, igualación de trazos, ajustes de grises y alineación, sin modificar la imagen coloreada. Funciona con create/update/prepare/render/review en API, CLI y MCP, y con la vista previa del editor. Se guarda como formato 13; los formatos 1–12 siguen siendo legibles. La transparencia se revela por opacidad y no elimina el papel de la imagen final. Para ver el fondo de una página contenedora usa también `presentation.background: "transparent"`; el damero del editor no se exporta.
+Para empezar desde una hoja vacía utiliza `"baseMode": "blank"` y `"baseGeneration": { "paper": "white" }` (blanco puro), `{ "paper": "matched" }` (tono uniforme estimado del papel final) o `{ "paper": "transparent" }` (alfa cero). Sólo se necesita la imagen coloreada. Se omiten extracción, igualación de trazos, ajustes de grises y alineación, sin modificar la imagen coloreada. Funciona con create/update/prepare/render/review en API, CLI y MCP, y con la vista previa del editor. Se guarda como formato 14; los formatos 1–13 siguen siendo legibles. La transparencia se revela por opacidad y no elimina el papel de la imagen final. Para ver el fondo de una página contenedora usa también `presentation.background: "transparent"`; el damero del editor no se exporta.
 
 
 ## Borrador con nombre y destino recomendado
@@ -28,7 +32,7 @@ Usa `plan.name` al crear el proyecto. Conserva el original, por ejemplo `windsur
 node automation/cli.mjs review --project windsurf-borrador.colorflow.json --out windsurf-editar.html --name "Historia del windsurf" --save-as animaciones/windsurf.colorflow.json --open
 ```
 
-MCP: `colorflow_review` recibe los mismos campos `name` y `saveAs`. Sin `saveAs`, propone un nombre derivado del proyecto junto al borrador y evita coincidir con el archivo original. El nombre indicado en review se incorpora al borrador abierto, sin cambiar el archivo de origen. El editor permite guardar, guardar como y deshacer/rehacer; sus archivos JSON usan formato 13 (abre también 1–12). El historial vive sólo en el editor y no está disponible por MCP. No cambies archivos corregidos por el usuario sin leerlos antes. Sigue siendo intercambio por archivos, no conexión con la sesión abierta.
+MCP: `colorflow_review` recibe los mismos campos `name` y `saveAs`. Sin `saveAs`, propone un nombre derivado del proyecto junto al borrador y evita coincidir con el archivo original. El nombre indicado en review se incorpora al borrador abierto, sin cambiar el archivo de origen. El editor permite guardar, guardar como y deshacer/rehacer; sus archivos JSON usan formato 14 (abre también 1–13). El historial vive sólo en el editor y no está disponible por MCP. No cambies archivos corregidos por el usuario sin leerlos antes. Sigue siendo intercambio por archivos, no conexión con la sesión abierta.
 
 
 ## Unidades y comportamiento
