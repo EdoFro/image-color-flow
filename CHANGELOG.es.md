@@ -2,6 +2,13 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.20.0 · Zoom de edición y acciones por etapa
+
+- Rueda con ampliación alrededor del puntero, porcentaje y botones 100 %, 200 %, ancho, alto e imagen completa. Mano y botón central desplazan; la vista se conserva al editar y cambiar de etapa.
+- Navegación independiente del encuadre exportado y del historial, con las mismas coordenadas para imagen, puntos, radios y recorridos.
+- Duplicar y eliminar en cada tarjeta; confirmación roja de dos clics y dos segundos para todos los botones de eliminar. Escape, clic fuera o pérdida de foco cancelan. Deshacer recupera las etapas.
+- Manuales bilingües, controles en cuatro idiomas y pruebas de precisión, navegación, confirmación y límites actualizados.
+
 ## v0.19.0 · Proyectos con nombre, guardado local e historial
 
 - Nombre de proyecto editable y persistente (formato 11; lectura compatible con 1–10). API, CLI y MCP review proponen nombre y destino, conservando el archivo original.

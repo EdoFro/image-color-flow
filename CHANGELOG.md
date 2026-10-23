@@ -2,6 +2,13 @@
 
 **English** | [Español](CHANGELOG.es.md) · [Back to the project](README.md)
 
+## v0.20.0 · Editor zoom and per-stage actions
+
+- Wheel zoom anchored at the pointer, percentage display and 100%, 200%, width, height and fit-image presets. Hand and middle-button panning; view retained across editing and stage changes.
+- Navigation is independent of exported framing and history, with shared image, point, radius and brush coordinates.
+- Duplicate and delete on each card; red two-click/two-second confirmation for every stage Delete button. Escape, outside click or loss of focus cancels. Undo restores stages.
+- Bilingual manuals, controls in four languages and precision, navigation, confirmation and limits checks updated.
+
 ## v0.19.0 · Named projects, local saving and history
 
 - Editable, persistent project name (format 11; compatible reads of 1–10). API, CLI and MCP review suggest a name and destination while preserving the original file.

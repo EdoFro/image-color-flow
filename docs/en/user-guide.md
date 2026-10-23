@@ -36,6 +36,22 @@ History covers points, radii, brushes, zones, framing, highlights, stages, param
 Up to 80 steps are kept during the session, sharing image sources without duplicating them per adjustment. Opening another project, New project or loading the example resets history. Saving retains history; returning to the saved state clears the unsaved-change warning. History is not serialized and does not change preferences. Finish/cancel drawings and apply/discard pending dialog or General edits before using it.
 
 
+## Canvas zoom and panning
+
+Above the image, the toolbar shows the current percentage and **100%**, **200%**, **Fit width**, **Fit height** and **Fit image** buttons. Fit image is the initial mode. At 100%, each prepared image pixel occupies one browser display pixel, using the working resolution.
+
+With the pointer inside the image panel, the wheel zooms around that point. Manual zoom ranges from 5% to 800%. Ctrl+wheel retains the browser's behavior. Select **Hand** and drag to pan, or drag with the middle mouse button without changing tools. Selecting a drawing tool turns Hand off.
+
+Switching stages or adjusting parameters retains the editor view. Fit modes adapt to panel resizing; manual zoom retains its percentage and visible center. Opening another project, New project or loading the example returns to Fit image. Navigation does not modify animation framing, is not exported or serialized, and creates no Undo steps. Image and guides continue sharing the same editing coordinates at any zoom.
+
+## Duplicate and delete on each stage
+
+Every stage card has **Duplicate** (two-sheet icon) and **Delete** buttons. Duplicate inserts a copy immediately after that stage and selects it, retaining points, radii, timing, zone, brush and views. Card buttons affect only their own stage, even with a multi-selection. The lower buttons remain available for the selected stage.
+
+Both card and lower Delete buttons use two-phase confirmation: the first click turns the button red and displays **Delete?**; a second click on the same button within two seconds removes the stage. Timeout, Escape, clicking elsewhere, moving focus or leaving the window cancels. Only one button can be armed. The first click changes neither the project nor its history.
+
+Duplicate and delete can be undone with Ctrl+Z. The last stage cannot be deleted, and projects cannot exceed 64 stages. Finish/cancel drawings and apply/discard pending settings before these actions.
+
 ## Open the editor
 
 Open [app/index.html](../../app/index.html) in Chrome or Edge. Copy the complete `app/` folder or extract the editor ZIP; see the [two distributions](distribution.md). The example is embedded in `app/demo/demo-data.js` so loading it does not require web requests for local images.

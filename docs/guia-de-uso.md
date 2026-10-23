@@ -34,6 +34,22 @@ El historial cubre puntos, radios, recorridos, zonas, encuadres, destacados, eta
 Se conservan hasta 80 pasos durante la sesión, compartiendo los datos de las imágenes sin duplicarlos por cada ajuste. Abrir otro proyecto, Nuevo proyecto o cargar el ejemplo reinicia el historial. Guardar conserva los pasos; volver al estado guardado elimina el aviso de cambios pendientes. El historial no se guarda en el JSON y no modifica preferencias. Termina o cancela trazos y aplica o descarta borradores de diálogos o General antes de usarlo.
 
 
+## Zoom y desplazamiento del lienzo
+
+Sobre la imagen encontrarás el porcentaje actual y los botones **100 %**, **200 %**, **Ajustar ancho**, **Ajustar alto** e **Imagen completa**. El modo inicial es Imagen completa. El 100 % representa un píxel de la imagen preparada por píxel de presentación del navegador; corresponde a la resolución de trabajo.
+
+Con el puntero en el área de imagen, la rueda amplía o reduce alrededor de ese punto. El zoom manual admite del 5 % al 800 %. Ctrl+rueda conserva el comportamiento habitual del navegador. Usa **Mano** y arrastra para desplazarte por una imagen ampliada, o arrastra con el botón central sin cambiar de herramienta. Seleccionar una herramienta de dibujo desactiva Mano.
+
+Cambiar de etapa o ajustar parámetros conserva la vista de edición. Ajustar ancho/alto/imagen completa se adapta al tamaño del panel; el zoom manual conserva su porcentaje y el centro visible. Abrir otro proyecto, Nuevo proyecto o cargar el ejemplo vuelve a Imagen completa. Esta navegación no modifica el encuadre de la animación, no se exporta ni se guarda en el JSON y no crea pasos de Deshacer. La imagen y sus guías siguen compartiendo las mismas coordenadas al editar con zoom.
+
+## Duplicar y eliminar desde cada etapa
+
+Cada tarjeta del listado de etapas incluye **Duplicar** (icono de dos hojas) y **Eliminar**. Duplicar inserta una copia inmediatamente después de esa etapa y la selecciona; conserva sus puntos, radios, tiempos, zonas, recorrido y vistas. Incluso con varias etapas seleccionadas, los botones de una tarjeta sólo actúan sobre ella. Se mantienen los botones inferiores para la etapa seleccionada.
+
+Eliminar tiene confirmación en dos fases tanto en las tarjetas como en el botón inferior: el primer clic cambia el botón a rojo con **¿Eliminar?**; un segundo clic en ese mismo botón, antes de dos segundos, elimina la etapa. El plazo vencido, Escape, un clic en otro lugar, cambiar el foco o salir de la ventana cancelan la confirmación. Sólo puede haber un botón armado. El primer clic no modifica el proyecto ni su historial.
+
+Duplicar y eliminar se pueden deshacer con Ctrl+Z. No se puede eliminar la última etapa ni superar 64 etapas. Termina o cancela trazos y aplica o descarta ajustes pendientes antes de estas acciones.
+
 ## Abrir
 
 Abre [app/index.html](../app/index.html) en Chrome o Edge. Basta copiar completa la carpeta `app/` o descomprimir el ZIP del editor; consulta las [dos distribuciones](distribucion.md). El ejemplo se incluye en `app/demo/demo-data.js` para no tener que leer imágenes locales mediante peticiones web.

@@ -23,6 +23,8 @@ Version ZIPs are published through [GitHub Releases](https://github.com/EdoFro/i
 
 ## Get started
 
+The canvas supports wheel zoom, width/height fitting and Hand or middle-button panning. Each stage card supports duplicate and delete, with two-click confirmation and Undo recovery. See [zoom and stage actions](docs/en/user-guide.md#canvas-zoom-and-panning).
+
 Name your project, use **Save as…**, and undo/redo with **Ctrl+Z / Ctrl+Y**. Supported browsers let you select a local file and update it with Save during the session; others download the JSON. Agent drafts can suggest a name and destination. See [saving and history](docs/en/user-guide.md#project-name-destination-and-saving).
 
 The interface supports **English, Spanish, French and German**. Use the language selector in the header or Images dialog; your choice is remembered locally. On first use, a supported browser language is selected, falling back to Spanish. Switching languages preserves the project and playback. See [language support](docs/en/languages.md).

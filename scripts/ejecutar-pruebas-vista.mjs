@@ -7,7 +7,8 @@ await mkdir(resolve(repo, 'output'), { recursive: true });
 const temp = await mkdtemp(resolve(repo, 'output/test-preview-'));
 const editor = process.argv.includes('--editor'), highlights = process.argv.includes('--highlights'), i18n = process.argv.includes('--i18n'), projects = process.argv.includes('--projects');
 const workflow = process.argv.includes('--workflow');
-const withEditor = editor || highlights || i18n || projects || workflow;
+const canvasEditor = process.argv.includes('--canvas');
+const withEditor = editor || highlights || i18n || projects || workflow || canvasEditor;
 try {
   await cp(resolve(repo, 'app'), resolve(temp, 'app'), { recursive: true });
   await mkdir(resolve(temp, 'automation')); await mkdir(resolve(temp, 'schemas'));
@@ -23,7 +24,7 @@ try {
   let html = withEditor ? editorHTML : await readFile(resolve(repo, 'automation/runner.html'), 'utf8');
   html = html.replace('<html lang="es">', '<html lang="es" data-language="es" data-startup="example">');
   html = withEditor ? html.replace('</body>', '<script src="runner.js"></script></body>') : html.replace('<script src="runner.js">', '<script src="src/base-preview.js"></script><script src="src/image-comparison.js"></script><script src="runner.js">');
-  const runnerSource = await readFile(resolve(repo, workflow ? 'tests/saving-history-browser.js' : projects ? 'tests/projects-browser.js' : i18n ? 'tests/i18n-browser.js' : highlights ? 'tests/highlight-browser.js' : editor ? 'tests/editor-browser.js' : 'tests/preview-browser.js'), 'utf8');
+  const runnerSource = await readFile(resolve(repo, canvasEditor ? 'tests/canvas-browser.js' : workflow ? 'tests/saving-history-browser.js' : projects ? 'tests/projects-browser.js' : i18n ? 'tests/i18n-browser.js' : highlights ? 'tests/highlight-browser.js' : editor ? 'tests/editor-browser.js' : 'tests/preview-browser.js'), 'utf8');
   const { renderInBrowser } = await import(pathToFileURL(resolve(temp, 'automation/browser.mjs')));
   const image = process.argv.slice(2).find(a => !a.startsWith('--')) || resolve(repo, 'examples/images/samurai-final.png');
   const mime = /\.jpe?g$/i.test(image) ? 'image/jpeg' : 'image/png';

@@ -110,3 +110,13 @@ dialog{overflow-wrap:anywhere}
 .project-name{display:flex;align-items:center;gap:10px;min-width:0;font-size:11px}.project-name input{min-width:0;width:230px;max-width:100%;padding:7px;border:1px solid var(--line);border-radius:5px;background:transparent;color:var(--ink);font-size:12px}
 .history-controls{display:flex;gap:6px}.history-controls button:disabled{cursor:default}.save-advice{min-width:0;flex:1 1 260px;font-size:10px;color:var(--muted)}.save-advice>div{display:flex;gap:6px;margin-top:4px}.save-advice input{flex:1;min-width:0;border:1px solid var(--line);border-radius:4px;padding:5px;background:transparent;color:var(--ink);font-size:11px}.save-advice button{padding:5px 8px;font-size:10px}
 @media(max-width:600px){.project-bar{padding:10px 20px}.project-name{flex:1 1 100%;flex-wrap:wrap}.project-name input{flex:1 1 160px}.save-advice{flex-basis:100%}}
+
+/* Independent editor viewport. Canvas coordinates stay relative to the full image. */
+.canvas-area{position:relative;display:block;overscroll-behavior:contain}.canvas-area .canvas-wrap{position:absolute;max-width:none;max-height:none;margin:0;flex-shrink:0}.canvas-area #canvas,.canvas-area #overlay{max-width:none;max-height:none}
+.canvas-area.hand-mode,.canvas-area.hand-mode #overlay{cursor:grab!important}.canvas-area.panning,.canvas-area.panning *{cursor:grabbing!important;user-select:none}
+.canvas-area #emptyState{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;max-width:420px}
+.canvas-zoom-controls{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:0 0 9px;flex-shrink:0}.canvas-zoom-controls button{font-size:10px;padding:6px 8px}.canvas-zoom-controls button[aria-pressed=true]{background:var(--ink);color:var(--panel)}.canvas-zoom-controls output{font-size:11px;font-variant-numeric:tabular-nums;min-width:42px;color:var(--muted)}.canvas-zoom-controls button:disabled{cursor:default}
+.stage-actions{grid-column:2;display:flex;gap:5px;align-items:center}.stage-actions button{font-size:10px;padding:4px 6px}.stage-duplicate{font-size:17px!important;line-height:18px;min-width:29px}.stage-delete,#deleteStage{min-width:91px}.stage-order{flex-wrap:wrap}.stage-actions button:disabled{cursor:default}
+button.delete-armed,button.delete-armed:hover{background:#a42f23;color:#fff;border-color:#721b14;box-shadow:0 0 0 2px #edc2b9;font-weight:700;transition:none}
+.stage-delete,#deleteStage,.canvas-zoom-controls button{transition:none}.canvas-area.hand-mode{touch-action:none}
+@media(max-width:1150px){.stage-actions{grid-column:1/-1}}

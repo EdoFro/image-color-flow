@@ -19,6 +19,20 @@
   const general = window.PaintGeneral;
   const viewRenderer = window.PaintView.createRenderer();
   let revision = 0, cached = null, player = null, editing = true, dirty = false, busy = false, gesture = null, polygon = [];
+  let armedStageDelete = null;
+  const canvasViewport = PaintCanvasViewport.create({ area: $('canvasArea'), wrapper: $('canvasWrap'), canInteract: () => !!prepared && !busy && !gesture, onChange: () => { drawOverlay(); syncCanvasView(); } });
+  function syncCanvasView() {
+    const view = canvasViewport.state();
+    $('canvasZoomValue').textContent = Math.round(view.scale * 100) + '%';
+    for (const button of document.querySelectorAll('[data-canvas-zoom]')) {
+      const value = button.dataset.canvasZoom;
+      const active = view.mode === value || view.mode === 'custom' && Math.abs(view.scale - Number(value)) < 1e-6;
+      button.setAttribute('aria-pressed', String(active)); button.disabled = !prepared || busy;
+    }
+    $('panCanvas').disabled = !prepared || busy; $('panCanvas').setAttribute('aria-pressed', String(view.hand));
+  }
+  for (const button of document.querySelectorAll('[data-canvas-zoom]')) button.onclick = () => canvasViewport.preset(button.dataset.canvasZoom);
+  $('panCanvas').onclick = () => { if (busy || !prepared || gesture) return; canvasViewport.hand(!canvasViewport.state().hand); $('toolHint').textContent = t(canvasViewport.state().hand ? 'canvas_pan_hint' : 'canvas_zoom_hint'); };
   const history = PaintHistory.create(80);
   let historySuspended = false, historyInput = null, saveSuggestion = null;
   const projectFiles = PaintProjectFiles.create({ picker: () => window.isSecureContext && typeof window.showSaveFilePicker === 'function' ? window.showSaveFilePicker.bind(window) : null, download });
@@ -55,7 +69,7 @@
         stageSelection = new Set(context.selection.filter(i => project.stages[i]).map(i => project.stages[i]));
         if (selected >= 0 && !stageSelection.size) stageSelection.add(current());
         if (ready) await prepareProject(ready);
-        else { canvas.width = canvas.height = overlay.width = overlay.height = 1; $('canvasWrap').hidden = true; $('emptyState').hidden = false; $('dimensions').textContent = '—'; invalidate(); }
+        else { canvasViewport.source(0, 0); canvas.width = canvas.height = overlay.width = overlay.height = 1; $('canvasWrap').hidden = true; $('emptyState').hidden = false; $('dimensions').textContent = '—'; invalidate(); }
         projectLabel(); renderStages(); updateInspector();
         tool = context.tool; if (!isBulk()) setTool(isInitial() || tool === 'highlight' && (!current().highlightEnabled || current().highlightLinked) ? 'camera' : tool);
         dirty = !history.clean; status(() => t(delta < 0 ? 'undo_done' : 'redo_done'));
@@ -96,14 +110,7 @@
   function destroyPlayer() { if (player) player.destroy(); player = null; }
   function enterEdit() { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); $('viewMode').value = 'edit'; $('playButton').textContent = '▶'; $('playButton').setAttribute('aria-label', t("reproducir")); $('playStatus').textContent = t("listo_para_explorar"); $('playButton').disabled = false; $('nextButton').disabled = false; drawEditor(); syncAvailability(); }
   function invalidate() { revision++; cached = null; recordHistory(); $('estimate').textContent = t("por_calcular"); $('timeLabel').textContent = '0:00 / —'; $('timeline').value = 0; enterEdit(); }
-  function fitCanvas() {
-    if (!prepared) return;
-    const area = $('canvasArea'), padding = innerWidth <= 600 ? 24 : 40;
-    const maxWidth = Math.max(10, area.clientWidth - padding), maxHeight = Math.max(10, area.clientHeight - padding);
-    const ratio = Math.min(maxWidth / prepared.width, maxHeight / prepared.height);
-    $('canvasWrap').style.width = `${prepared.width * ratio}px`; $('canvasWrap').style.height = `${prepared.height * ratio}px`;
-    drawOverlay();
-  }
+  function fitCanvas() { if (prepared) canvasViewport.resize(); }
   function drawEditor() {
     if (!prepared || !editing) return;
     const mode = $('viewMode').value, config = current();
@@ -190,6 +197,7 @@
   function frameFromRect(a, b) { return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), width: Math.abs(a.x - b.x), height: Math.abs(a.y - b.y) }; }
   function activeCount(stage) { return stage.points.filter(p => p.enabled !== false).length; }
   function renderStages() {
+    cancelStageDelete();
     $('stageList').replaceChildren();
     project.stages.forEach((stage, i) => {
       const card = document.createElement('div'); card.className = `stage-card${stageSelection.has(stage) ? ' selected' : ''}${stage.enabled === false ? ' disabled-stage' : ''}`; card.dataset.stageIndex = i;
@@ -204,7 +212,12 @@
         b.onclick = () => { const j = i + delta; if (j < 0 || j >= project.stages.length) return; const primary = current(); [project.stages[i], project.stages[j]] = [project.stages[j], project.stages[i]]; if (!stageSelection.has(stage)) { stageSelection = new Set([stage]); selectionDraft = {}; } selected = project.stages.indexOf(stageSelection.has(primary) ? primary : stage); invalidate(); renderStages(); updateInspector(); }; order.append(b);
       }
       const rename = document.createElement('button'); rename.textContent = '✎'; rename.setAttribute('aria-label', t("renombrar_etapa_value", { p0: i + 1 })); rename.onclick = () => { selectStage(i); beginRename(i); }; order.append(rename);
-      card.append(order); $('stageList').append(card);
+      const actions = document.createElement('div'); actions.className = 'stage-actions';
+      const duplicate = document.createElement('button'); duplicate.className = 'stage-duplicate'; duplicate.textContent = '⧉'; duplicate.disabled = project.stages.length >= 64;
+      duplicate.title = t('duplicate_stage_named', { name: stage.name }); duplicate.setAttribute('aria-label', duplicate.title); duplicate.onclick = () => duplicateStageAt(project.stages.indexOf(stage));
+      const remove = document.createElement('button'); remove.className = 'stage-delete'; remove.textContent = t('eliminar'); remove.disabled = project.stages.length === 1;
+      remove.title = project.stages.length === 1 ? t('el_proyecto_necesita_al_menos_una_etapa') : t('delete_stage_named', { name: stage.name }); remove.setAttribute('aria-label', remove.title); remove.setAttribute('aria-pressed', 'false'); remove.onclick = () => requestStageDelete(stage, remove);
+      actions.append(duplicate, remove); card.append(order, actions); $('stageList').append(card);
     });
     updateStageSelection();
   }
@@ -246,6 +259,7 @@
     const stage = current(); $('stageSettings').hidden = isInitial(); $('initialHint').hidden = !isInitial(); $('estimateBlock').hidden = isInitial(); $('cameraTiming').hidden = isInitial();
     $('inspectorTitle').textContent = isInitial() ? t("la_primera_mirada") : t("el_movimiento_del_color"); $('inspectorEyebrow').textContent = isInitial() ? t('initial_heading') : t('02_propagacion');
     for (const id of ['duplicateStage', 'deleteStage', 'clearZone', 'clearPath']) $(id).disabled = isInitial();
+    $('deleteStage').disabled ||= project.stages.length === 1; $('duplicateStage').disabled ||= project.stages.length >= 64;
     document.querySelectorAll('[data-tool]').forEach(button => button.disabled = (isInitial() && !['camera', 'highlight'].includes(button.dataset.tool)) || (button.dataset.tool === 'highlight' && (!stage.highlightEnabled || stage.highlightLinked)));
     if (!isInitial()) {
       $('stageName').value = stage.name;
@@ -384,7 +398,7 @@
     if (next === 'highlight' && (!current().highlightEnabled || current().highlightLinked)) { status(() => (t("habilita_el_destacado_y_desmarca_el_vinculo_para_dibujarlo"))); return; }
     tool = next; polygon = []; gesture = null; overlay.style.cursor = 'crosshair'; if (next === 'highlight') $('viewMode').value = 'edit'; enterEdit();
     document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
-    const hints = { point: t("clic_anadir_o_seleccionar_centro_mover_asas_t_m_radios_dob"), rect: t("arrastra_para_delimitar_la_zona_de_esta_etapa"), polygon: t("clic_para_anadir_vertices_enter_o_doble_clic_para_cerrar_e"), path: t("arrastra_para_dibujar_el_recorrido_sustituye_el_recorrido_"), camera: t("arrastra_el_rectangulo_de_enfoque_el_acercamiento_se_ajust"), highlight: t("ctrl_arrastrar_agregar_clic_seleccionar_arrastra_interior_") }; $('toolHint').textContent = hints[tool]; drawOverlay();
+    const hints = { point: t("clic_anadir_o_seleccionar_centro_mover_asas_t_m_radios_dob"), rect: t("arrastra_para_delimitar_la_zona_de_esta_etapa"), polygon: t("clic_para_anadir_vertices_enter_o_doble_clic_para_cerrar_e"), path: t("arrastra_para_dibujar_el_recorrido_sustituye_el_recorrido_"), camera: t("arrastra_el_rectangulo_de_enfoque_el_acercamiento_se_ajust"), highlight: t("ctrl_arrastrar_agregar_clic_seleccionar_arrastra_interior_") }; $('toolHint').textContent = canvasViewport.state().hand ? t('canvas_pan_hint') : hints[tool]; drawOverlay();
   }
   function position(event) { const r = overlay.getBoundingClientRect(); return { x: Math.max(0, Math.min(1, (event.clientX - r.left) / r.width)), y: Math.max(0, Math.min(1, (event.clientY - r.top) / r.height)) }; }
   function finishPolygon() {
@@ -428,6 +442,7 @@
     drawOverlay();
   });
   overlay.addEventListener('pointermove', e => {
+    if (canvasViewport.state().hand || canvasViewport.state().dragging) return;
     if (!gesture && tool === 'highlight' && editing && !isBulk()) {
       const r = overlay.getBoundingClientRect(), hit = e.ctrlKey ? null : PaintHighlightEditor.hit(current().highlightFrames, selectedHighlight, position(e), r.width, r.height);
       overlay.style.cursor = hit ? hit.edge === 'move' ? 'move' : hit.edge + '-resize' : 'crosshair';
@@ -472,7 +487,7 @@
     if (tool === 'point') { const p = position(e), r = overlay.getBoundingClientRect(); const i = current().points.findIndex(q => Math.hypot((q.x - p.x) * r.width, (q.y - p.y) * r.height) < 16); if (i >= 0) { removePoint(i); status(() => (t("punto_eliminado"))); } }
   });
   overlay.addEventListener('keydown', e => { if (e.key === 'Delete' && tool === 'highlight' && editing && !isBulk() && $('viewMode').value === 'edit') { e.preventDefault(); removeHighlight(selectedHighlight); return; } if (e.key === 'Enter' && polygon.length) { e.preventDefault(); finishPolygon(); } if (e.key === 'Escape') { polygon = []; finishGesture(true); drawOverlay(); } });
-  document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
+  document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { canvasViewport.hand(false); setTool(b.dataset.tool); });
   $('initialCard').onclick = () => { selected = -1; stageSelection.clear(); selectionDraft = {}; polygon = []; setTool('camera'); $('viewMode').value = 'frame'; renderStages(); updateInspector(); drawEditor(); };
   $('showAllRadii').onchange = drawOverlay;
   $('clearZone').onclick = () => { current().zone = null; polygon = []; invalidate(); };
@@ -481,8 +496,48 @@
   $('stageName').addEventListener('input', () => { current().name = $('stageName').value || t("etapa_value", { p0: selected + 1 }); invalidate(); renderStages(); });
   $('pauseAfter').onchange = () => { current().pauseAfter = $('pauseAfter').checked; invalidate(); renderStages(); };
   $('addStage').onclick = () => { if (project.stages.length >= 64) { status(() => (t("maximo_de_64_etapas_por_proyecto")), true); return; } project.stages.push(PaintPreferences.stage(preferences, project.stages.length, t('etapa_value', { p0: project.stages.length + 1 }))); selected = project.stages.length - 1; selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
-  $('duplicateStage').onclick = () => { if (project.stages.length >= 64) return; project.stages.splice(selected + 1, 0, engine.normalizeStage({ ...structuredClone(current()), name: t('copied_name', { name: current().name }) })); selected++; selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
-  $('deleteStage').onclick = () => { if (project.stages.length === 1) { status(() => (t("el_proyecto_necesita_al_menos_una_etapa"))); return; } project.stages.splice(selected, 1); selected = Math.min(selected, project.stages.length - 1); selectedPoint = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector(); };
+  function stageActionAllowed() {
+    if (busy) return false;
+    if (hasPendingDrafts()) { status(() => t('pending_save_hint'), true); return false; }
+    return true;
+  }
+  function duplicateStageAt(index) {
+    if (!stageActionAllowed() || !project.stages[index]) return;
+    cancelStageDelete();
+    if (project.stages.length >= 64) { status(() => t('maximo_de_64_etapas_por_proyecto'), true); return; }
+    const stage = project.stages[index];
+    project.stages.splice(index + 1, 0, engine.normalizeStage({ ...structuredClone(stage), name: t('copied_name', { name: stage.name }) }));
+    selected = index + 1; selectedPoint = selectedHighlight = 0; stageSelection = new Set([current()]); selectionDraft = {}; polygon = [];
+    invalidate(); renderStages(); updateInspector();
+  }
+  function deleteStageAt(stage) {
+    if (!stageActionAllowed()) return;
+    const index = project.stages.indexOf(stage); if (index < 0 || project.stages.length === 1) return;
+    const primary = selected >= 0 ? current() : null;
+    project.stages.splice(index, 1); stageSelection.delete(stage);
+    if (primary && primary !== stage) selected = project.stages.indexOf(primary);
+    else { selected = stageSelection.size ? project.stages.indexOf([...stageSelection].at(-1)) : Math.min(index, project.stages.length - 1); selectedPoint = selectedHighlight = 0; }
+    if (selected >= 0 && !stageSelection.size) stageSelection.add(current());
+    selectionDraft = {}; polygon = []; invalidate(); renderStages(); updateInspector();
+  }
+  function cancelStageDelete() {
+    if (!armedStageDelete) return;
+    const { button, label, title, aria, timer } = armedStageDelete; clearTimeout(timer); armedStageDelete = null;
+    button.classList.remove('delete-armed'); button.textContent = label; button.title = title; button.setAttribute('aria-label', aria); button.setAttribute('aria-pressed', 'false');
+  }
+  function requestStageDelete(stage, button) {
+    if (!stageActionAllowed() || !project.stages.includes(stage) || project.stages.length === 1) return;
+    if (armedStageDelete?.stage === stage && armedStageDelete.button === button && performance.now() < armedStageDelete.until) { cancelStageDelete(); deleteStageAt(stage); return; }
+    cancelStageDelete();
+    armedStageDelete = { stage, button, label: button.textContent, title: button.title, aria: button.getAttribute('aria-label') || button.textContent, until: performance.now() + 2000, timer: setTimeout(cancelStageDelete, 2000) };
+    button.classList.add('delete-armed'); button.textContent = t('confirm_stage_delete_short'); button.title = t('confirm_stage_delete_hint', { name: stage.name }); button.setAttribute('aria-label', button.title); button.setAttribute('aria-pressed', 'true');
+  }
+  for (const type of ['pointerdown','click','focusin']) document.addEventListener(type, event => { if (armedStageDelete && !armedStageDelete.button.contains(event.target)) cancelStageDelete(); }, true);
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') cancelStageDelete(); }, true);
+  window.addEventListener('blur', cancelStageDelete);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) cancelStageDelete(); });
+  $('duplicateStage').onclick = () => { if (selected >= 0 && !isMultiple()) duplicateStageAt(selected); };
+  $('deleteStage').onclick = () => { if (selected >= 0 && !isMultiple()) requestStageDelete(current(), $('deleteStage')); };
   $('viewMode').onchange = () => { destroyPlayer(); editing = true; document.body.classList.remove('presenting'); drawEditor(); };
   $('editButton').onclick = () => enterEdit();
   $('setFrame').onclick = () => setTool('camera');
@@ -501,7 +556,7 @@
     await waitFrame(); prepared = ready || PaintPreparation.prepare(decoded.final, decoded.initial, project);
     canvas.width = overlay.width = prepared.width; canvas.height = overlay.height = prepared.height;
     $('dimensions').textContent = `${prepared.width} × ${prepared.height} px`; $('emptyState').hidden = true; $('canvasWrap').hidden = false;
-    invalidate(); fitCanvas(); renderStages(); updateInspector(); drawEditor();
+    canvasViewport.source(prepared.width, prepared.height); invalidate(); fitCanvas(); renderStages(); updateInspector(); drawEditor();
   }
   async function calculateFields() {
     if (!prepared) throw new Error(t("carga_primero_una_imagen"));
@@ -704,7 +759,7 @@
     const url = URL.createObjectURL(new Blob([content], { type })), a = document.createElement('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
   }
   function syncAvailability() {
-    const available = !!prepared && !busy;
+    const available = !!prepared && !busy; syncCanvasView();
     $('exportButton').disabled = !available;
     $('playButton').disabled = $('nextButton').disabled = !available || !!player?.getState().empty;
     $('restartButton').disabled = $('timeline').disabled = !available;
@@ -744,7 +799,7 @@
   $('downloadBeforeReplace').onclick = () => action(async () => { if (await saveProject()) refreshReplacement(); });
   $('confirmReplace').onclick = () => { const run = replacement?.run; replacement = null; $('replaceDialog').close(); if (run) action(run); };
   function clearSession(next, images) {
-    destroyPlayer(); resetBasePreview(); cached = null; prepared = null; revision++;
+    destroyPlayer(); resetBasePreview(); cached = null; prepared = null; revision++; cancelStageDelete(); canvasViewport.reset();
     project = next; decoded = images; draft = draftDecoded = null; resetSaveTarget();
     generalDraft = {}; selectionDraft = {}; generalReview = null; generalInvalid.clear();
     stageSelection = new Set([project.stages[0]]); selected = 0; selectedPoint = selectedHighlight = 0;
@@ -850,7 +905,7 @@
     onSave: value => { const saved = PaintPreferences.save(preferenceStorage, value); preferences = saved.value; status(() => t(saved.stored ? 'preferences_saved' : 'preferences_session_only')); }
   });
   // Interfaz de diagnóstico local, útil para comprobar exportaciones sin dependencias.
-  window.TintaColor = { hasUnsavedChanges, undo: () => restoreHistory(-1), redo: () => restoreHistory(1), getHistory: () => ({ canUndo: history.canUndo, canRedo: history.canRedo }), getPreferences: () => structuredClone(preferences), getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision, getBasePreviewState: () => ({ complete: basePreviewGenerated, revision: previewRevision, view: { ...comparison.view }, state: $('basePreviewIndicator').dataset.state }) };
+  window.TintaColor = { hasUnsavedChanges, undo: () => restoreHistory(-1), redo: () => restoreHistory(1), getCanvasView: () => canvasViewport.state(), getHistory: () => ({ canUndo: history.canUndo, canRedo: history.canRedo }), getPreferences: () => structuredClone(preferences), getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision, getBasePreviewState: () => ({ complete: basePreviewGenerated, revision: previewRevision, view: { ...comparison.view }, state: $('basePreviewIndicator').dataset.state }) };
 
   function refreshLanguage() {
     // Keep unfinished numeric edits and their invalid state across language changes.
@@ -870,7 +925,7 @@
     else { $('playButton').setAttribute('aria-label', t('reproducir')); $('playStatus').textContent = t('listo_para_explorar'); }
     if (!isBulk()) {
       const hints = { point: 'clic_anadir_o_seleccionar_centro_mover_asas_t_m_radios_dob', rect: 'arrastra_para_delimitar_la_zona_de_esta_etapa', polygon: 'clic_para_anadir_vertices_enter_o_doble_clic_para_cerrar_e', path: 'arrastra_para_dibujar_el_recorrido_sustituye_el_recorrido_', camera: 'arrastra_el_rectangulo_de_enfoque_el_acercamiento_se_ajust', highlight: 'ctrl_arrastrar_agregar_clic_seleccionar_arrastra_interior_' };
-      $('toolHint').textContent = t(hints[tool]);
+      $('toolHint').textContent = canvasViewport.state().hand ? t('canvas_pan_hint') : t(hints[tool]);
     }
     if ($('imagesDialog').open && draft) {
       syncBaseControls();

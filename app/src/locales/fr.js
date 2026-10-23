@@ -484,6 +484,18 @@
   "path_copy_manual": "Chemin sélectionné : appuyez sur Ctrl+C pour le copier.",
   "project_saved_file": "Projet enregistré : {name}.",
   "project_download_started": "Téléchargement lancé : {name}. Vérifiez où le navigateur l’a enregistré.",
-  "save_cancelled": "Enregistrement annulé. Vos modifications restent dans l’éditeur."
+  "save_cancelled": "Enregistrement annulé. Vos modifications restent dans l’éditeur.",
+  "canvas_zoom_controls": "Zoom du canevas",
+  "canvas_zoom_current": "Zoom actuel",
+  "canvas_zoom_width": "Ajuster en largeur",
+  "canvas_zoom_height": "Ajuster en hauteur",
+  "canvas_zoom_fit": "Image entière",
+  "canvas_hand": "Main",
+  "canvas_pan_hint": "Faites glisser pour déplacer l’image ; le bouton central de la souris fonctionne aussi.",
+  "canvas_zoom_hint": "Molette : zoom au pointeur. Bouton central : déplacement.",
+  "duplicate_stage_named": "Dupliquer l’étape : {name}",
+  "delete_stage_named": "Supprimer l’étape : {name}",
+  "confirm_stage_delete_short": "Supprimer ?",
+  "confirm_stage_delete_hint": "Appuyez à nouveau dans les deux secondes pour supprimer l’étape {name}. Échap ou un clic ailleurs annule."
 });
 })(typeof window === "undefined" ? globalThis : window);

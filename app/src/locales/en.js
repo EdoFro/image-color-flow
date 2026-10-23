@@ -484,6 +484,18 @@
   "path_copy_manual": "Path selected: press Ctrl+C to copy it.",
   "project_saved_file": "Project saved: {name}.",
   "project_download_started": "Download started: {name}. Check where your browser saved it.",
-  "save_cancelled": "Save canceled. Your changes remain in the editor."
+  "save_cancelled": "Save canceled. Your changes remain in the editor.",
+  "canvas_zoom_controls": "Canvas zoom",
+  "canvas_zoom_current": "Current zoom",
+  "canvas_zoom_width": "Fit width",
+  "canvas_zoom_height": "Fit height",
+  "canvas_zoom_fit": "Fit image",
+  "canvas_hand": "Hand",
+  "canvas_pan_hint": "Drag to pan the image; you can also use the middle mouse button.",
+  "canvas_zoom_hint": "Wheel: zoom at the pointer. Middle button: pan.",
+  "duplicate_stage_named": "Duplicate stage: {name}",
+  "delete_stage_named": "Delete stage: {name}",
+  "confirm_stage_delete_short": "Delete?",
+  "confirm_stage_delete_hint": "Press again within two seconds to delete stage {name}. Escape or clicking elsewhere cancels."
 });
 })(typeof window === "undefined" ? globalThis : window);

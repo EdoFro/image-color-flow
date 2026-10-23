@@ -484,6 +484,18 @@
   "path_copy_manual": "Ruta seleccionada: pulsa Ctrl+C para copiarla.",
   "project_saved_file": "Proyecto guardado: {name}.",
   "project_download_started": "Descarga iniciada: {name}. Comprueba dónde la guardó el navegador.",
-  "save_cancelled": "Guardado cancelado. Tus cambios siguen en el editor."
+  "save_cancelled": "Guardado cancelado. Tus cambios siguen en el editor.",
+  "canvas_zoom_controls": "Zoom del lienzo",
+  "canvas_zoom_current": "Zoom actual",
+  "canvas_zoom_width": "Ajustar ancho",
+  "canvas_zoom_height": "Ajustar alto",
+  "canvas_zoom_fit": "Imagen completa",
+  "canvas_hand": "Mano",
+  "canvas_pan_hint": "Arrastra para desplazar la imagen; también puedes usar el botón central del ratón.",
+  "canvas_zoom_hint": "Rueda: ampliar o reducir en el puntero. Botón central: desplazar.",
+  "duplicate_stage_named": "Duplicar etapa: {name}",
+  "delete_stage_named": "Eliminar etapa: {name}",
+  "confirm_stage_delete_short": "¿Eliminar?",
+  "confirm_stage_delete_hint": "Vuelve a pulsar antes de dos segundos para eliminar la etapa {name}. Escape o clic fuera cancela."
 });
 })(typeof window === "undefined" ? globalThis : window);

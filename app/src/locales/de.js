@@ -484,6 +484,18 @@
   "path_copy_manual": "Pfad ausgewählt: Mit Strg+C kopieren.",
   "project_saved_file": "Projekt gespeichert: {name}.",
   "project_download_started": "Download gestartet: {name}. Prüfen Sie den Speicherort im Browser.",
-  "save_cancelled": "Speichern abgebrochen. Ihre Änderungen bleiben im Editor."
+  "save_cancelled": "Speichern abgebrochen. Ihre Änderungen bleiben im Editor.",
+  "canvas_zoom_controls": "Ansichtszoom",
+  "canvas_zoom_current": "Aktueller Zoom",
+  "canvas_zoom_width": "Breite anpassen",
+  "canvas_zoom_height": "Höhe anpassen",
+  "canvas_zoom_fit": "Ganzes Bild",
+  "canvas_hand": "Hand",
+  "canvas_pan_hint": "Zum Verschieben ziehen; auch mit der mittleren Maustaste möglich.",
+  "canvas_zoom_hint": "Mausrad: Zoom am Zeiger. Mittlere Maustaste: verschieben.",
+  "duplicate_stage_named": "Schritt duplizieren: {name}",
+  "delete_stage_named": "Schritt löschen: {name}",
+  "confirm_stage_delete_short": "Löschen?",
+  "confirm_stage_delete_hint": "Innerhalb von zwei Sekunden erneut drücken, um Schritt {name} zu löschen. Escape oder ein Klick außerhalb bricht ab."
 });
 })(typeof window === "undefined" ? globalThis : window);
