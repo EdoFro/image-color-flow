@@ -4,6 +4,8 @@
   function create({ panels, mini, zoomOutput, onView = () => {} }) {
     let sources, width = 1, height = 1, fitted = true, drag, miniDrag;
     const view = { x: .5, y: .5, scale: 1 };
+    const checker = document.createElement('canvas'); checker.width = checker.height = 16;
+    const check = checker.getContext('2d'); check.fillStyle = '#fafafa'; check.fillRect(0, 0, 16, 16); check.fillStyle = '#ddd'; check.fillRect(0, 0, 8, 8); check.fillRect(8, 8, 8, 8);
     function size() { return { width: Math.max(1, Math.min(...panels.map(c => c.getBoundingClientRect().width))), height: Math.max(1, Math.min(...panels.map(c => c.getBoundingClientRect().height))) }; }
     function constrain() {
       const s = size(), dx = s.width / view.scale / 2, dy = s.height / view.scale / 2;
@@ -20,7 +22,7 @@
       panels.forEach((c, i) => {
         const s = c.getBoundingClientRect(); c.width = Math.max(1, Math.round(s.width * dpr)); c.height = Math.max(1, Math.round(s.height * dpr));
         const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = '#e5e8e6'; ctx.fillRect(0, 0, s.width, s.height);
-        ctx.translate(s.width / 2, s.height / 2); ctx.scale(view.scale, view.scale); ctx.translate(-view.x, -view.y); ctx.drawImage(sources[i], 0, 0);
+        ctx.translate(s.width / 2, s.height / 2); ctx.scale(view.scale, view.scale); ctx.translate(-view.x, -view.y); ctx.fillStyle = ctx.createPattern(checker, 'repeat'); ctx.fillRect(0, 0, width, height); ctx.drawImage(sources[i], 0, 0);
       });
       mini.width = 180; mini.height = Math.max(1, Math.round(180 * height / width));
       const ctx = mini.getContext('2d'); ctx.drawImage(sources[0], 0, 0, mini.width, mini.height);

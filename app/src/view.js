@@ -25,7 +25,7 @@
         const canvas = layers[index]; if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
         return canvas;
       }
-      function styled(source, width, height, config, index) {
+      function styled(source, width, height, config, index, contentTransparent) {
         let image = source;
         if (config.highlightEnabled && config.outside !== 'show') {
           const surface = layer(index, width, height), c = surface.getContext('2d'), rects = highlights(config); c.clearRect(0, 0, width, height);
@@ -36,7 +36,10 @@
             c.fillStyle = config.outside === 'white' ? '#ffffff' : config.outside === 'color' ? config.outsideColor || '#202c29' : '#000000'; c.fillRect(0, 0, width, height);
           }
           // Recortar el original después del fondo evita desenfocar o teñir el área destacada.
-          if (rects.length === 1) {
+          if (contentTransparent) {
+            c.beginPath(); for (const r of rects) c.rect(r.x * width, r.y * height, r.width * width, r.height * height); c.clip();
+            c.clearRect(0, 0, width, height); c.drawImage(source, 0, 0);
+          } else if (rects.length === 1) {
             // Conservar exactamente la ruta del destacado único anterior.
             const r = rects[0]; c.drawImage(source, r.x * width, r.y * height, r.width * width, r.height * height, r.x * width, r.y * height, r.width * width, r.height * height);
           } else {
@@ -51,13 +54,13 @@
         ctx.clearRect(0, 0, width, height);
         ctx.drawImage(image, camera.x * width, camera.y * height, camera.size * width, camera.size * height, 0, 0, width, height);
       }
-      function draw(ctx, source, width, height, config = {}, camera = full()) {
-        project(ctx, styled(source, width, height, config, 0), width, height, camera);
-        return transparent(config);
+      function draw(ctx, source, width, height, config = {}, camera = full(), contentTransparent = false) {
+        project(ctx, styled(source, width, height, config, 0, contentTransparent), width, height, camera);
+        return contentTransparent || transparent(config);
       }
-      function transition(ctx, source, width, height, from = {}, to = {}, amount = 1, camera = full()) {
-        if (amount <= 0) return draw(ctx, source, width, height, from, camera);
-        if (amount >= 1) return draw(ctx, source, width, height, to, camera);
+      function transition(ctx, source, width, height, from = {}, to = {}, amount = 1, camera = full(), contentTransparent = false) {
+        if (amount <= 0) return draw(ctx, source, width, height, from, camera, contentTransparent);
+        if (amount >= 1) return draw(ctx, source, width, height, to, camera, contentTransparent);
         const t = Math.max(0, Math.min(1, amount)), ease = t * t * (3 - 2 * t);
         const a = highlights(from), b = highlights(to);
         let leftConfig = from, rightConfig = to;
@@ -67,12 +70,12 @@
           rightConfig = { ...to, highlightLinked: false, highlightFrame: rects[0], highlightFrames: rects };
         }
         // Si cambia la cantidad, fundir ambas máscaras completas sin inventar un rectángulo envolvente.
-        const left = styled(source, width, height, leftConfig, 0), right = styled(source, width, height, rightConfig, 1);
+        const left = styled(source, width, height, leftConfig, 0, contentTransparent), right = styled(source, width, height, rightConfig, 1, contentTransparent);
         const mix = layer(2, width, height), c = mix.getContext('2d'); c.clearRect(0, 0, width, height); c.save();
         // Suma ponderada en alfa premultiplicada: no crea un rectángulo opaco durante la transición.
         c.globalAlpha = 1 - ease; c.drawImage(left, 0, 0); c.globalCompositeOperation = 'lighter';
         c.globalAlpha = ease; c.drawImage(right, 0, 0); c.restore();
-        project(ctx, mix, width, height, camera); return transparent(from) || transparent(to);
+        project(ctx, mix, width, height, camera); return contentTransparent || transparent(from) || transparent(to);
       }
       return { draw, transition };
     }

@@ -23,7 +23,7 @@ Los ZIP de cada versión se publican en [GitHub Releases](https://github.com/Edo
 
 ## Empezar
 
-También puedes comenzar desde una **hoja vacía**, blanca o con el tono del papel: elige **Imágenes → Imagen inicial utilizada → Hoja en blanco, sin dibujo**. Consulta [esta opción](docs/guia-de-uso.md#comenzar-con-una-hoja-vacía).
+También puedes comenzar desde una **hoja vacía**, blanca, con el tono del papel o totalmente transparente: elige **Imágenes → Imagen inicial utilizada → Hoja en blanco, sin dibujo**. Consulta [esta opción](docs/guia-de-uso.md#comenzar-con-una-hoja-vacía).
 
 El lienzo admite zoom con la rueda, ajustes al ancho/alto y desplazamiento con Mano o botón central. Cada tarjeta de etapa permite duplicar y eliminar, con confirmación de dos clics y recuperación mediante Deshacer. Consulta [zoom y acciones por etapa](docs/guia-de-uso.md#zoom-y-desplazamiento-del-lienzo).
 

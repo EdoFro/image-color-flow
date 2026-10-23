@@ -19,7 +19,7 @@
       method: defaults.method, colorToGray: number(value.colorToGray, defaults.colorToGray, 0, 1),
       sensitivity: number(value.sensitivity, defaults.sensitivity, 0, 1), blackPoint,
       whitePoint: Math.max(blackPoint + .01, number(value.whitePoint, defaults.whitePoint, .1, 1)),
-      smoothness: number(value.smoothness, defaults.smoothness, 0, 1), paper: value.paper === 'white' || value.paper === undefined && defaults.paper === 'white' ? 'white' : 'matched'
+      smoothness: number(value.smoothness, defaults.smoothness, 0, 1), paper: value.paper === 'transparent' ? 'transparent' : value.paper === 'white' || value.paper === undefined && defaults.paper === 'white' ? 'white' : 'matched'
     };
   }
   const smooth = (a, b, value) => { const t = b > a ? limit((value - a) / (b - a)) : value >= b ? 1 : 0; return t * t * (3 - 2 * t); };

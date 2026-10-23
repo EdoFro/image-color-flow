@@ -172,7 +172,7 @@
     },
     "baseGeneration": {
       "$ref": "#/$defs/baseGeneration",
-      "description": "Parámetros globales de la base. En blank sólo se usa paper: white o matched; no se extraen ni igualan trazos."
+      "description": "Parámetros globales de la base. En blank sólo se usa paper: white, matched o transparent; no se extraen ni igualan trazos."
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -565,10 +565,11 @@
         "paper": {
           "enum": [
             "matched",
-            "white"
+            "white",
+            "transparent"
           ],
           "default": "white",
-          "description": "Blanco puro (white) o tono uniforme estimado del papel final (matched), también al usar baseMode blank."
+          "description": "white: blanco puro; matched: tono estimado del papel; transparent: fondo sin opacidad sólo para baseMode blank (en otros modos se usa matched)."
         },
         "inkMatch": {
           "enum": [

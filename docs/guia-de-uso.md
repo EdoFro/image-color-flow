@@ -44,9 +44,9 @@ Se conservan hasta 80 pasos durante la sesión, compartiendo los datos de las im
 
 ## Comenzar con una hoja vacía
 
-En **Imágenes → Imagen inicial utilizada**, elige **Hoja en blanco, sin dibujo**. En **Papel de la imagen inicial**, selecciona **Blanco puro** o **Igualar tono del papel de la imagen final**. La comparación se genera automáticamente y permite conservar el zoom al cambiar el papel. Puedes descargar la hoja como PNG o pulsar **Aplicar y volver al lienzo**.
+En **Imágenes → Imagen inicial utilizada**, elige **Hoja en blanco, sin dibujo**. En **Papel de la imagen inicial**, selecciona **Blanco puro**, **Igualar tono del papel de la imagen final** o **Fondo transparente**. La comparación se genera automáticamente y permite conservar el zoom al cambiar el papel. Puedes descargar la hoja como PNG o pulsar **Aplicar y volver al lienzo**.
 
-La hoja es uniforme, opaca y no contiene trazos, sombras ni colores del dibujo. Igualar papel estima el tono de las zonas más claras; no reproduce su textura. En este modo no se aplican extracción de tinta, ajustes de grises, igualación de trazos ni alineación. La imagen coloreada conserva sus colores. Durante la animación van apareciendo tanto el dibujo como el color.
+La hoja es uniforme y no contiene trazos, sombras ni colores del dibujo. Blanco y papel son opacos; **Fondo transparente** empieza con alfa cero. El damero de la comparación y del lienzo indica transparencia: no forma parte del PNG ni de la animación. Igualar papel estima el tono de las zonas más claras; no reproduce su textura. En este modo no se aplican extracción de tinta, ajustes de grises, igualación de trazos ni alineación. La imagen coloreada conserva sus colores. Durante la animación van apareciendo tanto el dibujo como el color. Desde transparencia, aumenta la opacidad sin oscurecer los bordes. Esto no quita el papel de la imagen final. Para ver el fondo de la página o de una presentación contenedora, elige también **Fondo del HTML → Transparente** al exportar.
 
 No necesitas cargar una imagen inicial. La elección se guarda en el proyecto, se conserva al abrirlo y se puede deshacer/rehacer al aplicarla. También puedes elegir este modo y el papel en Preferencias para proyectos nuevos. El ejemplo introductorio mantiene su configuración propia.
 
@@ -230,7 +230,7 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 12 y se pueden abrir también los de formatos 1 a 11. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 13 y se pueden abrir también los de formatos 1 a 11. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 

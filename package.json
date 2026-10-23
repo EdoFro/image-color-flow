@@ -1,6 +1,6 @@
 {
   "name": "image-color-flow",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "private": true,
   "license": "MIT",
   "description": "Editor offline y automatización local para animar la aparición del color",

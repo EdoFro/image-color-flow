@@ -3,6 +3,8 @@
   'use strict';
   function createPaintPlayer(canvas, model, onState = () => {}) {
     const { width, height, base, final } = model;
+    const hasAlpha = pixels => { for (let k = 3; k < pixels.length; k += 4) if (pixels[k] < 255) return true; return false; };
+    const contentTransparent = hasAlpha(base) || hasAlpha(final);
     const views = model.viewAPI || globalThis.PaintView, initialView = model.initialView || {};
     const fields = model.fields.map((f, i) => ({ ...f, stageIndex: f.stageIndex ?? i })).filter(f => f.enabled !== false && !f.skipped && f.duration >= 0);
     canvas.width = width; canvas.height = height;
@@ -28,7 +30,7 @@
       return { x: from.x + (target.x - from.x) * ease, y: from.y + (target.y - from.y) * ease, size: from.size + (target.size - from.size) * ease };
     }
     function transition() { return atStart ? 1 : fields[index]?.cameraDuration ? Math.min(1, time / fields[index].cameraDuration) : 1; }
-    function state() { return { index: fields[index]?.stageIndex ?? 0, position: index, stageCount: fields.length, time, atStart, playing, waiting, ended, empty: !fields.length, phase: atStart ? 'initial' : ended ? 'completed' : playing ? 'playing' : waiting ? 'waiting' : 'paused', elapsed: (offsets[index] || 0) + time, total, name: atStart ? 'Inicio' : fields[index]?.name || '', camera: camera(), transparent: views ? views.transparent(atStart ? initialView : fields[index]) || (!atStart && transition() < 1 && views.transparent(index ? fields[index - 1] : initialView)) : false }; }
+    function state() { return { index: fields[index]?.stageIndex ?? 0, position: index, stageCount: fields.length, time, atStart, playing, waiting, ended, empty: !fields.length, phase: atStart ? 'initial' : ended ? 'completed' : playing ? 'playing' : waiting ? 'waiting' : 'paused', elapsed: (offsets[index] || 0) + time, total, name: atStart ? 'Inicio' : fields[index]?.name || '', camera: camera(), transparent: contentTransparent || (views ? views.transparent(atStart ? initialView : fields[index]) || (!atStart && transition() < 1 && views.transparent(index ? fields[index - 1] : initialView)) : false) }; }
     function commit(field) {
       if (!field) return;
       for (let i = 0; i < committed.length; i++) {
@@ -48,16 +50,22 @@
       }
       for (let i = 0; i < committed.length; i++) {
         const a = alpha[i] / 255, k = i * 4;
-        out[k] = base[k] + (final[k] - base[k]) * a; out[k + 1] = base[k + 1] + (final[k + 1] - base[k + 1]) * a;
-        out[k + 2] = base[k + 2] + (final[k + 2] - base[k + 2]) * a; out[k + 3] = 255;
+        if (contentTransparent) {
+          const left = base[k + 3] * (1 - a), right = final[k + 3] * a, opacity = left + right;
+          for (let c = 0; c < 3; c++) out[k + c] = opacity ? (base[k + c] * left + final[k + c] * right) / opacity : 0;
+          out[k + 3] = opacity;
+        } else {
+          out[k] = base[k] + (final[k] - base[k]) * a; out[k + 1] = base[k + 1] + (final[k + 1] - base[k + 1]) * a;
+          out[k + 2] = base[k + 2] + (final[k + 2] - base[k + 2]) * a; out[k + 3] = 255;
+        }
       }
       if (surfaceCtx) {
         surfaceCtx.putImageData(frame, 0, 0); const view = camera();
         if (renderer) {
-          if (!atStart && renderer.transition) renderer.transition(ctx, surface, width, height, index ? fields[index - 1] : initialView, field, transition(), view);
-          else renderer.draw(ctx, surface, width, height, atStart ? initialView : field, view);
+          if (!atStart && renderer.transition) renderer.transition(ctx, surface, width, height, index ? fields[index - 1] : initialView, field, transition(), view, contentTransparent);
+          else renderer.draw(ctx, surface, width, height, atStart ? initialView : field, view, contentTransparent);
         }
-        else ctx.drawImage(surface, view.x * width, view.y * height, view.size * width, view.size * height, 0, 0, width, height);
+        else { ctx.clearRect(0, 0, width, height); ctx.drawImage(surface, view.x * width, view.y * height, view.size * width, view.size * height, 0, 0, width, height); }
       } else ctx.putImageData(frame, 0, 0);
       onState(state());
     }

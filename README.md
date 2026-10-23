@@ -23,7 +23,7 @@ Version ZIPs are published through [GitHub Releases](https://github.com/EdoFro/i
 
 ## Get started
 
-You can also start from an **empty sheet**, either pure white or matching the paper tone: choose **Images → Initial image → Blank sheet, no drawing**. See [this option](docs/en/user-guide.md#start-with-an-empty-sheet).
+You can also start from an **empty sheet**, pure white, matching the paper tone or fully transparent: choose **Images → Initial image → Blank sheet, no drawing**. See [this option](docs/en/user-guide.md#start-with-an-empty-sheet).
 
 The canvas supports wheel zoom, width/height fitting and Hand or middle-button panning. Each stage card supports duplicate and delete, with two-click confirmation and Undo recovery. See [zoom and stage actions](docs/en/user-guide.md#canvas-zoom-and-panning).
 

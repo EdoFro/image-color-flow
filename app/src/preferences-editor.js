@@ -28,6 +28,14 @@
       }
       $('preferencesFields').append(section);
     }
+    function syncPaperChoice(reset = false) {
+      const mode = controls.find(c => c.parameter.key === 'baseMode'), paper = controls.find(c => c.prefix === 'baseGeneration' && c.parameter.key === 'paper');
+      if (!mode || !paper) return;
+      const blank = mode.parameter.options[+mode.input.value]?.[0] === 'blank';
+      const index = paper.parameter.options.findIndex(([v]) => v === 'transparent');
+      paper.input.options[index].disabled = !blank;
+      if (reset && !blank && +paper.input.value === index) paper.input.value = String(paper.parameter.options.findIndex(([v]) => v === 'matched'));
+    }
     function render() {
       controls = []; $('preferencesFields').replaceChildren();
       const options = id => [...$(id).options].filter(o => !o.disabled && !o.hidden).map(o => [o.value, o.textContent]);
@@ -40,7 +48,7 @@
         choice('method', t('preferences_algorithm'), [['protected', t('tinta_y_lineas_l_recomendado')], ['coherent', t('tinta_y_lineas_k_anterior')], ['ink', t('tinta_sobre_papel_anterior')], ['grayscale', t('desaturacion_anterior')]]),
         number('colorToGray', t('zonas_coloreadas_papel_gris') + ' (%)', 0, 100, 1, 100), number('sensitivity', t('sensibilidad_al_color') + ' (%)', 0, 100, 1, 100),
         number('blackPoint', t('llevar_grises_oscuros_a_negro') + ' (%)', 0, 90, 1, 100), number('whitePoint', t('llevar_grises_claros_al_papel') + ' (%)', 10, 100, 1, 100),
-        number('smoothness', t('suavidad_de_la_transformacion') + ' (%)', 0, 100, 1, 100), choice('inkMatch', t('igualar_trazos_despues_de_l_k'), inkOptions), choice('paper', t('papel_de_la_imagen_inicial'), options('basePaper'))
+        number('smoothness', t('suavidad_de_la_transformacion') + ' (%)', 0, 100, 1, 100), choice('inkMatch', t('igualar_trazos_despues_de_l_k'), inkOptions), choice('paper', t('papel_de_la_imagen_inicial'), [...$('basePaper').options].map(o => [o.value, o.textContent]))
       ]);
       const groups = new Set(root.PaintGeneral.parameters.map(p => p.group));
       for (const group of groups) {
@@ -48,6 +56,7 @@
         addGroup(tx(group), group === 'Puntos' ? 'point' : 'stage', params);
       }
       addGroup(t('preferences_presentation'), 'presentation', [choice('background', t('fondo_del_html'), options('exportBackground')), { key: 'color', label: t('color_de_fondo'), type: 'color' }]);
+      $('pref-baseMode').onchange = () => syncPaperChoice(true); syncPaperChoice();
       onLayout();
     }
     function collect(report = true) {
@@ -64,7 +73,7 @@
       // Preserve invalid and unfinished values while translating the controls.
       const values = controls.map(({ input }) => [input.id, input.value, input.checked]); render();
       for (const [id, value, checked] of values) if ($(id)) { $(id).value = value; if ($(id).type === 'checkbox') $(id).checked = checked; }
-      if (notice) message(notice);
+      syncPaperChoice(); if (notice) message(notice);
     }
     $('preferencesButton').onclick = () => { session++; draft = root.PaintPreferences.validate(getValue()); message(null); render(); dialog.showModal(); };
     dialog.addEventListener('close', () => { session++; });

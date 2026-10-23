@@ -46,9 +46,9 @@ Up to 80 steps are kept during the session, sharing image sources without duplic
 
 ## Start with an empty sheet
 
-In **Images → Initial image**, choose **Blank sheet, no drawing**. Under **Initial image paper**, select **Pure white** or **Match the final image’s paper tone**. The comparison is generated automatically and keeps its zoom when you change the paper. Download the sheet as a PNG or select **Apply and return to canvas**.
+In **Images → Initial image**, choose **Blank sheet, no drawing**. Under **Initial image paper**, select **Pure white**, **Match the final image’s paper tone** or **Transparent background**. The comparison is generated automatically and keeps its zoom when you change the paper. Download the sheet as a PNG or select **Apply and return to canvas**.
 
-The sheet is uniform, opaque and contains no drawing lines, shadows or colors. Matching estimates the tone from the brightest areas without reproducing their texture. Ink extraction, gray adjustments, ink matching and alignment do not apply in this mode. The colored image retains its colors. Animation reveals both drawing and color.
+The sheet is uniform and contains no drawing lines, shadows or colors. White and paper are opaque; **Transparent background** starts at zero alpha. The checkerboard in the comparison and canvas indicates transparency; it is not part of the PNG or animation. Matching estimates the tone from the brightest areas without reproducing their texture. Ink extraction, gray adjustments, ink matching and alignment do not apply in this mode. The colored image retains its colors. Animation reveals both drawing and color. From transparency, opacity increases without darkening edges. This does not remove paper from the final image. To see the page or host presentation behind it, also choose **HTML background → Transparent** when exporting.
 
 No initial image file is required. The choice is saved with the project, retained when reopened and can be undone/redone after applying. Preferences also lets you select this mode and paper for new projects. The introductory example retains its own settings.
 
@@ -232,7 +232,7 @@ To integrate it into another web presentation, keep the exported HTML alongside 
 
 Save a `.colorflow.json` project to continue editing: it includes original images, regions, point order/activation/start modes, paths, alignment, framing and parameters. Presentation HTML is a final output, not a replacement for the editable project. Downloads go to the folder selected by your browser.
 
-Projects are saved in format 12; formats 1–11 can also be opened. Existing fields are retained and missing fields receive defaults. See [project format](project-format.md) for compatibility details.
+Projects are saved in format 13; formats 1–12 can also be opened. Existing fields are retained and missing fields receive defaults. See [project format](project-format.md) for compatibility details.
 
 ## Scope and limitations
 

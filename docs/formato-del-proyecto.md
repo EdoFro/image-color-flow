@@ -6,19 +6,19 @@
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
-El formato actual es **12**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
+El formato actual es **13**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
 
 ## Estructura principal
 
 | Campo | Contenido |
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
-| `version` | Versión del formato: se guarda `12`; se leen formatos `1` a `12`. |
+| `version` | Versión del formato: se guarda `13`; se leen formatos `1` a `13`. |
 | `name` | Nombre opcional del proyecto, hasta 120 caracteres; sugiere el nombre del archivo editable. |
 | `images.final` | Imagen coloreada obligatoria para preparar/reproducir/exportar; puede omitirse sólo en un borrador vacío del editor. Contiene `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
 | `baseMode` | `uploaded` prepara la inicial, `derived` extrae tinta de la final y `blank` crea una hoja uniforme. Si se omite y no hay inicial, se utiliza `derived`. |
-| `baseGeneration` | Método y parámetros globales para generar la base; sólo actúan en `derived`. |
+| `baseGeneration` | Método y parámetros globales para generar la base; actúan en `derived`; en `blank` sólo se usa `paper`. |
 | `resolution` | Lado mayor de trabajo: 720, 1080 o 1440 píxeles. |
 | `alignment` | Desplazamiento `x`, `y`, escalas `sx`, `sy` y giro `angle`. |
 | `presentation` | Fondo exportado: `background` (`hatch`, `color` o `transparent`) y `color` hexadecimal; valores iniciales `hatch` y `#e5e7e3`. |
@@ -104,7 +104,7 @@ El formato 7 añade `baseGeneration`. Al abrir formatos 1 a 6 se asigna `method:
 | `whitePoint` | 0.1 a 1; 1 en K y 0.94 en ink. Refuerzo posterior de grises claros. Debe ser mayor que `blackPoint`. |
 | `smoothness` | 0 a 1; 0 en K (acabado sin suavizado extra), 0.08 en ink; el editor muestra de 0 a 100%. |
 | `inkMatch` | `none` (predeterminado), `source-to-base`, `darken` (M), `multiply` (N) o `base-to-final` (copia literal antigua); sólo en L/K. |
-| `paper` | `white` (inicial en K) para blanco puro o `matched` (inicial en ink) para el tono estimado del papel final. |
+| `paper` | `white` (inicial en K), `matched` (inicial en ink) o `transparent` (alfa cero sólo en `blank`; en otros modos equivale a `matched`). |
 
 En `grayscale` sólo actúa la selección de papel; los demás controles se conservan pero no intervienen. Los puntos de partida del editor son configuraciones de estos campos, sin un nombre de preset adicional en el archivo. Los PNG se regeneran a partir de los originales y estos parámetros.
 
@@ -116,7 +116,7 @@ El HTML autónomo es un producto distinto. Incorpora imágenes preparadas, mapas
 
 ## Planes para automatización
 
-Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `name` y `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 12, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
+Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `name` y `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 13, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
 
 ### Igualación opcional (formatos 8 y 9)
 
@@ -146,7 +146,7 @@ Listas de igual cantidad interpolan los rectángulos por índice durante `camera
 
 ## Modo de reproducción exportada · aplicación 0.16.0
 
-`presentation.mode` acepta `standalone` o `integrated`; omitido equivale a independiente. El modo integrado fuerza pausas por etapa en la exportación, sin modificar `pauseAfter`, geometrías ni tiempos del editor. Esta opción se introdujo en el formato 10 y se conserva en el 12. El JSON no contiene la conexión de control ni una sesión del editor.
+`presentation.mode` acepta `standalone` o `integrated`; omitido equivale a independiente. El modo integrado fuerza pausas por etapa en la exportación, sin modificar `pauseAfter`, geometrías ni tiempos del editor. Esta opción se introdujo en el formato 10 y se conserva en el 13. El JSON no contiene la conexión de control ni una sesión del editor.
 
 ## Formato 11: nombre del proyecto
 
@@ -155,3 +155,9 @@ Añade `name`, texto opcional de hasta 120 caracteres. Los proyectos anteriores 
 ## Formato 12: hoja vacía
 
 `baseMode: "blank"` genera una hoja uniforme, opaca y sin dibujo. Usa `baseGeneration.paper: "white"` o `"matched"`; los demás ajustes de generación, la alineación y la inicial cargada no intervienen en la preparación. No se modifica la imagen final. Los formatos 1–11 conservan sus modos anteriores al abrirse. Los lectores anteriores rechazan el formato 12 para evitar convertir silenciosamente una hoja vacía en una base de tinta.
+
+## Formato 13: fondo transparente inicial
+
+Con `baseMode: "blank"`, `baseGeneration.paper` acepta también `"transparent"`: el PNG inicial es completamente transparente (RGBA cero). La interpolación de la animación usa alfa premultiplicada, preserva el color y revela el fondo final tal como está, sin eliminarlo. En modos distintos de `blank`, `transparent` se interpreta como `matched`; la opción del editor sólo se habilita en hoja sin dibujo.
+
+`presentation.background: "transparent"` es independiente y permite ver el HTML contenedor. El damero del editor nunca se incorpora a las exportaciones. Se guardan proyectos de formato 13 y se siguen leyendo 1–12; lectores antiguos rechazan el nuevo formato en vez de perder la transparencia.

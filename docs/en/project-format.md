@@ -6,19 +6,19 @@
 
 An editable project is a JSON file with the `.colorflow.json` extension. It embeds original images as base64 data and can be moved without separate image files.
 
-The current format is **12**. Its number is independent of the application version: reorganizing folders does not change the format.
+The current format is **13**. Its number is independent of the application version: reorganizing folders does not change the format.
 
 ## Top-level structure
 
 | Field | Contents |
 | --- | --- |
 | `format` | Fixed identifier `tinta-y-color`. |
-| `version` | Format version: saves `12`; reads formats `1`–`12`. |
+| `version` | Format version: saves `13`; reads formats `1`–`13`. |
 | `name` | Optional project name, up to 120 characters; suggests the editable filename. |
 | `images.final` | Colored image required for preparation/playback/export; may only be omitted in an empty editor draft. Contains `name` and `data` (image data URL). |
 | `images.initial` | Optional initial image, with the same structure. |
-| `baseMode` | `uploaded` prepares the initial image; `derived` generates one from the final image. Without an initial image, `derived` is used. |
-| `baseGeneration` | Global base-generation method and parameters; only affect `derived`. |
+| `baseMode` | `uploaded` prepares the initial image; `derived` generates one from the final image; `blank` starts without a drawing. If omitted and no initial image exists, `derived` is used. |
+| `baseGeneration` | Global base-generation method and parameters; configure `derived`, with only `paper` applying in `blank`. |
 | `resolution` | Working longest side: 720, 1080 or 1440 pixels. |
 | `alignment` | Translation `x`, `y`, per-axis scales `sx`, `sy`, and rotation `angle`. |
 | `presentation` | Export background: `background` (`hatch`, `color`, `transparent`) and hexadecimal `color`; defaults `hatch` and `#e5e7e3`. |
@@ -104,7 +104,7 @@ Format 7 adds `baseGeneration`. Formats 1–6 receive `method: "grayscale"` to p
 | `whitePoint` | 0.1–1; 1 in K, 0.94 in ink. Subsequent light-gray adjustment. Must exceed `blackPoint`. |
 | `smoothness` | 0–1; 0 in K (no extra finishing blur), 0.08 in ink. Editor displays 0–100%. |
 | `inkMatch` | `none` (default), `source-to-base`, `darken` (M), `multiply` (N) or `base-to-final` (legacy literal copy); L/K only. |
-| `paper` | `white` (K default) for pure white, or `matched` (ink default) for estimated final-image paper tone. |
+| `paper` | `white` (K default), `matched` (ink default), or `transparent` (zero alpha only in `blank`; equivalent to `matched` in other modes). |
 
 In `grayscale`, only paper selection applies; other controls are retained but inactive. Editor presets are configurations of these fields; no separate preset name is saved. PNGs regenerate from originals and these parameters.
 
@@ -146,7 +146,7 @@ During `cameraDuration`, equal-length lists interpolate rectangles by index; dif
 
 ## Export playback mode · application 0.16.0
 
-`presentation.mode` accepts `standalone` or `integrated`; omission means standalone. Embedded mode enforces per-stage pauses in the export without changing authored `pauseAfter`, geometry or timing. This option was introduced in format 10 and is retained in format 12. JSON does not contain a controller connection or editor session.
+`presentation.mode` accepts `standalone` or `integrated`; omission means standalone. Embedded mode enforces per-stage pauses in the export without changing authored `pauseAfter`, geometry or timing. This option was introduced in format 10 and is retained in format 13. JSON does not contain a controller connection or editor session.
 
 ## Format 11: project name
 
@@ -155,3 +155,9 @@ Adds optional `name`, up to 120 characters. Older projects receive an empty name
 ## Format 12: empty sheet
 
 `baseMode: "blank"` creates a uniform, opaque sheet without a drawing. Choose `baseGeneration.paper: "white"` or `"matched"`; other generation settings, alignment and any uploaded initial image do not participate in preparation. The final image is not modified. Formats 1–11 retain their previous modes when opened. Older readers reject format 12 instead of silently converting an empty sheet to extracted ink.
+
+## Format 13: transparent initial background
+
+With `baseMode: "blank"`, `baseGeneration.paper` also accepts `"transparent"`: the initial PNG is fully transparent (zero RGBA). Playback uses premultiplied alpha interpolation, retaining color and revealing the final background as supplied, without removing it. Outside `blank`, `transparent` is interpreted as `matched`; the editor enables the option only for a blank sheet.
+
+`presentation.background: "transparent"` is independent and lets the containing HTML show through. The editor checkerboard is never included in exports. Projects save in format 13 and still read 1–12; older readers reject the new format instead of losing transparency.

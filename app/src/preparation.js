@@ -37,8 +37,11 @@
     const baseCanvas = canvas(width, height), ctx = baseCanvas.getContext('2d', { willReadFrequently: true });
     const paper = paperColor(final.data); let baseSourceSize = null, generatedPaper = paper, inkMatchPixels = 0;
     if (options.baseMode === 'blank') {
-      const color = root.PaintBase.normalize(options.baseGeneration).paper === 'white' ? [255, 255, 255] : paper;
-      ctx.fillStyle = `rgb(${color.join(',')})`; ctx.fillRect(0, 0, width, height);
+      const background = root.PaintBase.normalize(options.baseGeneration).paper;
+      if (background !== 'transparent') {
+        const color = background === 'white' ? [255, 255, 255] : paper;
+        ctx.fillStyle = `rgb(${color.join(',')})`; ctx.fillRect(0, 0, width, height);
+      }
     } else if (options.baseMode === 'derived' || !initialImage) {
       const base = ctx.createImageData(width, height);
       const config = root.PaintBase.normalize(options.baseGeneration);

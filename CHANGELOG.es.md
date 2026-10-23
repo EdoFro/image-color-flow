@@ -2,6 +2,10 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.23.0 · Base sin dibujo transparente
+
+- Hoja en blanco incorpora Fondo transparente (alfa cero), con damero sólo visual, PNG transparente y animación que revela el dibujo mediante opacidad sin halos negros. Se conserva al guardar, deshacer/rehacer y usar API, CLI o MCP. Formato editable 13 con lectura de 1–12; documentación bilingüe y cuatro idiomas actualizados.
+
 ## v0.22.0 · Encabezado compacto
 
 - Icono para minimizar la cabecera y la fila de proyecto en una franja de 34 px con app, versión y nombre no editable. El lienzo aprovecha el espacio conservando su navegación. Preferencias permite iniciar compacto; el icono sólo afecta a la sesión y por defecto se inicia expandido. Se conservan las preferencias anteriores.

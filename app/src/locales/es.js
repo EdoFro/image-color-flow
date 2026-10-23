@@ -501,9 +501,10 @@
   "delete_stage_named": "Eliminar etapa: {name}",
   "confirm_stage_delete_short": "¿Eliminar?",
   "confirm_stage_delete_hint": "Vuelve a pulsar antes de dos segundos para eliminar la etapa {name}. Escape o clic fuera cancela.",
+  "blank_transparent_background": "Fondo transparente",
   "blank_base_mode": "Hoja en blanco, sin dibujo",
-  "blank_base_description": "Empieza sin líneas ni colores: elige blanco puro o iguala el tono del papel de la imagen final. La vista previa se actualiza automáticamente.",
-  "blank_base_paper_note": "Igualar papel usa un tono uniforme estimado de las zonas más claras; no reproduce su textura.",
+  "blank_base_description": "Empieza sin líneas ni colores: elige blanco puro, tono del papel o fondo transparente. La vista previa se actualiza automáticamente.",
+  "blank_base_paper_note": "Igualar papel usa un tono uniforme estimado. Fondo transparente empieza sin opacidad; el damero es sólo una ayuda visual. La imagen final conserva su fondo.",
   "blank_base_preview_ready": "{width} × {height} px · Hoja uniforme sin dibujo. Compara antes de aplicar."
 });
 })(typeof window === "undefined" ? globalThis : window);

@@ -501,9 +501,10 @@
   "delete_stage_named": "Supprimer l’étape : {name}",
   "confirm_stage_delete_short": "Supprimer ?",
   "confirm_stage_delete_hint": "Appuyez à nouveau dans les deux secondes pour supprimer l’étape {name}. Échap ou un clic ailleurs annule.",
+  "blank_transparent_background": "Fond transparent",
   "blank_base_mode": "Feuille vierge, sans dessin",
-  "blank_base_description": "Commencez sans traits ni couleurs : choisissez le blanc pur ou la teinte du papier de l’image finale. L’aperçu se met à jour automatiquement.",
-  "blank_base_paper_note": "La teinte du papier est estimée à partir des zones les plus claires et reste uniforme, sans reproduire leur texture.",
+  "blank_base_description": "Commencez sans traits ni couleurs : blanc pur, teinte du papier ou fond transparent. L’aperçu se met à jour automatiquement.",
+  "blank_base_paper_note": "La teinte du papier est estimée et uniforme. Le fond transparent commence sans opacité ; le damier est seulement une aide visuelle. L’image finale conserve son fond.",
   "blank_base_preview_ready": "{width} × {height} px · Feuille uniforme sans dessin. Comparez avant d’appliquer."
 });
 })(typeof window === "undefined" ? globalThis : window);

@@ -134,7 +134,7 @@
     const mode = $('viewMode').value, config = current();
     const source = isInitial() || mode === 'initial' ? prepared.baseCanvas : prepared.finalCanvas;
     const options = mode === 'initial' || isGeneral() ? {} : config, view = mode === 'frame' && !isGeneral() ? PaintView.target(config) : PaintView.full();
-    const transparent = viewRenderer.draw(ctx, source, prepared.width, prepared.height, options, view);
+    const transparent = viewRenderer.draw(ctx, source, prepared.width, prepared.height, options, view, source === prepared.baseCanvas && project.baseMode === 'blank' && project.baseGeneration.paper === 'transparent');
     $('canvasWrap').classList.toggle('transparent', transparent);
     overlay.classList.toggle('hidden', mode !== 'edit' || isBulk()); drawOverlay();
   }
@@ -633,6 +633,7 @@
     const config = draft.baseGeneration = window.PaintBase.normalize(draft.baseGeneration);
     const blank = draft.baseMode === 'blank';
     $('baseInkControls').hidden = blank; $('baseGenerationDescription').textContent = t(blank ? 'blank_base_description' : 'conserva_la_tinta_y_deja_libres_las_superficies_que_recibi');
+    $('basePaper').querySelector('[value=transparent]').disabled = !blank;
     $('basePreset').value = window.PaintBase.presetName(config); $('basePaper').value = config.paper;
     $('baseInkMatch').value = config.inkMatch; $('baseInkMatch').disabled = !['coherent', 'protected'].includes(config.method);
     $('baseInkMatch').querySelector('[value=base-to-final]').hidden = config.inkMatch !== 'base-to-final';
@@ -769,7 +770,7 @@
     if (kind === 'final' && !draftDecoded.initial && draft.baseMode === 'uploaded') draft.baseMode = 'derived';
     draft.alignment = zeroAlignment(); resetBasePreview(); fillImageDialog(); status(() => (t("imagen_cargada_value_aplica_para_actualizar_el_lienzo", { p0: file.name })));
   });
-  $('baseMode').onchange = () => { draft.baseMode = $('baseMode').value; if (draft.baseMode === 'uploaded') resetBasePreview(); fillImageDialog(); if (draft.baseMode !== 'blank') scheduleBasePreview(); };
+  $('baseMode').onchange = () => { draft.baseMode = $('baseMode').value; if (draft.baseMode !== 'blank' && draft.baseGeneration.paper === 'transparent') draft.baseGeneration.paper = 'matched'; if (draft.baseMode === 'uploaded') resetBasePreview(); fillImageDialog(); if (draft.baseMode !== 'blank') scheduleBasePreview(); };
   $('resolution').onchange = () => { draft.resolution = +$('resolution').value; scheduleBasePreview(); };
   for (const [id, key, scale] of [['alignX', 'x', 100], ['alignY', 'y', 100], ['alignSX', 'sx', 100], ['alignSY', 'sy', 100], ['alignAngle', 'angle', 1]]) $(id).oninput = () => {
     const value = +$(id).value; if (!Number.isFinite(value) || value < +$(id).min || value > +$(id).max) return; draft.alignment[key] = value / scale; previewAlignment();
@@ -894,7 +895,7 @@
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
-    const exampleProject = { format: 'tinta-y-color', version: 12, name: 'Samurái · ejemplo', baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
+    const exampleProject = { format: 'tinta-y-color', version: 13, name: 'Samurái · ejemplo', baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
       engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17, startMode: 'delay', delay: .7 }, { x: .16, y: .17, startMode: 'delay', delay: .7 }], radius: .22, maxRadius: .4, speed: .13, hueResistance: 8, paintDelay: 1.2, cameraDuration: .8, pauseAfter: true, frame: { x: .53, y: .03, width: .44, height: .27 } }),
       engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5, startMode: 'after' }], radius: .35, maxRadius: .5, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true, frame: { x: .06, y: .29, width: .91, height: .38 } }),
       engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 }),

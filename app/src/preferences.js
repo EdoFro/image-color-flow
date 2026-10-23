@@ -35,7 +35,7 @@
       }
     }
     const b = input.baseGeneration; shape(b, Object.keys(defaults.baseGeneration));
-    if (!['protected', 'coherent', 'ink', 'grayscale'].includes(b.method) || !['none', 'source-to-base', 'base-to-final', 'darken', 'multiply'].includes(b.inkMatch) || !['matched', 'white'].includes(b.paper)) invalid();
+    if (!['protected', 'coherent', 'ink', 'grayscale'].includes(b.method) || !['none', 'source-to-base', 'base-to-final', 'darken', 'multiply'].includes(b.inkMatch) || !['matched', 'white', 'transparent'].includes(b.paper)) invalid();
     for (const name of ['colorToGray', 'sensitivity', 'blackPoint', 'whitePoint', 'smoothness']) if (typeof b[name] !== 'number' || !Number.isFinite(b[name]) || b[name] < 0 || b[name] > 1 || Math.abs(b[name] * 100 - Math.round(b[name] * 100)) > 1e-7) invalid();
     if (b.blackPoint > .9 || b.whitePoint < .1 || b.whitePoint < b.blackPoint + .01 - 1e-8) invalid('preferences_thresholds');
     shape(input.presentation, ['background', 'color']);
@@ -57,7 +57,7 @@
   }
   function project(value, name) {
     const p = validate(value);
-    return { format: 'tinta-y-color', version: 12, name: '', resolution: p.resolution, baseMode: p.baseMode,
+    return { format: 'tinta-y-color', version: 13, name: '', resolution: p.resolution, baseMode: p.baseMode,
       baseGeneration: clone(p.baseGeneration), presentation: clone(p.presentation), initialView: root.PaintEngine.normalizeView(p.stage),
       images: {}, alignment: root.PaintProject.zeroAlignment(), stages: [stage(p, 0, name)] };
   }
