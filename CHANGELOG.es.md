@@ -2,6 +2,10 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.21.1 · Vista de radios predeterminada
+
+- Preferencias incorpora **Vista del editor → Mostrar todos los radios**. Se aplica al guardar y al abrir proyectos, sin modificar la animación. Se conservan las preferencias anteriores y se incluye en su importación/exportación.
+
 ## v0.21.0 · Imagen inicial como hoja vacía
 
 - Nuevo modo Hoja en blanco, sin dibujo: blanco puro o tono uniforme estimado del papel. Vista previa automática, comparación sincronizada y descarga PNG.

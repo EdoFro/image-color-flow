@@ -89,13 +89,15 @@ Pending General/selection settings and unfinished drawings are protected too. Ap
 
 In **Preferences**, customize:
 
+- Editor view: show all radii by default.
+
 - Resolution, base source, algorithm, pigment, thresholds, softness, paper and ink matching.
 - Propagation, both radii, wind, brush, timing and pauses for new stages.
 - Enabled state, start mode and delay for new points; their radii inherit from their stage.
 - Zoom, highlighting and outside treatment, without storing actual rectangles. A new initial view uses these camera/highlight values.
 - Background and color for new presentations.
 
-**Save preferences** confirms the draft. **Cancel** or × discard it; **Restore factory defaults** only prepares a change and requires saving. Defaults affect new projects and stages, without recalculating or changing existing content. Duplicating a stage retains its configuration. Use General or normal controls to change the current project. The introductory example retains its original configuration.
+**Save preferences** confirms the draft. **Cancel** or × discard it; **Restore factory defaults** only prepares a change and requires saving. Animation defaults affect new projects and stages, without recalculating or changing existing content. Duplicating a stage retains its configuration. Use General or normal controls to change the current project. The introductory example retains its original configuration.
 
 **Export preferences** downloads the valid draft as `tinta-y-color.preferences.json`. **Import preferences** loads it for review and requires **Save preferences** to use it. It contains no images or geometry and does not change your language. Values are kept in this browser; exporting lets you move them to another browser or computer. If storage is blocked, the app explains that the values apply only to the current session. Damaged or incompatible saved preferences fall back to factory defaults on opening.
 
@@ -196,7 +198,7 @@ Transparency uses real alpha: the editor shows a checkerboard; the presentation 
 
 ## Adjust radii with the mouse
 
-In **Puntos**, select an origin on the canvas or use **Editar radios** (Edit radii) in the list. The ink radius is dashed orange; the maximum radius is solid blue, both with light and dark halos. Only the selected point's radii appear by default; **Mostrar todos los radios** (Show all radii) compares all of them.
+In **Puntos**, select an origin on the canvas or use **Editar radios** (Edit radii) in the list. The ink radius is dashed orange; the maximum radius is solid blue, both with light and dark halos. Only the selected point's radii appear by default; **Show all radii** compares all of them. To keep this enabled by default, check **Preferences → Editor view → Show all radii** and save. It applies immediately and when opening the editor, creating or opening a project, or loading the example. The panel control changes the view temporarily without changing the saved preference; it does not change the animation or mark the project as unsaved.
 
 Drag the **T** or **M** handle to change a radius. A point initially inherits stage values; dragging gives it individual values. Check **Usar radios de la etapa** (Use stage radii) to restore inheritance. Both sliders are also available in the inspector. With wind, handles adjust the base radius and preserve deformation. The brush uses both stage radii at every path position.
 

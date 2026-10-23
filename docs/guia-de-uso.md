@@ -87,13 +87,15 @@ Los pendientes de General o de la selección y los trazos sin terminar también 
 
 En **Preferencias** puedes personalizar:
 
+- Vista del editor: mostrar todos los radios por defecto.
+
 - Resolución, origen de la base, algoritmo, pigmento, umbrales, suavidad, papel e igualación de trazos.
 - Propagación, ambos radios, viento, pincel, tiempos y pausas de las etapas nuevas.
 - Activación, modo de inicio y demora de puntos nuevos; sus radios heredan los de la etapa.
 - Acercamiento, destacado y tratamiento exterior, sin guardar rectángulos concretos. Una nueva vista Inicio usa esos valores de enfoque y destacado.
 - Fondo y color de las presentaciones nuevas.
 
-**Guardar preferencias** confirma el borrador. **Cancelar** o × lo descartan; **Restaurar valores de fábrica** sólo prepara el cambio y requiere guardarlo. Los predeterminados afectan a proyectos y etapas nuevos, no recalculan ni modifican lo existente. Duplicar una etapa conserva su configuración. Para cambiar el proyecto actual utiliza General o sus controles normales. El ejemplo introductorio conserva su configuración original.
+**Guardar preferencias** confirma el borrador. **Cancelar** o × lo descartan; **Restaurar valores de fábrica** sólo prepara el cambio y requiere guardarlo. Los predeterminados de animación afectan a proyectos y etapas nuevos, no recalculan ni modifican lo existente. Las preferencias de vista del editor se aplican también a la sesión actual. Duplicar una etapa conserva su configuración. Para cambiar el proyecto actual utiliza General o sus controles normales. El ejemplo introductorio conserva su configuración original.
 
 **Exportar preferencias** descarga el borrador válido como `tinta-y-color.preferences.json`. **Importar preferencias** lo carga para revisión y requiere **Guardar preferencias** para usarlo. No contiene imágenes ni geometría y no cambia el idioma. Los valores se conservan en este navegador; exportarlos permite trasladarlos a otro navegador o equipo. Si el almacenamiento está bloqueado, la aplicación avisa y los usa sólo durante la sesión. Las preferencias dañadas o incompatibles se sustituyen por los valores de fábrica al abrir.
 
@@ -194,7 +196,7 @@ La transparencia usa el canal alfa real: el editor la representa con un damero y
 
 ## Radios con el mouse
 
-En **Puntos**, selecciona un origen en el lienzo o con **Editar radios** en la lista. El radio de tinta tiene una línea naranja discontinua y el máximo una azul continua, ambos con halo claro y oscuro. Por defecto solo aparecen los del punto seleccionado; **Mostrar todos los radios** permite compararlos.
+En **Puntos**, selecciona un origen en el lienzo o con **Editar radios** en la lista. El radio de tinta tiene una línea naranja discontinua y el máximo una azul continua, ambos con halo claro y oscuro. Por defecto solo aparecen los del punto seleccionado; **Mostrar todos los radios** permite compararlos. Para dejarlo activado por defecto, marca **Preferencias → Vista del editor → Mostrar todos los radios** y guarda. Se aplica inmediatamente y al abrir el editor, crear o abrir un proyecto y cargar el ejemplo. El control del panel permite cambiar la vista temporalmente sin alterar la preferencia guardada; no cambia la animación ni genera cambios pendientes en el proyecto.
 
 Arrastra el asa **T** o **M** para cambiar cada radio. El punto usa inicialmente los valores de la etapa; al arrastrar pasa a valores propios. Marca **Usar radios de la etapa** para recuperar la herencia. También puedes ajustar sus dos deslizadores en el inspector. Con viento, las asas modifican el radio base y conservan la deformación. El pincel sigue utilizando ambos radios de la etapa en cada posición del recorrido.
 

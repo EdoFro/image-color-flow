@@ -817,7 +817,7 @@
     project = next; decoded = images; draft = draftDecoded = null; resetSaveTarget();
     generalDraft = {}; selectionDraft = {}; generalReview = null; generalInvalid.clear();
     stageSelection = new Set([project.stages[0]]); selected = 0; selectedPoint = selectedHighlight = 0;
-    polygon = []; gesture = null; radiusHandles = []; $('includeInitial').checked = false; $('showAllRadii').checked = false;
+    polygon = []; gesture = null; radiusHandles = []; $('includeInitial').checked = false; $('showAllRadii').checked = preferences.editor.showAllRadii;
     $('viewMode').value = 'edit'; $('timeline').value = 0; $('timeLabel').textContent = '0:00 / —';
     $('canvasWrap').classList.remove('transparent'); canvas.width = canvas.height = overlay.width = overlay.height = 1;
     $('canvasWrap').hidden = true; $('emptyState').hidden = false; $('dimensions').textContent = '—';
@@ -916,7 +916,7 @@
   }
   document.addEventListener('change', event => { if (event.target.matches('select')) scheduleSelectLabels(); }, true);
   const preferencesEditor = PaintPreferencesEditor.create({ getValue: () => preferences, download, onLayout: scheduleSelectLabels,
-    onSave: value => { const saved = PaintPreferences.save(preferenceStorage, value); preferences = saved.value; status(() => t(saved.stored ? 'preferences_saved' : 'preferences_session_only')); }
+    onSave: value => { const saved = PaintPreferences.save(preferenceStorage, value); preferences = saved.value; $('showAllRadii').checked = preferences.editor.showAllRadii; drawOverlay(); status(() => t(saved.stored ? 'preferences_saved' : 'preferences_session_only')); }
   });
   // Interfaz de diagnóstico local, útil para comprobar exportaciones sin dependencias.
   window.TintaColor = { hasUnsavedChanges, undo: () => restoreHistory(-1), redo: () => restoreHistory(1), getCanvasView: () => canvasViewport.state(), getHistory: () => ({ canUndo: history.canUndo, canRedo: history.canRedo }), getPreferences: () => structuredClone(preferences), getProject: () => structuredClone(project), getPrepared: () => prepared, calculateFields, buildPresentation, packField, validateProject, getPlayer: () => player, getRevision: () => revision, getBasePreviewState: () => ({ complete: basePreviewGenerated, revision: previewRevision, view: { ...comparison.view }, state: $('basePreviewIndicator').dataset.state }) };

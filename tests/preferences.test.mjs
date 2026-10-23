@@ -34,6 +34,17 @@ test('Empty drafts round trip only through the explicit editor option',()=>{
  const f=p.factory();f.baseMode='uploaded';const blank=p.project(f,'Draft');assert.throws(()=>projects.normalize(blank));const result=projects.normalize(copy(blank),{allowEmpty:true});assert.deepEqual(copy(result),copy(blank));
  assert.throws(()=>projects.normalize({...blank,images:[]},{allowEmpty:true}));assert.throws(()=>projects.normalize({...blank,images:{initial:{data:'invalid'}}},{allowEmpty:true}));
 });
+test('Legacy preferences retain customized values and default radii visibility safely',()=>{
+ const legacy=copy(p.factory());delete legacy.editor;legacy.stage.speed=.3;legacy.startup='empty';
+ const imported=p.validate(legacy);assert.equal(imported.stage.speed,.3);assert.equal(imported.startup,'empty');assert.equal(imported.editor.showAllRadii,false);
+ const loaded=p.load({getItem:()=>JSON.stringify(legacy)});assert.equal(loaded.reset,false);assert.equal(loaded.value.stage.speed,.3);
+ for(const editor of [null,{},[],{showAllRadii:'true'},{showAllRadii:true,extra:true}])assert.throws(()=>p.validate({...legacy,editor}));
+ const enabled={...imported,editor:{showAllRadii:true}};let raw;
+ assert.equal(p.save({setItem:(_,value)=>raw=value},enabled).stored,true);
+ assert.equal(p.load({getItem:()=>raw}).value.editor.showAllRadii,true);
+ assert.equal(Object.hasOwn(p.project(enabled,'Test'),'editor'),false,'View preferences leaked into animation');
+});
+
 test('Personal defaults do not affect the engine or existing project normalization',()=>{
  const f=p.factory();f.stage.radius=1.2;p.project(f,'New');assert.equal(engine.normalizeStage().radius,.25);
  const input={format:'tinta-y-color',version:8,images:{final:{name:'x',data:'data:image/png;base64,AA=='}},stages:[{}]};const result=projects.normalize(input);assert.equal(result.stages[0].radius,.25);assert.equal(result.baseGeneration.method,'coherent');assert.equal(Object.hasOwn(result,'startup'),false);

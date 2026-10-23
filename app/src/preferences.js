@@ -10,7 +10,7 @@
   function factory() {
     const stage = root.PaintEngine.normalizeStage({ maxRadius: .4, points: [{}] });
     return { format, version: 1, startup: 'example', resolution: 1080, baseMode: 'derived',
-      baseGeneration: root.PaintBase.normalize(), presentation: root.PaintProject.normalizePresentation(),
+      editor: { showAllRadii: false }, baseGeneration: root.PaintBase.normalize(), presentation: root.PaintProject.normalizePresentation(),
       stage: pick(stage, stageKeys), point: pick(stage.points[0], pointKeys) };
   }
   function invalid(code = 'preferences_invalid') { throw new Error(code); }
@@ -18,7 +18,12 @@
     if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== keys.length || keys.some(k => !Object.hasOwn(value, k))) invalid();
   }
   function validate(input) {
-    const defaults = factory(); shape(input, Object.keys(defaults));
+    const defaults = factory();
+    // Preferences exported before v0.21.1 have no editor settings.
+    if (input && typeof input === 'object' && !Array.isArray(input) && !Object.hasOwn(input, 'editor')) input = { ...input, editor: defaults.editor };
+    shape(input, Object.keys(defaults));
+    shape(input.editor, ['showAllRadii']);
+    if (typeof input.editor.showAllRadii !== 'boolean') invalid();
     if (input.format !== format || input.version !== 1 || !['example', 'empty'].includes(input.startup) || ![720, 1080, 1440].includes(input.resolution) || !['uploaded', 'derived', 'blank'].includes(input.baseMode)) invalid();
     for (const [name, keys] of [['stage', stageKeys], ['point', pointKeys]]) {
       shape(input[name], keys); try { root.PaintGeneral.validate(input[name]); } catch (_) { invalid(); }

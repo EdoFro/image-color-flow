@@ -2,6 +2,10 @@
 
 **English** | [Español](CHANGELOG.es.md) · [Back to the project](README.md)
 
+## v0.21.1 · Default radii visibility
+
+- Preferences now includes **Editor view → Show all radii**. Applied on save and when opening projects without changing the animation. Existing preferences are retained; the setting is included in preference import/export.
+
 ## v0.21.0 · Empty-sheet initial image
 
 - New Blank sheet, no drawing mode: pure white or a uniform estimated paper tone. Automatic synchronized preview and PNG download.
