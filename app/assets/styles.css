@@ -123,3 +123,13 @@ button.delete-armed,button.delete-armed:hover{background:#a42f23;color:#fff;bord
 
 /* Only the paper control applies to an empty initial sheet. */
 .base-ink-controls{display:contents}
+
+/* Session-only header layout; the startup choice lives in browser preferences. */
+.header-details{display:contents}
+.header-toggle{flex:0 0 28px;width:28px;height:28px;padding:4px!important;margin-left:auto;display:inline-flex;align-items:center;justify-content:center}
+.app-header.header-compact{min-height:34px;height:34px;flex:0 0 34px;padding:3px 12px;gap:10px;flex-wrap:nowrap}
+.compact-identity{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.compact-app-name{font:16px Georgia,serif;white-space:nowrap;flex-shrink:0}
+.compact-identity .app-version{font-size:10px;padding:2px 4px;flex-shrink:0}
+.compact-project-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--muted)}
+.header-compact .header-toggle svg{transform:rotate(180deg)}

@@ -2,6 +2,10 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.22.0 · Encabezado compacto
+
+- Icono para minimizar la cabecera y la fila de proyecto en una franja de 34 px con app, versión y nombre no editable. El lienzo aprovecha el espacio conservando su navegación. Preferencias permite iniciar compacto; el icono sólo afecta a la sesión y por defecto se inicia expandido. Se conservan las preferencias anteriores.
+
 ## v0.21.1 · Vista de radios predeterminada
 
 - Preferencias incorpora **Vista del editor → Mostrar todos los radios**. Se aplica al guardar y al abrir proyectos, sin modificar la animación. Se conservan las preferencias anteriores y se incluye en su importación/exportación.

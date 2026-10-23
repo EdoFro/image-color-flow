@@ -14,6 +14,14 @@ Export lets you independently choose the presentation language, initially the ed
 
 Headings, tools and dialogs wrap when space is limited. If a selected value does not fit inside its selector, the full text appears below it and in its hover tooltip. Tools keep their labels in narrow windows. Small or short windows allow scrolling to reach the remaining controls. The exported HTML toolbar also scrolls if it exceeds the available height; showing or hiding it preserves the artwork size.
 
+## Compact header
+
+The arrow icon at the right of the header switches between the full view and a 34 px strip showing **Tinta y color**, its version and the read-only project name. Links, buttons and the project editing row are hidden; expand again to use them. Long names are truncated with an ellipsis; hover to read the full name.
+
+The canvas gains the freed space in desktop layout. Manual zoom and the visible center are retained within image bounds; fit modes adapt to the new space. The animation and history remain unchanged.
+
+In **Preferences → Editor view → Start with a compact header**, choose how the editor opens. Startup is expanded by default. Saving this preference affects the next opening: the toggle only changes the current session and never remembers the last state. Opening or creating a project retains the session layout.
+
 ## Project name, destination and saving
 
 The **Project name** field above the canvas is stored in the editable file and suggests its filename. You can choose a different filename when saving.
@@ -89,8 +97,7 @@ Pending General/selection settings and unfinished drawings are protected too. Ap
 
 In **Preferences**, customize:
 
-- Editor view: show all radii by default.
-
+- Editor view: show all radii by default and start with a compact header.
 - Resolution, base source, algorithm, pigment, thresholds, softness, paper and ink matching.
 - Propagation, both radii, wind, brush, timing and pauses for new stages.
 - Enabled state, start mode and delay for new points; their radii inherit from their stage.

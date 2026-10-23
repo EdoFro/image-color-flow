@@ -10,7 +10,7 @@
   function factory() {
     const stage = root.PaintEngine.normalizeStage({ maxRadius: .4, points: [{}] });
     return { format, version: 1, startup: 'example', resolution: 1080, baseMode: 'derived',
-      editor: { showAllRadii: false }, baseGeneration: root.PaintBase.normalize(), presentation: root.PaintProject.normalizePresentation(),
+      editor: { showAllRadii: false, compactHeader: false }, baseGeneration: root.PaintBase.normalize(), presentation: root.PaintProject.normalizePresentation(),
       stage: pick(stage, stageKeys), point: pick(stage.points[0], pointKeys) };
   }
   function invalid(code = 'preferences_invalid') { throw new Error(code); }
@@ -21,9 +21,11 @@
     const defaults = factory();
     // Preferences exported before v0.21.1 have no editor settings.
     if (input && typeof input === 'object' && !Array.isArray(input) && !Object.hasOwn(input, 'editor')) input = { ...input, editor: defaults.editor };
+    // v0.21.1 stored radii visibility without a header preference.
+    if (input?.editor && typeof input.editor === 'object' && !Array.isArray(input.editor) && !Object.hasOwn(input.editor, 'compactHeader')) input = { ...input, editor: { ...input.editor, compactHeader: false } };
     shape(input, Object.keys(defaults));
-    shape(input.editor, ['showAllRadii']);
-    if (typeof input.editor.showAllRadii !== 'boolean') invalid();
+    shape(input.editor, ['showAllRadii', 'compactHeader']);
+    if (typeof input.editor.showAllRadii !== 'boolean' || typeof input.editor.compactHeader !== 'boolean') invalid();
     if (input.format !== format || input.version !== 1 || !['example', 'empty'].includes(input.startup) || ![720, 1080, 1440].includes(input.resolution) || !['uploaded', 'derived', 'blank'].includes(input.baseMode)) invalid();
     for (const [name, keys] of [['stage', stageKeys], ['point', pointKeys]]) {
       shape(input[name], keys); try { root.PaintGeneral.validate(input[name]); } catch (_) { invalid(); }

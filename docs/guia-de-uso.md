@@ -12,6 +12,14 @@ Al exportar puedes elegir el idioma de la presentación de forma independiente; 
 
 Los títulos, las herramientas y los diálogos se distribuyen en varias líneas cuando falta espacio. Si el valor elegido no cabe en un selector, su texto completo aparece debajo y también al dejar el puntero sobre el selector. Las herramientas conservan sus etiquetas en ventanas estrechas. En ventanas pequeñas o bajas puedes desplazarte para acceder al resto de los controles. La barra del HTML exportado también admite desplazamiento si supera la altura disponible; mostrarla u ocultarla conserva el tamaño de la imagen.
 
+## Encabezado compacto
+
+El icono de flecha del extremo derecho de la cabecera alterna entre la vista completa y una franja de 34 px con **Tinta y color**, versión y nombre del proyecto no editable. Oculta los enlaces, botones y la fila de edición del proyecto; vuelve a expandir para usarlos. Los nombres largos se recortan con puntos suspensivos y se ven completos al dejar el puntero encima.
+
+El lienzo aprovecha el espacio liberado en la vista de escritorio. Se conserva el zoom manual y el centro visible dentro de los límites de la imagen; los modos de ajuste se adaptan al nuevo espacio. No modifica la animación ni el historial.
+
+En **Preferencias → Vista del editor → Iniciar con encabezado compacto**, elige cómo abrir el editor. Por defecto se inicia expandido. Guardar esta preferencia afecta a la próxima apertura: el icono sólo cambia la sesión actual y nunca guarda el último estado. Abrir o crear un proyecto conserva el estado de la sesión.
+
 ## Nombre, destino y guardado
 
 El campo **Nombre del proyecto**, sobre el lienzo, se conserva dentro del archivo editable. Se usa para sugerir un nombre de archivo; puedes cambiar ambos de forma independiente al guardar.
@@ -87,15 +95,14 @@ Los pendientes de General o de la selección y los trazos sin terminar también 
 
 En **Preferencias** puedes personalizar:
 
-- Vista del editor: mostrar todos los radios por defecto.
-
+- Vista del editor: mostrar todos los radios por defecto e iniciar con encabezado compacto.
 - Resolución, origen de la base, algoritmo, pigmento, umbrales, suavidad, papel e igualación de trazos.
 - Propagación, ambos radios, viento, pincel, tiempos y pausas de las etapas nuevas.
 - Activación, modo de inicio y demora de puntos nuevos; sus radios heredan los de la etapa.
 - Acercamiento, destacado y tratamiento exterior, sin guardar rectángulos concretos. Una nueva vista Inicio usa esos valores de enfoque y destacado.
 - Fondo y color de las presentaciones nuevas.
 
-**Guardar preferencias** confirma el borrador. **Cancelar** o × lo descartan; **Restaurar valores de fábrica** sólo prepara el cambio y requiere guardarlo. Los predeterminados de animación afectan a proyectos y etapas nuevos, no recalculan ni modifican lo existente. Las preferencias de vista del editor se aplican también a la sesión actual. Duplicar una etapa conserva su configuración. Para cambiar el proyecto actual utiliza General o sus controles normales. El ejemplo introductorio conserva su configuración original.
+**Guardar preferencias** confirma el borrador. **Cancelar** o × lo descartan; **Restaurar valores de fábrica** sólo prepara el cambio y requiere guardarlo. Los predeterminados de animación afectan a proyectos y etapas nuevos, no recalculan ni modifican lo existente. Mostrar radios se aplica también a la sesión actual; iniciar con encabezado compacto afecta a la próxima apertura. Duplicar una etapa conserva su configuración. Para cambiar el proyecto actual utiliza General o sus controles normales. El ejemplo introductorio conserva su configuración original.
 
 **Exportar preferencias** descarga el borrador válido como `tinta-y-color.preferences.json`. **Importar preferencias** lo carga para revisión y requiere **Guardar preferencias** para usarlo. No contiene imágenes ni geometría y no cambia el idioma. Los valores se conservan en este navegador; exportarlos permite trasladarlos a otro navegador o equipo. Si el almacenamiento está bloqueado, la aplicación avisa y los usa sólo durante la sesión. Las preferencias dañadas o incompatibles se sustituyen por los valores de fábrica al abrir.
 

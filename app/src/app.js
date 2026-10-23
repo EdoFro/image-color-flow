@@ -46,7 +46,25 @@
     if (historySuspended) return;
     history.commit(project, editorContext(), historyInput); dirty = !history.clean; syncHistory();
   }
-  function projectLabel() { $('projectName').value = project.name || ''; }
+  function compactProjectLabel() {
+    const name = project.name || t('untitled_project');
+    $('compactProjectName').textContent = name; $('compactProjectName').title = name;
+  }
+  function projectLabel() { $('projectName').value = project.name || ''; compactProjectLabel(); }
+  function syncHeaderLabel() {
+    const compact = $('appHeader').classList.contains('header-compact'), key = compact ? 'expand_header' : 'collapse_header', button = $('toggleHeader');
+    button.setAttribute('aria-expanded', String(!compact));
+    button.dataset.i18nAriaLabel = button.dataset.i18nTitle = key;
+    button.setAttribute('aria-label', t(key)); button.title = t(key); compactProjectLabel();
+  }
+  function setHeaderCompact(compact) {
+    $('appHeader').classList.toggle('header-compact', compact);
+    $('headerDetails').hidden = $('projectBar').hidden = compact; $('compactIdentity').hidden = !compact;
+    syncHeaderLabel();
+  }
+  $('toggleHeader').onclick = () => setHeaderCompact(!$('appHeader').classList.contains('header-compact'));
+  // Startup preference only: toggling, opening a project and saving preferences do not reset the current view.
+  setHeaderCompact(preferences.editor.compactHeader);
   function suggestedFilename() { return saveSuggestion && saveSuggestion.projectName === project.name ? saveSuggestion.fileName : PaintProject.filename(project.name); }
   function resetSaveTarget(name = '') { projectFiles.reset(name); saveSuggestion = null; $('saveAdvice').hidden = true; $('suggestedDirectory').value = ''; projectLabel(); }
   async function restoreHistory(delta) {
@@ -80,7 +98,7 @@
   for (const type of ['click', 'pointerdown', 'change', 'focusout']) document.addEventListener(type, () => { history.context(editorContext()); history.endGroup(); queueMicrotask(syncHistory); }, true);
   for (const dialog of document.querySelectorAll('dialog')) dialog.addEventListener('close', syncHistory);
   $('undoButton').onclick = () => restoreHistory(-1); $('redoButton').onclick = () => restoreHistory(1);
-  $('projectName').oninput = () => { project.name = PaintProject.normalizeName($('projectName').value); recordHistory(); };
+  $('projectName').oninput = () => { project.name = PaintProject.normalizeName($('projectName').value); compactProjectLabel(); recordHistory(); };
   $('projectName').onchange = projectLabel;
   $('suggestedDirectory').onclick = () => $('suggestedDirectory').select();
   $('copyDirectory').onclick = async () => { try { await navigator.clipboard.writeText($('suggestedDirectory').value); status(() => t('path_copied')); } catch (_) { $('suggestedDirectory').focus(); $('suggestedDirectory').select(); status(() => t('path_copy_manual')); } };
@@ -956,7 +974,7 @@
       else if (state === 'error') { $('basePreviewIndicator').title = i18n.error(previewErrorMessage); $('basePreviewStatus').textContent = i18n.error(previewErrorMessage); }
     }
     if (lastStatus) status(lastStatus.message, lastStatus.error);
-    preferencesEditor.refreshLanguage(); if ($('replaceDialog').open) refreshReplacement();
+    syncHeaderLabel(); preferencesEditor.refreshLanguage(); if ($('replaceDialog').open) refreshReplacement();
     scheduleSelectLabels(); drawOverlay();
   }
   document.querySelectorAll('[data-language-select], #exportLanguage').forEach(select => {

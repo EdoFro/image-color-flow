@@ -2,6 +2,10 @@
 
 **English** | [Español](CHANGELOG.es.md) · [Back to the project](README.md)
 
+## v0.22.0 · Compact editor header
+
+- Collapse the header and project row to a 34 px strip with app, version and read-only project name. The canvas gains space while retaining navigation. Preferences can start the editor compact; the toggle only affects the session, with expanded startup by default. Existing preferences are preserved.
+
 ## v0.21.1 · Default radii visibility
 
 - Preferences now includes **Editor view → Show all radii**. Applied on save and when opening projects without changing the animation. Existing preferences are retained; the setting is included in preference import/export.

@@ -49,4 +49,15 @@ test('Personal defaults do not affect the engine or existing project normalizati
  const f=p.factory();f.stage.radius=1.2;p.project(f,'New');assert.equal(engine.normalizeStage().radius,.25);
  const input={format:'tinta-y-color',version:8,images:{final:{name:'x',data:'data:image/png;base64,AA=='}},stages:[{}]};const result=projects.normalize(input);assert.equal(result.stages[0].radius,.25);assert.equal(result.baseGeneration.method,'coherent');assert.equal(Object.hasOwn(result,'startup'),false);
 });
+test('Header startup defaults migrate independently and round trip through preferences only',()=>{
+ const f=p.factory();assert.equal(f.editor.compactHeader,false);
+ f.editor={showAllRadii:true};f.stage.speed=.3;
+ const legacy=p.load({getItem:()=>JSON.stringify(f)});assert.equal(legacy.reset,false);
+ assert.equal(legacy.value.editor.showAllRadii,true);assert.equal(legacy.value.editor.compactHeader,false);assert.equal(legacy.value.stage.speed,.3);
+ legacy.value.editor.compactHeader=true;let raw;
+ p.save({setItem:(_,value)=>raw=value},legacy.value);
+ assert.equal(p.load({getItem:()=>raw}).value.editor.compactHeader,true);
+ assert.equal(Object.hasOwn(p.project(legacy.value,'Draft'),'editor'),false);
+ for(const compactHeader of ['yes',1,null,{}])assert.throws(()=>p.validate({...legacy.value,editor:{showAllRadii:true,compactHeader}}));
+});
 console.log(`${count} preferences and empty-project tests passed.`);

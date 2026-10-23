@@ -34,7 +34,7 @@
       const inkOptions = options('baseInkMatch');
       if (draft.baseGeneration.inkMatch === 'base-to-final' && !inkOptions.some(([value]) => value === 'base-to-final')) inkOptions.push(['base-to-final', t('copia_literal_anterior')]);
       addGroup(t('preferences_startup_group'), '', [choice('startup', t('preferences_startup'), [['example', t('preferences_load_example')], ['empty', t('preferences_empty')]])]);
-      addGroup(t('preferences_editor'), 'editor', [{ key: 'showAllRadii', label: t('mostrar_todos_los_radios'), type: 'boolean' }]);
+      addGroup(t('preferences_editor'), 'editor', [{ key: 'showAllRadii', label: t('mostrar_todos_los_radios'), type: 'boolean' }, { key: 'compactHeader', label: t('preferences_compact_header'), type: 'boolean' }]);
       addGroup(t('preferences_images'), '', [choice('resolution', t('resolucion_de_trabajo_lado_mayor'), options('resolution').map(([v, text]) => [+v, text])), choice('baseMode', t('imagen_inicial_utilizada'), options('baseMode'))]);
       addGroup(t('preparar_imagen_inicial'), 'baseGeneration', [
         choice('method', t('preferences_algorithm'), [['protected', t('tinta_y_lineas_l_recomendado')], ['coherent', t('tinta_y_lineas_k_anterior')], ['ink', t('tinta_sobre_papel_anterior')], ['grayscale', t('desaturacion_anterior')]]),
