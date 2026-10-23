@@ -2,6 +2,13 @@
 
 **English** | [Español](CHANGELOG.es.md) · [Back to the project](README.md)
 
+## v0.21.0 · Empty-sheet initial image
+
+- New Blank sheet, no drawing mode: pure white or a uniform estimated paper tone. Automatic synchronized preview and PNG download.
+- Bypasses extraction, alignment and ink matching without modifying the colored image. Works with preferences, history, saving, export and API/CLI/MCP.
+- Editable format 12 with reads of 1–11. Fixed flat warm-paper estimation by comparing luminance in the same histogram bins.
+- Bilingual manuals, four languages and pixel, playback and automation checks updated.
+
 ## v0.20.0 · Editor zoom and per-stage actions
 
 - Wheel zoom anchored at the pointer, percentage display and 100%, 200%, width, height and fit-image presets. Hand and middle-button panning; view retained across editing and stage changes.

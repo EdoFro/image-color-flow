@@ -19,7 +19,7 @@
   }
   function validate(input) {
     const defaults = factory(); shape(input, Object.keys(defaults));
-    if (input.format !== format || input.version !== 1 || !['example', 'empty'].includes(input.startup) || ![720, 1080, 1440].includes(input.resolution) || !['uploaded', 'derived'].includes(input.baseMode)) invalid();
+    if (input.format !== format || input.version !== 1 || !['example', 'empty'].includes(input.startup) || ![720, 1080, 1440].includes(input.resolution) || !['uploaded', 'derived', 'blank'].includes(input.baseMode)) invalid();
     for (const [name, keys] of [['stage', stageKeys], ['point', pointKeys]]) {
       shape(input[name], keys); try { root.PaintGeneral.validate(input[name]); } catch (_) { invalid(); }
       for (const parameter of parameters.filter(p => keys.includes(p.key) && p.type === 'number')) {
@@ -50,7 +50,7 @@
   }
   function project(value, name) {
     const p = validate(value);
-    return { format: 'tinta-y-color', version: 11, name: '', resolution: p.resolution, baseMode: p.baseMode,
+    return { format: 'tinta-y-color', version: 12, name: '', resolution: p.resolution, baseMode: p.baseMode,
       baseGeneration: clone(p.baseGeneration), presentation: clone(p.presentation), initialView: root.PaintEngine.normalizeView(p.stage),
       images: {}, alignment: root.PaintProject.zeroAlignment(), stages: [stage(p, 0, name)] };
   }

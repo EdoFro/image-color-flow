@@ -6,14 +6,14 @@
 
 An editable project is a JSON file with the `.colorflow.json` extension. It embeds original images as base64 data and can be moved without separate image files.
 
-The current format is **11**. Its number is independent of the application version: reorganizing folders does not change the format.
+The current format is **12**. Its number is independent of the application version: reorganizing folders does not change the format.
 
 ## Top-level structure
 
 | Field | Contents |
 | --- | --- |
 | `format` | Fixed identifier `tinta-y-color`. |
-| `version` | Format version: saves `11`; reads formats `1`–`11`. |
+| `version` | Format version: saves `12`; reads formats `1`–`12`. |
 | `name` | Optional project name, up to 120 characters; suggests the editable filename. |
 | `images.final` | Colored image required for preparation/playback/export; may only be omitted in an empty editor draft. Contains `name` and `data` (image data URL). |
 | `images.initial` | Optional initial image, with the same structure. |
@@ -146,8 +146,12 @@ During `cameraDuration`, equal-length lists interpolate rectangles by index; dif
 
 ## Export playback mode · application 0.16.0
 
-`presentation.mode` accepts `standalone` or `integrated`; omission means standalone. Embedded mode enforces per-stage pauses in the export without changing authored `pauseAfter`, geometry or timing. This option was introduced in format 10 and is retained in format 11. JSON does not contain a controller connection or editor session.
+`presentation.mode` accepts `standalone` or `integrated`; omission means standalone. Embedded mode enforces per-stage pauses in the export without changing authored `pauseAfter`, geometry or timing. This option was introduced in format 10 and is retained in format 12. JSON does not contain a controller connection or editor session.
 
 ## Format 11: project name
 
 Adds optional `name`, up to 120 characters. Older projects receive an empty name. File permissions, recommended local paths and undo history are not serialized. They belong to the editor session; review's destination hint is only embedded in its editable HTML.
+
+## Format 12: empty sheet
+
+`baseMode: "blank"` creates a uniform, opaque sheet without a drawing. Choose `baseGeneration.paper: "white"` or `"matched"`; other generation settings, alignment and any uploaded initial image do not participate in preparation. The final image is not modified. Formats 1–11 retain their previous modes when opened. Older readers reject format 12 instead of silently converting an empty sheet to extracted ink.

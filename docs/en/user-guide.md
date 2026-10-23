@@ -36,6 +36,14 @@ History covers points, radii, brushes, zones, framing, highlights, stages, param
 Up to 80 steps are kept during the session, sharing image sources without duplicating them per adjustment. Opening another project, New project or loading the example resets history. Saving retains history; returning to the saved state clears the unsaved-change warning. History is not serialized and does not change preferences. Finish/cancel drawings and apply/discard pending dialog or General edits before using it.
 
 
+## Start with an empty sheet
+
+In **Images → Initial image**, choose **Blank sheet, no drawing**. Under **Initial image paper**, select **Pure white** or **Match the final image’s paper tone**. The comparison is generated automatically and keeps its zoom when you change the paper. Download the sheet as a PNG or select **Apply and return to canvas**.
+
+The sheet is uniform, opaque and contains no drawing lines, shadows or colors. Matching estimates the tone from the brightest areas without reproducing their texture. Ink extraction, gray adjustments, ink matching and alignment do not apply in this mode. The colored image retains its colors. Animation reveals both drawing and color.
+
+No initial image file is required. The choice is saved with the project, retained when reopened and can be undone/redone after applying. Preferences also lets you select this mode and paper for new projects. The introductory example retains its own settings.
+
 ## Canvas zoom and panning
 
 Above the image, the toolbar shows the current percentage and **100%**, **200%**, **Fit width**, **Fit height** and **Fit image** buttons. Fit image is the initial mode. At 100%, each prepared image pixel occupies one browser display pixel, using the working resolution.
@@ -215,7 +223,7 @@ To integrate it into another web presentation, keep the exported HTML alongside 
 
 Save a `.colorflow.json` project to continue editing: it includes original images, regions, point order/activation/start modes, paths, alignment, framing and parameters. Presentation HTML is a final output, not a replacement for the editable project. Downloads go to the folder selected by your browser.
 
-Projects are saved in format 11; formats 1–10 can also be opened. Existing fields are retained and missing fields receive defaults. See [project format](project-format.md) for compatibility details.
+Projects are saved in format 12; formats 1–11 can also be opened. Existing fields are retained and missing fields receive defaults. See [project format](project-format.md) for compatibility details.
 
 ## Scope and limitations
 

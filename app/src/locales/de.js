@@ -496,6 +496,10 @@
   "duplicate_stage_named": "Schritt duplizieren: {name}",
   "delete_stage_named": "Schritt löschen: {name}",
   "confirm_stage_delete_short": "Löschen?",
-  "confirm_stage_delete_hint": "Innerhalb von zwei Sekunden erneut drücken, um Schritt {name} zu löschen. Escape oder ein Klick außerhalb bricht ab."
+  "confirm_stage_delete_hint": "Innerhalb von zwei Sekunden erneut drücken, um Schritt {name} zu löschen. Escape oder ein Klick außerhalb bricht ab.",
+  "blank_base_mode": "Leeres Blatt, ohne Zeichnung",
+  "blank_base_description": "Ohne Linien oder Farben beginnen: Reinweiß oder den Papierton des fertigen Bildes wählen. Die Vorschau wird automatisch aktualisiert.",
+  "blank_base_paper_note": "Der Papierton wird aus den hellsten Bereichen geschätzt und einheitlich angewendet, ohne deren Textur zu übernehmen.",
+  "blank_base_preview_ready": "{width} × {height} px · Einheitliches Blatt ohne Zeichnung. Vor dem Anwenden vergleichen."
 });
 })(typeof window === "undefined" ? globalThis : window);

@@ -23,6 +23,8 @@ Los ZIP de cada versión se publican en [GitHub Releases](https://github.com/Edo
 
 ## Empezar
 
+También puedes comenzar desde una **hoja vacía**, blanca o con el tono del papel: elige **Imágenes → Imagen inicial utilizada → Hoja en blanco, sin dibujo**. Consulta [esta opción](docs/guia-de-uso.md#comenzar-con-una-hoja-vacía).
+
 El lienzo admite zoom con la rueda, ajustes al ancho/alto y desplazamiento con Mano o botón central. Cada tarjeta de etapa permite duplicar y eliminar, con confirmación de dos clics y recuperación mediante Deshacer. Consulta [zoom y acciones por etapa](docs/guia-de-uso.md#zoom-y-desplazamiento-del-lienzo).
 
 La interfaz está disponible en **español, inglés, francés y alemán**. Elige el idioma en la cabecera o en Imágenes; se recuerda localmente. La primera vez se utiliza un idioma compatible del navegador, con español como alternativa. Cambiarlo conserva el proyecto y la reproducción. Consulta los [idiomas de la aplicación](docs/idiomas.md).

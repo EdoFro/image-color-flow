@@ -2,6 +2,13 @@
 
 [English](CHANGELOG.md) | **Español** · [Volver al proyecto](README.es.md)
 
+## v0.21.0 · Imagen inicial como hoja vacía
+
+- Nuevo modo Hoja en blanco, sin dibujo: blanco puro o tono uniforme estimado del papel. Vista previa automática, comparación sincronizada y descarga PNG.
+- Omite extracción, alineación e igualación de trazos sin modificar la imagen coloreada. Compatible con preferencias, historial, guardado, exportación y API/CLI/MCP.
+- Formato editable 12, con lectura de 1–11. Corregida la estimación de papel cálido uniforme para comparar la luminosidad en los mismos intervalos del histograma.
+- Manuales bilingües, cuatro idiomas y pruebas de píxeles, reproducción y automatización actualizados.
+
 ## v0.20.0 · Zoom de edición y acciones por etapa
 
 - Rueda con ampliación alrededor del puntero, porcentaje y botones 100 %, 200 %, ancho, alto e imagen completa. Mano y botón central desplazan; la vista se conserva al editar y cambiar de etapa.

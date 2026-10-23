@@ -51,7 +51,7 @@
     test('Los proyectos de formato 6 conservan desaturación y los nuevos usan tinta sobre papel', () => {
       const data={format:'tinta-y-color',version:6,images:{final:{data:'data:image/png;base64,AA'}},stages:[{}]};
       const old=root.PaintProject.normalize(data), fresh=root.PaintProject.normalize({...data,version:7});
-      assert(old.version===11 && old.baseGeneration.method==='grayscale', 'No se preservó la compatibilidad.');
+      assert(old.version===12 && old.baseGeneration.method==='grayscale', 'No se preservó la compatibilidad.');
       assert(fresh.baseGeneration.method==='ink' && fresh.baseGeneration.colorToGray===0, 'No se configuró tinta sobre papel.');
     });
     test('Formato 8 usa K y formato 7 conserva tinta anterior, incluso sin configuración', () => {
@@ -192,7 +192,7 @@
     test('El proyecto conserva varios destacados, Inicio y el alias del primero', () => {
       const rects=[{x:.1,y:.1,width:.2,height:.2},{x:.6,y:.6,width:.2,height:.2}],data={format:'tinta-y-color',version:10,images:{final:{data:'data:image/png;base64,AA'}},stages:[{highlightLinked:false,highlightFrames:rects}],initialView:{highlightLinked:false,highlightFrames:rects}};
       const saved=root.PaintProject.normalize(data),again=root.PaintProject.normalize(JSON.parse(JSON.stringify(saved)));
-      assert(again.version===11&&again.stages[0].highlightFrames.length===2&&again.initialView.highlightFrames.length===2,'Se perdieron rectángulos.');
+      assert(again.version===12&&again.stages[0].highlightFrames.length===2&&again.initialView.highlightFrames.length===2,'Se perdieron rectángulos.');
       assert(again.stages[0].highlightFrame.x===.1,'Se perdió el alias.');
       const old=root.PaintProject.normalize({...data,version:9,stages:[{highlightLinked:false,highlightFrame:rects[1]}]});assert(old.stages[0].highlightFrames[0].x===.6,'Cambió un destacado antiguo.');
     });

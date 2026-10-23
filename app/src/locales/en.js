@@ -496,6 +496,10 @@
   "duplicate_stage_named": "Duplicate stage: {name}",
   "delete_stage_named": "Delete stage: {name}",
   "confirm_stage_delete_short": "Delete?",
-  "confirm_stage_delete_hint": "Press again within two seconds to delete stage {name}. Escape or clicking elsewhere cancels."
+  "confirm_stage_delete_hint": "Press again within two seconds to delete stage {name}. Escape or clicking elsewhere cancels.",
+  "blank_base_mode": "Blank sheet, no drawing",
+  "blank_base_description": "Start without lines or colors: choose pure white or match the final image’s paper tone. The preview updates automatically.",
+  "blank_base_paper_note": "Match paper uses a uniform tone estimated from the brightest areas; it does not reproduce their texture.",
+  "blank_base_preview_ready": "{width} × {height} px · Uniform sheet without drawing. Compare before applying."
 });
 })(typeof window === "undefined" ? globalThis : window);

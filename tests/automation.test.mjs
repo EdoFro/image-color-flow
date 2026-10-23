@@ -34,10 +34,24 @@ try {
   await test('Create incorpora la imagen exacta y devuelve un plan sin base64', async () => {
     const result = await api.create({ image: 'imagen.png', plan, output: 'animacion.colorflow.json' });
     assert.equal(result.plan.baseMode, 'derived'); assert.equal(result.images.final.bytes, png.length); assert.equal(result.images.final.data, undefined);
-    const saved = JSON.parse(await readFile(resolve(workspace, result.path), 'utf8')); assert.equal(saved.images.final.data.split(',')[1], png.toString('base64')); assert.equal(saved.version, 11); assert.equal(saved.baseGeneration.method,'protected');
+    const saved = JSON.parse(await readFile(resolve(workspace, result.path), 'utf8')); assert.equal(saved.images.final.data.split(',')[1], png.toString('base64')); assert.equal(saved.version, 12); assert.equal(saved.baseGeneration.method,'protected');
   });
   await test('Crear con inicial conserva uploaded y los valores omitidos reciben valores del motor', async () => {
     const result = await api.create({ image: 'imagen.png', initialImage: 'imagen.png', output: 'dos.json' }); assert.equal(result.plan.baseMode, 'uploaded'); assert.equal(result.plan.stages[0].paintDelay, 0);
+  });
+  await test('Hoja vacía conserva modo y papel en API, CLI y MCP sin exigir inicial', async () => {
+    const created=await api.create({image:'imagen.png',output:'hoja.colorflow.json',plan:{baseMode:'blank',baseGeneration:{paper:'matched',inkMatch:'source-to-base'}}});
+    assert.equal(created.plan.baseMode,'blank');assert.equal(created.plan.baseGeneration.paper,'matched');assert.equal(created.formatVersion,12);assert.equal(created.images.initial,undefined);
+    assert.equal((await api.validate({project:created.path})).warnings.some(w=>['INK_BASE_APPROXIMATION','DERIVED_BASE'].includes(w.code)),false);
+    await api.update({project:created.path,patch:{baseGeneration:{paper:'white'}}});assert.equal((await api.inspect({project:created.path})).plan.baseMode,'blank');
+    await writeFile(resolve(workspace,'plan-hoja.json'),JSON.stringify({baseMode:'blank',baseGeneration:{paper:'white'}}));
+    assert.equal(await cli(['create','--root',workspace,'--image','imagen.png','--plan','plan-hoja.json','--out','hoja-cli.json'],{stdout:{write(){}},stderr:{write(t){throw new Error(t);}}}),0);
+    assert.equal((await api.inspect({project:'hoja-cli.json'})).plan.baseMode,'blank');
+    const handler=createHandler(api);await handler.handle({jsonrpc:'2.0',id:1,method:'initialize'});await handler.handle({jsonrpc:'2.0',method:'notifications/initialized'});
+    const result=await handler.handle({jsonrpc:'2.0',id:2,method:'tools/call',params:{name:'colorflow_create',arguments:{image:'imagen.png',output:'hoja-mcp.json',plan:{baseMode:'blank',baseGeneration:{paper:'matched'}}}}});
+    assert.equal(result.result.structuredContent.plan.baseMode,'blank');assert.equal(result.result.structuredContent.plan.baseGeneration.paper,'matched');
+    const prepared=await api.prepare({project:'hoja-mcp.json',outputDir:'hoja-preparada'});assert.ok(prepared.artifacts['base.png']);
+    const review=await api.review({project:'hoja-mcp.json',output:'hoja-editor.html',open:false});assert.ok((await readFile(resolve(workspace,review.path),'utf8')).includes('"baseMode":"blank"'));
   });
   await test('La generación de base se valida por campo y rechaza umbrales invertidos', () => {
     assertPlan({baseGeneration:{method:'ink',colorToGray:0,sensitivity:.8,blackPoint:.1,whitePoint:.9,paper:'matched'}});
@@ -127,7 +141,7 @@ try {
   await test('Un proyecto anterior mantiene sus datos y recibe desfase cero', async () => {
     const raw = JSON.parse(await readFile(resolve(workspace, 'dos.json'), 'utf8')); raw.version = 5; delete raw.stages[0].paintDelay;
     await writeFile(resolve(workspace, 'anterior.json'), JSON.stringify(raw)); const result = await api.inspect({project:'anterior.json'});
-    assert.equal(result.formatVersion,11); assert.equal(result.plan.stages[0].paintDelay,0); assert.equal(result.plan.stages[0].points[0].x,.5);
+    assert.equal(result.formatVersion,12); assert.equal(result.plan.stages[0].paintDelay,0); assert.equal(result.plan.stages[0].points[0].x,.5);
   });
   await test('Validación detecta errores antes de que la normalización pueda ocultarlos', async () => {
     const raw = JSON.parse(await readFile(resolve(workspace, 'animacion.colorflow.json'), 'utf8')); raw.stages[0].points[0].x = 9;

@@ -34,6 +34,14 @@ El historial cubre puntos, radios, recorridos, zonas, encuadres, destacados, eta
 Se conservan hasta 80 pasos durante la sesión, compartiendo los datos de las imágenes sin duplicarlos por cada ajuste. Abrir otro proyecto, Nuevo proyecto o cargar el ejemplo reinicia el historial. Guardar conserva los pasos; volver al estado guardado elimina el aviso de cambios pendientes. El historial no se guarda en el JSON y no modifica preferencias. Termina o cancela trazos y aplica o descarta borradores de diálogos o General antes de usarlo.
 
 
+## Comenzar con una hoja vacía
+
+En **Imágenes → Imagen inicial utilizada**, elige **Hoja en blanco, sin dibujo**. En **Papel de la imagen inicial**, selecciona **Blanco puro** o **Igualar tono del papel de la imagen final**. La comparación se genera automáticamente y permite conservar el zoom al cambiar el papel. Puedes descargar la hoja como PNG o pulsar **Aplicar y volver al lienzo**.
+
+La hoja es uniforme, opaca y no contiene trazos, sombras ni colores del dibujo. Igualar papel estima el tono de las zonas más claras; no reproduce su textura. En este modo no se aplican extracción de tinta, ajustes de grises, igualación de trazos ni alineación. La imagen coloreada conserva sus colores. Durante la animación van apareciendo tanto el dibujo como el color.
+
+No necesitas cargar una imagen inicial. La elección se guarda en el proyecto, se conserva al abrirlo y se puede deshacer/rehacer al aplicarla. También puedes elegir este modo y el papel en Preferencias para proyectos nuevos. El ejemplo introductorio mantiene su configuración propia.
+
 ## Zoom y desplazamiento del lienzo
 
 Sobre la imagen encontrarás el porcentaje actual y los botones **100 %**, **200 %**, **Ajustar ancho**, **Ajustar alto** e **Imagen completa**. El modo inicial es Imagen completa. El 100 % representa un píxel de la imagen preparada por píxel de presentación del navegador; corresponde a la resolución de trabajo.
@@ -213,7 +221,7 @@ Para integrarlo en otra presentación web, conserva el HTML exportado junto a el
 
 Guarda un proyecto `.colorflow.json` para seguir editando: contiene las imágenes originales, zonas, orden y activación de puntos, modos de inicio, recorridos, alineación, encuadres y parámetros. El HTML de presentación es un producto final y no sustituye al proyecto editable. Las descargas se guardan en la carpeta que elija tu navegador.
 
-Se guardan proyectos de formato 11 y se pueden abrir también los de formatos 1 a 10. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
+Se guardan proyectos de formato 12 y se pueden abrir también los de formatos 1 a 11. Se conservan los campos presentes en cada archivo; los ausentes reciben valores predeterminados. Consulta el [formato del proyecto](formato-del-proyecto.md) para los detalles de compatibilidad.
 
 ## Alcance y límites de esta versión
 

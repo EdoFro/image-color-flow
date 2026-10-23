@@ -13,6 +13,11 @@ Goal: turn a colored image and the user's request into an editable project and a
 5. Inspect `plan.png` and `storyboard.png` with `colorflow_read_image`. Check selected regions, starting points, ordering and framing. Individual frames provide more detail. Successful validation does not prove that the AI selected the requested object.
 6. If needed, use `colorflow_update` and render again. Always deliver `presentacion.html` and `proyecto.colorflow.json`, explaining pauses and observed limitations.
 
+## Empty initial sheet
+
+To start from an empty sheet, use `"baseMode": "blank"` with `"baseGeneration": { "paper": "white" }` (pure white) or `{ "paper": "matched" }` (a uniform estimated paper tone). Only the colored image is required. Extraction, ink matching, gray adjustments and alignment are bypassed without modifying the colored image. This works with create/update/prepare/render/review in API, CLI and MCP, and with editor previews. Projects use format 12; formats 1–11 remain readable.
+
+
 ## Named draft and suggested destination
 
 Use `plan.name` when creating a project. Keep the original, e.g. `windsurf-draft.colorflow.json`. `review` accepts optional `name` and `saveAs`, a `.colorflow.json` file path inside the authorized root. The suggested destination is not created or written and grants no browser permission. The result includes `name` and `saveSuggestion` with `fileName`, `directory` and `path`.
@@ -21,7 +26,7 @@ Use `plan.name` when creating a project. Keep the original, e.g. `windsurf-draft
 node automation/cli.mjs review --project windsurf-draft.colorflow.json --out windsurf-edit.html --name "Windsurf history" --save-as animations/windsurf.colorflow.json --open
 ```
 
-MCP: `colorflow_review` accepts the same `name` and `saveAs` fields. Without `saveAs`, it proposes a project-derived filename beside the draft and avoids matching the source file. A name passed to review is embedded in the editor without changing the source project. The editor supports Save, Save as and Undo/Redo; JSON files use format 11 (also reads 1–10). History exists only in the editor and is not exposed through MCP. Read user-corrected files before making changes. This remains file exchange, not a live session connection.
+MCP: `colorflow_review` accepts the same `name` and `saveAs` fields. Without `saveAs`, it proposes a project-derived filename beside the draft and avoids matching the source file. A name passed to review is embedded in the editor without changing the source project. The editor supports Save, Save as and Undo/Redo; JSON files use format 12 (also reads 1–11). History exists only in the editor and is not exposed through MCP. Read user-corrected files before making changes. This remains file exchange, not a live session connection.
 
 
 ## Units and behavior

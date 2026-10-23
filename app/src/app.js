@@ -613,17 +613,19 @@
   function syncBaseControls() {
     scheduleSelectLabels();
     const config = draft.baseGeneration = window.PaintBase.normalize(draft.baseGeneration);
+    const blank = draft.baseMode === 'blank';
+    $('baseInkControls').hidden = blank; $('baseGenerationDescription').textContent = t(blank ? 'blank_base_description' : 'conserva_la_tinta_y_deja_libres_las_superficies_que_recibi');
     $('basePreset').value = window.PaintBase.presetName(config); $('basePaper').value = config.paper;
     $('baseInkMatch').value = config.inkMatch; $('baseInkMatch').disabled = !['coherent', 'protected'].includes(config.method);
     $('baseInkMatch').querySelector('[value=base-to-final]').hidden = config.inkMatch !== 'base-to-final';
-    $('applyImages').disabled = draft.baseMode === 'derived' && !basePreviewGenerated;
+    $('applyImages').disabled = draft.baseMode !== 'uploaded' && !basePreviewGenerated;
     for (const [id, key] of Object.entries(baseControls)) {
       $(id).value = Math.round(config[key] * 100); $(id).disabled = config.method === 'grayscale';
       $(id + 'Out').textContent = `${Math.round(config[key] * 100)}%`;
     }
     $('baseSensitivityHelp').textContent = ['coherent', 'protected'].includes(config.method) ? t("aumentala_para_descartar_contrastes_debiles_de_pigmento_o_") : t("aumentala_para_retirar_colores_tenues");
     $('baseSmoothnessHelp').textContent = ['coherent', 'protected'].includes(config.method) ? t("0_conserva_el_acabado_de_l_k_aumentala_para_suavizar_borde") : t("transiciones_mas_amplias_entre_tinta_grises_y_papel_rango_");
-    $('baseMethodNote').textContent = ['coherent', 'protected'].includes(config.method) ? t("value_recupera_lineas_y_reduce_la_trama_del_color_sensibil", { p0: config.method === 'protected' ? t("l_anade_proteccion_de_superficies_oscuras_a_k") : t("k_conserva_el_metodo_anterior") }) : config.method === 'grayscale' ? t("compatibilidad_desatura_y_conserva_las_sombras_elige_tinta") : t("los_valores_iniciales_conservan_negros_solidos_y_grises_in");
+    $('baseMethodNote').textContent = blank ? t('blank_base_paper_note') : ['coherent', 'protected'].includes(config.method) ? t("value_recupera_lineas_y_reduce_la_trama_del_color_sensibil", { p0: config.method === 'protected' ? t("l_anade_proteccion_de_superficies_oscuras_a_k") : t("k_conserva_el_metodo_anterior") }) : config.method === 'grayscale' ? t("compatibilidad_desatura_y_conserva_las_sombras_elige_tinta") : t("los_valores_iniciales_conservan_negros_solidos_y_grises_in");
   }
   function previewState(state, text, title = text) {
     $('basePreviewIndicator').dataset.state = state; $('basePreviewState').textContent = text; $('basePreviewIndicator').title = title;
@@ -658,10 +660,20 @@
   }
   function generateBasePreview() {
     clearTimeout(basePreviewTimer);
-    if (!draftDecoded?.final || draft.baseMode !== 'derived') return;
+    if (!draftDecoded?.final || !['derived', 'blank'].includes(draft.baseMode)) return;
     basePreviewGenerated = false; previewError = false; generatedBase = null; previewRevision++; completedTiles.clear();
     $('downloadBase').disabled = true; previewState('pending', t("actualizando_detalle"), t("se_muestran_zonas_anteriores_hasta_recibir_el_nuevo_calcul")); syncBaseControls();
     try {
+      if (draft.baseMode === 'blank') {
+        // A solid sheet bypasses extraction, matching and any in-flight worker tiles.
+        previewWorker?.destroy(); previewWorker = null; previewSource = previewImage = null; previewKey = '';
+        const p = PaintPreparation.prepare(draftDecoded.final, null, draft);
+        previewResult = generatedBase = p; basePreviewGenerated = true;
+        $('basePreviews').hidden = false; comparison.setSources([p.finalCanvas, p.baseCanvas], !previewStarted); previewStarted = true;
+        $('generateBase').textContent = t('actualizar_vista_previa'); $('downloadBase').disabled = false;
+        previewState('ready', t('actualizada'), t('toda_la_imagen_corresponde_a_los_ultimos_parametros'));
+        $('basePreviewStatus').textContent = t('blank_base_preview_ready', { width: p.width, height: p.height }); syncBaseControls(); return;
+      }
       const lineMethod = ['coherent', 'protected'].includes(draft.baseGeneration.method), key = `${draft.resolution}:${lineMethod}`;
       if (!previewWorker) previewWorker = PaintBasePreview.create(receivePreview, previewFailed);
       if (previewImage !== draftDecoded.final || previewKey !== key) {
@@ -688,6 +700,7 @@
   }
   function scheduleBasePreview() {
     clearTimeout(basePreviewTimer);
+    if (draft.baseMode === 'blank') { generateBasePreview(); return; }
     if (previewStarted && draft.baseMode === 'derived') {
       previewRevision++; previewWorker?.post({ type: 'cancel' }); basePreviewGenerated = false; generatedBase = null; previewError = false; completedTiles.clear();
       $('downloadBase').disabled = true; syncBaseControls(); previewState('pending', t("actualizando_detalle"), t("la_imagen_todavia_no_corresponde_a_los_ultimos_parametros"));
@@ -698,9 +711,10 @@
     $('finalName').textContent = draft.images.final?.name || t("sin_imagen"); $('initialName').textContent = draft.images.initial?.name || t("no_se_necesita_si_generas_la_base_desde_la_final");
     $('baseMode').value = draft.baseMode; $('resolution').value = draft.resolution;
     for (const [id, key, scale] of [['alignX', 'x', 100], ['alignY', 'y', 100], ['alignSX', 'sx', 100], ['alignSY', 'sy', 100], ['alignAngle', 'angle', 1]]) $(id).value = +(draft.alignment[key] * scale).toFixed(3);
-    $('baseGenerationPanel').hidden = draft.baseMode !== 'derived'; $('imageAlignment').hidden = draft.baseMode === 'derived';
-    $('imagesDialog').classList.toggle('deriving', draft.baseMode === 'derived'); syncBaseControls();
+    $('baseGenerationPanel').hidden = draft.baseMode === 'uploaded'; $('imageAlignment').hidden = draft.baseMode !== 'uploaded';
+    $('imagesDialog').classList.toggle('deriving', draft.baseMode !== 'uploaded'); syncBaseControls();
     if (draft.baseMode === 'uploaded') previewAlignment();
+    if (draft.baseMode === 'blank') generateBasePreview();
   }
   function previewAlignment() {
     if (!draftDecoded?.final) return;
@@ -734,10 +748,10 @@
     if (file.size > 40000000) throw new Error(t("utiliza_una_imagen_de_menos_de_40_mb"));
     const data = await readFile(file), image = await PaintPreparation.loadImage(data);
     draft.images[kind] = { name: file.name, data }; draftDecoded[kind] = image;
-    if (kind === 'final' && !draftDecoded.initial) draft.baseMode = 'derived';
+    if (kind === 'final' && !draftDecoded.initial && draft.baseMode === 'uploaded') draft.baseMode = 'derived';
     draft.alignment = zeroAlignment(); resetBasePreview(); fillImageDialog(); status(() => (t("imagen_cargada_value_aplica_para_actualizar_el_lienzo", { p0: file.name })));
   });
-  $('baseMode').onchange = () => { draft.baseMode = $('baseMode').value; if (draft.baseMode === 'uploaded') resetBasePreview(); fillImageDialog(); scheduleBasePreview(); };
+  $('baseMode').onchange = () => { draft.baseMode = $('baseMode').value; if (draft.baseMode === 'uploaded') resetBasePreview(); fillImageDialog(); if (draft.baseMode !== 'blank') scheduleBasePreview(); };
   $('resolution').onchange = () => { draft.resolution = +$('resolution').value; scheduleBasePreview(); };
   for (const [id, key, scale] of [['alignX', 'x', 100], ['alignY', 'y', 100], ['alignSX', 'sx', 100], ['alignSY', 'sy', 100], ['alignAngle', 'angle', 1]]) $(id).oninput = () => {
     const value = +$(id).value; if (!Number.isFinite(value) || value < +$(id).min || value > +$(id).max) return; draft.alignment[key] = value / scale; previewAlignment();
@@ -748,12 +762,12 @@
   });
   $('applyImages').onclick = () => action(async () => {
     if (!draftDecoded.final) throw new Error(t("carga_primero_una_imagen_final_coloreada"));
-    if (!draftDecoded.initial) draft.baseMode = 'derived';
-    if (draft.baseMode === 'derived' && !basePreviewGenerated) return;
+    if (!draftDecoded.initial && draft.baseMode === 'uploaded') draft.baseMode = 'derived';
+    if (draft.baseMode !== 'uploaded' && !basePreviewGenerated) return;
     clearTimeout(basePreviewTimer);
     if (!Array.from($('imagesDialog').querySelectorAll('input[type=number]')).every(i => i.checkValidity())) throw new Error(t("revisa_los_valores_de_alineacion_hay_un_campo_fuera_de_ran"));
     const selectedIndices = project.stages.flatMap((stage, index) => stageSelection.has(stage) ? [index] : []);
-    project = draft; stageSelection = new Set(selectedIndices.map(index => project.stages[index])); decoded = draftDecoded; await prepareProject(draft.baseMode === 'derived' ? generatedBase : null); $('imagesDialog').close(); status(() => (t("imagenes_preparadas_en_modo_editar_se_muestra_la_referenci")));
+    project = draft; stageSelection = new Set(selectedIndices.map(index => project.stages[index])); decoded = draftDecoded; await prepareProject(draft.baseMode !== 'uploaded' ? generatedBase : null); $('imagesDialog').close(); status(() => (t("imagenes_preparadas_en_modo_editar_se_muestra_la_referenci")));
   });
   function download(name, content, type) {
     const url = URL.createObjectURL(new Blob([content], { type })), a = document.createElement('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
@@ -862,7 +876,7 @@
     const images = window.PAINT_DEMO;
     const decodedDemo = { final: await PaintPreparation.loadImage(images.final.data), initial: await PaintPreparation.loadImage(images.initial.data) };
     const makeRect = (x, y, r, b) => rectPoints({ x, y }, { x: r, y: b });
-    const exampleProject = { format: 'tinta-y-color', version: 11, name: 'Samurái · ejemplo', baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
+    const exampleProject = { format: 'tinta-y-color', version: 12, name: 'Samurái · ejemplo', baseGeneration: window.PaintBase.normalize(), presentation: presentationDefaults(), initialView: engine.normalizeView(), images: structuredClone(images), resolution: 1080, baseMode: 'uploaded', alignment: zeroAlignment(), stages: [
       engine.normalizeStage({ name: 'Primeros encuentros', zone: makeRect(.064, .035, .963, .287), points: [{ x: .75, y: .17 }, { x: .4, y: .17, startMode: 'delay', delay: .7 }, { x: .16, y: .17, startMode: 'delay', delay: .7 }], radius: .22, maxRadius: .4, speed: .13, hueResistance: 8, paintDelay: 1.2, cameraDuration: .8, pauseAfter: true, frame: { x: .53, y: .03, width: .44, height: .27 } }),
       engine.normalizeStage({ name: 'La escena central', zone: makeRect(.064, .293, .963, .659), points: [{ x: .48, y: .47 }, { x: .88, y: .5 }, { x: .18, y: .5, startMode: 'after' }], radius: .35, maxRadius: .5, speed: .13, windStrength: .35, windAngle: 20, pauseAfter: true, frame: { x: .06, y: .29, width: .91, height: .38 } }),
       engine.normalizeStage({ name: 'El cierre de la página', zone: makeRect(.064, .665, .963, .948), points: [{ x: .79, y: .8 }, { x: .43, y: .81 }, { x: .15, y: .8 }], radius: .25, maxRadius: .4, speed: .13 }),
@@ -936,7 +950,7 @@
       $('basePreviewState').textContent = t(({ off:'sin_vista_previa', pending:'actualizando_detalle', detail:'completando_imagen', ready:'actualizada', error:'error_al_actualizar' })[state]);
       if (state === 'ready') {
         $('basePreviewIndicator').title = t('toda_la_imagen_corresponde_a_los_ultimos_parametros');
-        const p = previewResult; $('basePreviewStatus').textContent = t('value_value_px_value_pixeles_igualados_compara_antes_de_ap', { p0:p.width, p1:p.height, p2:p.inkMatchPixels });
+        const p = previewResult; $('basePreviewStatus').textContent = draft.baseMode === 'blank' ? t('blank_base_preview_ready', { width:p.width, height:p.height }) : t('value_value_px_value_pixeles_igualados_compara_antes_de_ap', { p0:p.width, p1:p.height, p2:p.inkMatchPixels });
       } else if (state === 'pending' || state === 'detail') updatePreviewPhase();
       else if (state === 'off') { $('basePreviewIndicator').title = t('sin_vista_previa'); $('basePreviewStatus').textContent = t('pulsa_generar_vista_previa_para_ver_la_base_propuesta'); }
       else if (state === 'error') { $('basePreviewIndicator').title = i18n.error(previewErrorMessage); $('basePreviewStatus').textContent = i18n.error(previewErrorMessage); }

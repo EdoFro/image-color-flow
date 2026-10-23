@@ -120,3 +120,6 @@ dialog{overflow-wrap:anywhere}
 button.delete-armed,button.delete-armed:hover{background:#a42f23;color:#fff;border-color:#721b14;box-shadow:0 0 0 2px #edc2b9;font-weight:700;transition:none}
 .stage-delete,#deleteStage,.canvas-zoom-controls button{transition:none}.canvas-area.hand-mode{touch-action:none}
 @media(max-width:1150px){.stage-actions{grid-column:1/-1}}
+
+/* Only the paper control applies to an empty initial sheet. */
+.base-ink-controls{display:contents}

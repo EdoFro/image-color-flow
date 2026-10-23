@@ -6,18 +6,18 @@
 
 El proyecto editable es un JSON con extensión `.colorflow.json`. Incluye las imágenes originales como datos base64. Puede trasladarse sin archivos de imagen adicionales.
 
-El formato actual es **11**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
+El formato actual es **12**. Su número es independiente de la versión de la aplicación: reorganizar carpetas no cambia el formato.
 
 ## Estructura principal
 
 | Campo | Contenido |
 | --- | --- |
 | `format` | Identificador fijo `tinta-y-color`. |
-| `version` | Versión del formato: se guarda `11`; se leen formatos `1` a `11`. |
+| `version` | Versión del formato: se guarda `12`; se leen formatos `1` a `12`. |
 | `name` | Nombre opcional del proyecto, hasta 120 caracteres; sugiere el nombre del archivo editable. |
 | `images.final` | Imagen coloreada obligatoria para preparar/reproducir/exportar; puede omitirse sólo en un borrador vacío del editor. Contiene `name` y `data` (URL de datos de imagen). |
 | `images.initial` | Imagen inicial opcional, con la misma estructura. |
-| `baseMode` | `uploaded` para preparar la inicial o `derived` para generarla desde la final. Sin inicial se utiliza `derived`. |
+| `baseMode` | `uploaded` prepara la inicial, `derived` extrae tinta de la final y `blank` crea una hoja uniforme. Si se omite y no hay inicial, se utiliza `derived`. |
 | `baseGeneration` | Método y parámetros globales para generar la base; sólo actúan en `derived`. |
 | `resolution` | Lado mayor de trabajo: 720, 1080 o 1440 píxeles. |
 | `alignment` | Desplazamiento `x`, `y`, escalas `sx`, `sy` y giro `angle`. |
@@ -116,7 +116,7 @@ El HTML autónomo es un producto distinto. Incorpora imágenes preparadas, mapas
 
 ## Planes para automatización
 
-Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `name` y `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 11, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
+Un plan de automatización es un JSON pequeño con los parámetros de proyecto y etapas, sin imágenes ni campos `format`/`version`. Se valida con [animation.schema.json](../schemas/animation.schema.json). Puede incluir `name` y `baseGeneration`. La API incorpora los archivos de imagen y genera un proyecto autocontenido de formato 12, compatible con el editor. El plan y el proyecto editable son productos distintos; no basta con renombrar un plan como `.colorflow.json`.
 
 ### Igualación opcional (formatos 8 y 9)
 
@@ -146,8 +146,12 @@ Listas de igual cantidad interpolan los rectángulos por índice durante `camera
 
 ## Modo de reproducción exportada · aplicación 0.16.0
 
-`presentation.mode` acepta `standalone` o `integrated`; omitido equivale a independiente. El modo integrado fuerza pausas por etapa en la exportación, sin modificar `pauseAfter`, geometrías ni tiempos del editor. Esta opción se introdujo en el formato 10 y se conserva en el 11. El JSON no contiene la conexión de control ni una sesión del editor.
+`presentation.mode` acepta `standalone` o `integrated`; omitido equivale a independiente. El modo integrado fuerza pausas por etapa en la exportación, sin modificar `pauseAfter`, geometrías ni tiempos del editor. Esta opción se introdujo en el formato 10 y se conserva en el 12. El JSON no contiene la conexión de control ni una sesión del editor.
 
 ## Formato 11: nombre del proyecto
 
 Añade `name`, texto opcional de hasta 120 caracteres. Los proyectos anteriores reciben nombre vacío al abrirlos. No se guardan permisos de archivos, rutas locales recomendadas ni historial de deshacer. Esos datos pertenecen a la sesión del editor; la recomendación de destino de review sólo se incorpora a su HTML editable.
+
+## Formato 12: hoja vacía
+
+`baseMode: "blank"` genera una hoja uniforme, opaca y sin dibujo. Usa `baseGeneration.paper: "white"` o `"matched"`; los demás ajustes de generación, la alineación y la inicial cargada no intervienen en la preparación. No se modifica la imagen final. Los formatos 1–11 conservan sus modos anteriores al abrirse. Los lectores anteriores rechazan el formato 12 para evitar convertir silenciosamente una hoja vacía en una base de tinta.

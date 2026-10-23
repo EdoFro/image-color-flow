@@ -15,6 +15,11 @@ Antes de calcular, distingue **idea → borrador editable → revisión del usua
 5. Examina `plan.png` y `storyboard.png` con `colorflow_read_image`. Comprueba selección de zonas, posición de orígenes, orden y encuadres. Los fotogramas individuales permiten revisar con más detalle. Una validación correcta no demuestra que la IA haya seleccionado el objeto solicitado.
 6. Si es necesario, aplica cambios con `colorflow_update` y vuelve a renderizar. En la entrega final, entrega `presentacion.html` y `proyecto.colorflow.json`, indicando las pausas y las limitaciones observadas.
 
+## Hoja inicial sin dibujo
+
+Para empezar desde una hoja vacía utiliza `"baseMode": "blank"` y `"baseGeneration": { "paper": "white" }` (blanco puro) o `{ "paper": "matched" }` (tono uniforme estimado del papel final). Sólo se necesita la imagen coloreada. Se omiten extracción, igualación de trazos, ajustes de grises y alineación, sin modificar la imagen coloreada. Funciona con create/update/prepare/render/review en API, CLI y MCP, y con la vista previa del editor. Se guarda como formato 12; los formatos 1–11 siguen siendo legibles.
+
+
 ## Borrador con nombre y destino recomendado
 
 Usa `plan.name` al crear el proyecto. Conserva el original, por ejemplo `windsurf-borrador.colorflow.json`. `review` acepta `name` opcional y `saveAs`, una ruta de archivo `.colorflow.json` dentro de la raíz autorizada. El destino recomendado no se crea ni se escribe; no autoriza al navegador. El resultado devuelve `name` y `saveSuggestion` con `fileName`, `directory` y `path`.
@@ -23,7 +28,7 @@ Usa `plan.name` al crear el proyecto. Conserva el original, por ejemplo `windsur
 node automation/cli.mjs review --project windsurf-borrador.colorflow.json --out windsurf-editar.html --name "Historia del windsurf" --save-as animaciones/windsurf.colorflow.json --open
 ```
 
-MCP: `colorflow_review` recibe los mismos campos `name` y `saveAs`. Sin `saveAs`, propone un nombre derivado del proyecto junto al borrador y evita coincidir con el archivo original. El nombre indicado en review se incorpora al borrador abierto, sin cambiar el archivo de origen. El editor permite guardar, guardar como y deshacer/rehacer; sus archivos JSON usan formato 11 (abre también 1–10). El historial vive sólo en el editor y no está disponible por MCP. No cambies archivos corregidos por el usuario sin leerlos antes. Sigue siendo intercambio por archivos, no conexión con la sesión abierta.
+MCP: `colorflow_review` recibe los mismos campos `name` y `saveAs`. Sin `saveAs`, propone un nombre derivado del proyecto junto al borrador y evita coincidir con el archivo original. El nombre indicado en review se incorpora al borrador abierto, sin cambiar el archivo de origen. El editor permite guardar, guardar como y deshacer/rehacer; sus archivos JSON usan formato 12 (abre también 1–11). El historial vive sólo en el editor y no está disponible por MCP. No cambies archivos corregidos por el usuario sin leerlos antes. Sigue siendo intercambio por archivos, no conexión con la sesión abierta.
 
 
 ## Unidades y comportamiento

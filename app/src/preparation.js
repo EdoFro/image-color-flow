@@ -26,7 +26,8 @@
   }
   function paperColor(data) {
     const l = gray(data), threshold = percentile(l, .85), sums = [0, 0, 0]; let count = 0;
-    for (let i = 0; i < l.length; i++) if (l[i] >= threshold) { count++; for (let k = 0; k < 3; k++) sums[k] += data[i * 4 + k]; }
+    // Compare in the same rounded bins used by percentile, including warm flat paper.
+    for (let i = 0; i < l.length; i++) if (Math.round(l[i]) >= threshold) { count++; for (let k = 0; k < 3; k++) sums[k] += data[i * 4 + k]; }
     return sums.map(v => count ? v / count : 245);
   }
   function prepare(finalImage, initialImage, options) {
@@ -35,7 +36,10 @@
     const finalCanvas = draw(finalImage, width, height), final = finalCanvas.getContext('2d').getImageData(0, 0, width, height);
     const baseCanvas = canvas(width, height), ctx = baseCanvas.getContext('2d', { willReadFrequently: true });
     const paper = paperColor(final.data); let baseSourceSize = null, generatedPaper = paper, inkMatchPixels = 0;
-    if (options.baseMode === 'derived' || !initialImage) {
+    if (options.baseMode === 'blank') {
+      const color = root.PaintBase.normalize(options.baseGeneration).paper === 'white' ? [255, 255, 255] : paper;
+      ctx.fillStyle = `rgb(${color.join(',')})`; ctx.fillRect(0, 0, width, height);
+    } else if (options.baseMode === 'derived' || !initialImage) {
       const base = ctx.createImageData(width, height);
       const config = root.PaintBase.normalize(options.baseGeneration);
       if (['coherent', 'protected'].includes(config.method)) {
@@ -66,7 +70,7 @@
       ctx.save(); ctx.translate(width / 2 + a.x * width, height / 2 + a.y * height); ctx.rotate(a.angle * Math.PI / 180); ctx.scale(a.sx, a.sy); ctx.drawImage(source, -width / 2, -height / 2); ctx.restore();
     }
     const base = ctx.getImageData(0, 0, width, height);
-    if (options.baseMode === 'derived' || !initialImage) {
+    if (options.baseMode !== 'blank' && (options.baseMode === 'derived' || !initialImage)) {
       inkMatchPixels = root.PaintBase.matchInk(base.data, final.data, options.baseGeneration, generatedPaper);
       if (inkMatchPixels) { ctx.putImageData(base, 0, 0); finalCanvas.getContext('2d').putImageData(final, 0, 0); }
     }

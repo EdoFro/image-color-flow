@@ -496,6 +496,10 @@
   "duplicate_stage_named": "Duplicar etapa: {name}",
   "delete_stage_named": "Eliminar etapa: {name}",
   "confirm_stage_delete_short": "¿Eliminar?",
-  "confirm_stage_delete_hint": "Vuelve a pulsar antes de dos segundos para eliminar la etapa {name}. Escape o clic fuera cancela."
+  "confirm_stage_delete_hint": "Vuelve a pulsar antes de dos segundos para eliminar la etapa {name}. Escape o clic fuera cancela.",
+  "blank_base_mode": "Hoja en blanco, sin dibujo",
+  "blank_base_description": "Empieza sin líneas ni colores: elige blanco puro o iguala el tono del papel de la imagen final. La vista previa se actualiza automáticamente.",
+  "blank_base_paper_note": "Igualar papel usa un tono uniforme estimado de las zonas más claras; no reproduce su textura.",
+  "blank_base_preview_ready": "{width} × {height} px · Hoja uniforme sin dibujo. Compara antes de aplicar."
 });
 })(typeof window === "undefined" ? globalThis : window);

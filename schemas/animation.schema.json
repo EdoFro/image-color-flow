@@ -18,8 +18,10 @@
     "baseMode": {
       "enum": [
         "derived",
-        "uploaded"
-      ]
+        "uploaded",
+        "blank"
+      ],
+      "description": "uploaded prepara el archivo inicial; derived extrae tinta; blank crea una hoja uniforme sin dibujo."
     },
     "alignment": {
       "type": "object",
@@ -170,7 +172,7 @@
     },
     "baseGeneration": {
       "$ref": "#/$defs/baseGeneration",
-      "description": "GeneraciÃ³n global de la base cuando baseMode es derived. Nuevos proyectos: tinta sobre papel. Proyectos de formato 1â€“6 mantienen desaturaciÃ³n al abrirse."
+      "description": "Parámetros globales de la base. En blank sólo se usa paper: white o matched; no se extraen ni igualan trazos."
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -566,7 +568,7 @@
             "white"
           ],
           "default": "white",
-          "description": "Tono estimado del papel final o blanco puro."
+          "description": "Blanco puro (white) o tono uniforme estimado del papel final (matched), también al usar baseMode blank."
         },
         "inkMatch": {
           "enum": [
